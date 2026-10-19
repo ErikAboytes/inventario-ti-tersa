@@ -146,6 +146,7 @@ export type Database = {
           actualizado_en: string
           actualizado_por: string | null
           area: string | null
+          busqueda: string | null
           creado_en: string
           creado_por: string | null
           email: string | null
@@ -163,6 +164,7 @@ export type Database = {
           actualizado_en?: string
           actualizado_por?: string | null
           area?: string | null
+          busqueda?: string | null
           creado_en?: string
           creado_por?: string | null
           email?: string | null
@@ -180,6 +182,7 @@ export type Database = {
           actualizado_en?: string
           actualizado_por?: string | null
           area?: string | null
+          busqueda?: string | null
           creado_en?: string
           creado_por?: string | null
           email?: string | null
