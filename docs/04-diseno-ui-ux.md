@@ -198,7 +198,8 @@ si el correo existe. Si se llegó desde un QR, debajo del título se avisa: «In
 - **Encabezado:** título, contador («1,463 equipos»), acciones: *Exportar CSV*, *+ Nuevo equipo* (admin).
   Con selección: *Imprimir etiquetas (N)*.
 - **Filtros** (sincronizados con la URL): búsqueda de texto, Categoría, Estado (multiselección), Empresa,
-  Contrato, Ubicación, Subcategoría; *Limpiar filtros*; interruptor **Agrupar por empresa**.
+  Contrato, Ubicación, Subcategoría, **Condición** (Sin revisar · Buen estado · Con detalles · Dañado; sirve
+  para revisar los equipos migrados sin ese dato); *Limpiar filtros*; interruptor **Agrupar por empresa**.
 - **Tabla:** casilla · Serie · Categoría · Marca/Modelo · Empresa · Operación · Ubicación · Estado (badge +
   etiqueta) · Asignado a. Orden al hacer clic en el encabezado (incluida Empresa). Clic en la fila → ficha.
 - **Pie:** *Mostrar 25/50/100* · «1–25 de 1,463» · paginación.
@@ -231,7 +232,8 @@ Orden pensado para quien llega escaneando: **primero a quién está asignado**, 
 - **Asignación actual:** colaborador (enlace), puesto, unidad de negocio, ubicación, folio (enlace), fecha,
   *Ver carta*. Si no está asignado: «Sin asignación» + último colaborador conocido.
 - **Datos:** número de producto, empresa, operación/contrato (con vencimiento), ubicación + detalle,
-  descripción, **estado físico** (condición + observaciones; «Sin revisar» si no tiene), notas.
+  descripción, **estado físico** (`EtiquetaCondicion` + observaciones debajo; «Sin revisar» si no tiene), notas.
+  El admin lo cambia desde *Editar* (P-13), sin pasar por D-01: no es un cambio de estado del equipo.
 - **QR:** vista previa + *Imprimir etiqueta*.
 - **Historial:** línea de tiempo de movimientos con «campo: antes → después» (incluye «Estado físico: Buen
   estado → Con detalles» con sus observaciones).
@@ -289,10 +291,18 @@ Secciones del formulario:
 3. **Ubicación:** Ubicación + detalle (caja, cajón, mueble).
 4. **Estado** (solo en alta; en edición se usa D-01): Stock, Pendiente, Mantenimiento, Apartado, No
    localizado, Desactivado. Nunca «Asignado». Si es Apartado aparece «Apartado para»; si es Desactivado, «Motivo».
-5. **Estado físico:** Condición (control segmentado: Sin revisar · Buen estado · Con detalles · Dañado) y
-   «Observaciones del estado» (área de texto; obligatoria con Con detalles o Dañado). Texto de ayuda de
-   ejemplo: «Ligero golpe en chasis y leves rayones en la pantalla. Sigue en estado funcional.» Solo se ve
-   en el sistema; **no se imprime en las cartas**.
+5. **Estado físico** (componente `CamposEstadoFisico`, en alta y en edición): Condición (control segmentado:
+   Sin revisar · Buen estado · Con detalles · Dañado) y «Observaciones del estado» (área de texto, máx. 1,000
+   caracteres). Solo se ve en el sistema; **no se imprime en las cartas**. Comportamiento:
+   - Con Sin revisar o Buen estado las observaciones son opcionales; la ayuda dice «Opcionales. Solo se
+     consultan en el sistema; no se imprimen en las cartas.»
+   - Al elegir Con detalles o Dañado, el campo se marca obligatorio (\*) en ese momento y la ayuda cambia a
+     «Obligatorias con «Con detalles» o «Dañado». Por ejemplo: «Ligero golpe en chasis y leves rayones en la
+     pantalla. Sigue en estado funcional.»»
+   - Si se guarda sin observaciones, el error aparece junto al campo con lo que hay que escribir según la
+     condición (mensajes en §9) y el foco va al campo.
+   - Volver a Sin revisar o Buen estado no borra lo escrito: las observaciones se conservan como nota del
+     estado físico.
 6. **Notas.**
 
 Validación al salir de cada campo; al guardar, resumen de errores arriba con enlaces a cada campo. Aviso de
@@ -355,7 +365,9 @@ Se abre al registrar la entrega y desde el detalle de la asignación.
 - Lista de equipos activos de la asignación con casilla (devolución parcial o total).
 - Por equipo: destino (**Stock** / **Mantenimiento**), condición (Buen estado / Con detalles / Dañado) y observaciones
   (obligatorias con Con detalles o Dañado). Vienen prellenadas con el estado físico actual del equipo y, al
-  guardar, lo actualizan.
+  guardar, lo actualizan. Se usa el mismo `CamposEstadoFisico` en modo devolución: «Condición al devolver»
+  sin la opción Sin revisar y «Observaciones de la devolución». El error queda en el renglón del equipo
+  (con su serie) y el resumen de errores arriba enlaza a cada renglón incompleto.
 - Opción separada **«Cierre por incidencia»** (extravío o baja) con destino No localizado / Desactivado y motivo obligatorio.
 - Fecha y confirmación (D-02). Al terminar abre **P-26**, donde está el botón *Generar carta de devolución*
   (no se genera sola) y la edición de firmas (D-04).
@@ -495,6 +507,15 @@ toda la app.
 
 «Asignado» usa el azul de marca en versión **tenue**, para no confundirse con los botones primarios, que son sólidos.
 
+**Estado físico** (`EtiquetaCondicion`): reutiliza colores ya medidos, y el texto siempre dice la condición.
+
+| Condición | Colores | Contraste |
+|---|---|---|
+| Sin revisar | los de Desactivado | 9.0:1 |
+| Buen estado | los de Stock | 6.5:1 |
+| Con detalles | los de Mantenimiento | 6.4:1 |
+| Dañado | los de No localizado | 6.8:1 |
+
 ### 7.4 Tipografía, forma y espacio
 
 - **Tipografía:** **Atkinson Hyperlegible Next** para la interfaz y **Atkinson Hyperlegible Mono** para
@@ -539,7 +560,8 @@ BARRA SUPERIOR Y MENÚ (escritorio)
 | `DataTable` | Orden, selección, paginación del servidor, vista de tarjetas en móvil, estados vacío/carga/error |
 | `FilterBar` | Filtros sincronizados con la URL, chips de filtros activos, «Limpiar» |
 | `StatusBadge` | Estado + etiqueta |
-| `Field`, `Select`, `Combobox`, `SegmentedControl`, `DateField`, `Textarea` | Campos con etiqueta, ayuda y error asociados |
+| `Field`, `Select`, `Combobox`, `SegmentedControl`, `DateField`, `Textarea` | Campos con etiqueta, ayuda y error asociados. Ya existen `CampoTexto`, `CampoArea`, `CampoSelect`, `CampoCasilla` y `ControlSegmentado` (radios nativos) |
+| `CamposEstadoFisico`, `EtiquetaCondicion` | Sección «Estado físico» de P-11/P-13 y P-25, y su badge (ya existen, en `src/features/equipos/`) |
 | `Stepper` | Pasos del asistente de entrega |
 | `Dialog`, `ConfirmDialog` | Basados en Radix: Escape, foco atrapado, retorno de foco |
 | `Toast` | Avisos con `aria-live` |
@@ -555,6 +577,17 @@ BARRA SUPERIOR Y MENÚ (escritorio)
   deshabilitado para evitar dobles envíos.
 - **Errores del servidor en lenguaje humano:** cada restricción de la BD tiene su mensaje
   («Ya existe un equipo con la serie 5CD626170N — ver equipo»).
+- **Regla del estado físico** (Con detalles o Dañado exigen observaciones). El cliente valida antes de
+  enviar con el mismo criterio que el CHECK de la BD; si aun así el servidor la rechaza, `campoDeError`
+  lleva el mensaje al campo correspondiente en lugar de dejarlo arriba del formulario.
+
+  | Dónde | Cuándo | Mensaje |
+  |---|---|---|
+  | Junto al campo | Con detalles sin observaciones | «Describe los detalles: qué tiene el equipo (golpes, rayones, piezas faltantes) y si sigue funcionando.» |
+  | Junto al campo | Dañado sin observaciones | «Describe el daño: qué parte está dañada y si el equipo todavía funciona.» |
+  | Servidor, equipo | `equipos_detalle_requiere_observaciones` | «Faltan las observaciones del estado físico: con «Con detalles» o «Dañado» hay que describir qué tiene el equipo.» |
+  | Servidor, devolución | `asignacion_equipos_detalle_requiere_observaciones` | «Faltan las observaciones de la devolución: con «Con detalles» o «Dañado» hay que describir en qué condición regresa el equipo.» |
+
 - **Confirmar solo lo importante:** registrar entrega/devolución, desactivar, cambiar rol. No se piden
   confirmaciones para acciones triviales o que se pueden deshacer.
 - **Botones con verbos del negocio:** «Registrar entrega», «Registrar devolución», «Imprimir carta» (nunca «Aceptar»/«OK»).
@@ -622,7 +655,7 @@ ETIQUETA (≈ 6.5 × 3.2 cm)
 |---|---|
 | 1 | `AppShell`, `Sidebar`, `TopBar`, `MobileNav` (D-06), P-01, P-02, P-90, P-91, marcador de P-03 |
 | 2 | `DataTable`, `FilterBar`, campos, `Dialog`/`ConfirmDialog`, `Toast`, `StatusBadge`; P-40, P-41, P-50 |
-| 3 | P-10, P-11, P-12 (sin asignación), P-13, D-01, D-05; búsqueda en barra superior (solo equipos) |
+| 3 | P-10, P-11, P-12 (sin asignación), P-13, D-01, D-05; búsqueda en barra superior (solo equipos). Usa `CamposEstadoFisico` y `EtiquetaCondicion`, ya hechos |
 | 4 | Sin pantallas nuevas: se revisan P-10 y P-12 con los datos reales migrados |
 | 5 | `Stepper`; P-20, P-21, P-22, P-24, P-25, P-26, D-04, D-07; asignación en P-12 y equipos en P-41 |
 | 6 | Documentos imprimibles, P-23, P-70, P-14, P-31, D-03; búsqueda global completa |

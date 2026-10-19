@@ -7,6 +7,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { TextField } from '@/components/ui/TextField'
 import { ESTADOS, type EstadoEquipo } from '@/lib/estados'
 import { useTitulo } from '@/lib/useTitulo'
+import { MuestraEstadoFisico } from './MuestraEstadoFisico'
 import { MuestraEtapa2 } from './MuestraEtapa2'
 
 // Página de muestra de la fase UX-0 (doc 04 §13): valida tokens y componentes base antes de la Etapa 1.
@@ -251,6 +252,10 @@ export function MuestraDiseno() {
 
           <Seccion titulo="Componentes de la Etapa 2">
             <MuestraEtapa2 />
+          </Seccion>
+
+          <Seccion titulo="Estado físico del equipo">
+            <MuestraEstadoFisico />
           </Seccion>
 
           <Link
