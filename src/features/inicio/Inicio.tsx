@@ -1,22 +1,21 @@
-import { Link } from 'react-router'
-import { Logo } from '@/components/Logo'
+import { useAuth } from '@/features/auth/contexto'
 import { useTitulo } from '@/lib/useTitulo'
 
+/** Marcador de P-03. El panel con datos se construye en la Etapa 7 (doc 04 §6). */
 export function Inicio() {
-  useTitulo('Inicio')
+  useTitulo('Panel')
+  const { perfil } = useAuth()
+  const nombre = perfil?.nombre?.split(' ')[0]
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-xl flex-col items-center justify-center gap-8 px-4 text-center">
-      <Logo className="h-auto w-52" />
-      <div className="flex flex-col gap-3">
-        <h1 className="text-2xl font-semibold">Inventario de equipos de TI</h1>
-        <p className="text-texto-secundario">
-          Base del proyecto (Etapa 0). El inicio de sesión y el panel llegan en la Etapa 1.
-        </p>
-      </div>
-      <Link to="/muestra" className="font-medium text-marca-azul underline underline-offset-4">
-        Ver la muestra de diseño
-      </Link>
-    </main>
+    <div className="flex flex-col gap-3">
+      <h1 className="text-2xl font-semibold outline-none">
+        {nombre ? `Hola, ${nombre}` : 'Panel'}
+      </h1>
+      <p className="max-w-prose text-texto-secundario">
+        El panel operativo, con cifras del inventario y lo que requiere atención, se construye en la
+        Etapa 7. Mientras tanto, usa el menú para navegar.
+      </p>
+    </div>
   )
 }
