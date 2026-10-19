@@ -32,7 +32,8 @@
 | Perfil | Contexto | Tareas principales |
 |---|---|---|
 | **Administrador** (Sistemas) | Escritorio en oficina; celular en sucursales y almacén | Entregar, devolver, dar de alta, cambiar estados, imprimir cartas y etiquetas, levantar inventario físico escaneando QR |
-| **Lector** (gerencia, contabilidad, auditoría) | Escritorio | Consultar inventario por empresa, ver panel, exportar CSV, ver historial y cartas |
+| **Lector: Contabilidad/finanzas** | Escritorio | Consultar inventario por empresa y contrato, exportar CSV, ver historial y cartas |
+| **Lector: Dirección** | Escritorio | Ver el panel con las cifras generales |
 
 Tareas por frecuencia (de mayor a menor) — guían el orden de la navegación y de los botones:
 
