@@ -170,7 +170,8 @@ el CSV abre en Excel con acentos correctos · cada edición aparece en el histor
 - Cambios respecto a lo planeado:
   - La **selección múltiple** de P-10 se mueve a la Etapa 6: su única acción es «Imprimir etiquetas (N)».
   - El selector de contrato es un `<select>` sin búsqueda. Se cambiará a `Combobox` si la lista de contratos crece.
- — Migración del Excel · M
+
+## Etapa 4 — Migración del Excel · M
 
 **Objetivo:** cargar los **1,463 equipos** reales al entorno dev y validarlos con las pantallas ya hechas.
 
@@ -183,6 +184,22 @@ el CSV abre en Excel con acentos correctos · cada edición aparece en el histor
 **Aceptación:** 1,463 equipos · conteos por estado/categoría/empresa iguales al reporte (78 desactivados:
 CGE, vendidas y donativos) · muestreo de 20 series correcto · ningún dato de LogMeIn en la base · todas las
 incidencias resueltas o documentadas.
+
+**Construido (rama `etapa-4-migracion-excel`):**
+
+- `scripts/migracion/`:
+  - `extraer.py` y los mapeos revisables `mapeos/estados.csv`, `modelos.csv` y `ubicaciones.csv`;
+  - `conciliar.py`;
+  - `reiniciar.sql`, solo para desarrollo;
+  - un README con el proceso.
+- La carga a «Tersa» (dev) concilia: 1,463 equipos y conteos por estado, categoría y empresa iguales al Excel,
+  integridad de asignaciones, muestreo de 20 series y cero valores de LogMeIn. El resultado detallado está en el
+  doc 03 §9.
+- Cambio respecto a lo planeado: en lugar de un esquema `staging`, `extraer.py` genera `salida/carga.sql`, que carga
+  con tablas temporales dentro de **una sola transacción**. Se aborta si la BD ya tiene equipos o si un conteo de
+  conciliación no cuadra. Es más simple, no deja tablas intermedias y el SQL se puede revisar antes de ejecutarlo.
+- Pendiente: la **sesión de revisión contigo** de las incidencias (doc 03 §9). Las decisiones se aplican en los
+  mapeos o en la BD y la carga se repite.
 
 ## Etapa 5 — Entregas y devoluciones · L
 

@@ -19,9 +19,12 @@ values ('00000000-0000-4000-8000-0000000c0001', 'José Carlos LÓPEZ Chávez', '
 
 -- Búsqueda sin acentos ni mayúsculas, por nombre, puesto o número de empleado.
 do $$ begin
-  if (select count(*) from public.colaboradores where busqueda ilike '%lopez chavez%') <> 1
-     or (select count(*) from public.colaboradores where busqueda ilike '%asesor de ventas%') <> 1
-     or (select count(*) from public.colaboradores where busqueda ilike '%e-123%') <> 1 then
+  -- Solo la fila de prueba: la BD de desarrollo ya tiene colaboradores reales (Etapa 4).
+  if not exists (select 1 from public.colaboradores
+                  where id = '00000000-0000-4000-8000-0000000c0001'
+                    and busqueda ilike '%lopez chavez%'
+                    and busqueda ilike '%asesor de ventas%'
+                    and busqueda ilike '%e-123%') then
     raise exception 'FALLA: la columna busqueda no normaliza bien';
   end if;
 end $$;

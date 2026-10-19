@@ -3,6 +3,11 @@
 -- Cada fallo lanza una excepción «FALLA: …»; si todo pasa, la última consulta devuelve 'OK'.
 begin;
 
+-- nextval() no se deshace con ROLLBACK: se guarda la secuencia de SINSERIE y se restaura al final,
+-- para que la prueba no consuma números de los equipos reales.
+create temp table _secuencia on commit drop as
+  select last_value, is_called from public.equipos_sinserie_seq;
+
 insert into auth.users (id, email) values
   ('00000000-0000-4000-8000-0000000000a1', 'admin.prueba@ejemplo.test'),
   ('00000000-0000-4000-8000-0000000000b2', 'lector.prueba@ejemplo.test');
@@ -109,5 +114,6 @@ do $$ begin
 end $$;
 
 reset role;
+select setval('public.equipos_sinserie_seq', last_value, is_called) from _secuencia;
 select 'OK' as resultado;
 rollback;
