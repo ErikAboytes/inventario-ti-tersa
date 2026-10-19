@@ -219,7 +219,7 @@ Lo llena un trigger `AFTER INSERT OR UPDATE` en `equipos`; las funciones RPC ind
 | `cambiar_estado(equipo, estado, apartado_para, motivo, nota)` | Cambios manuales permitidos (§4.1) |
 | `buscar_global(texto)` | QR/URL, UUID, serie, colaborador, folio (insensible a acentos con `unaccent` + `pg_trgm`) |
 | `siguiente_folio(tipo)` | Uso interno de las RPC: `CC-26-0001`, `CD-26-0001` |
-| `es_admin()`, `es_usuario_activo()` | Helpers `security definer` usados por las políticas RLS |
+| `privado.es_admin()`, `privado.es_usuario_activo()` | Helpers `security definer` usados por las políticas RLS; en un esquema que la API no expone |
 
 Extensiones: `pgcrypto` (uuid), `pg_trgm` (búsqueda parcial), `unaccent` (Chávez = Chavez).
 
