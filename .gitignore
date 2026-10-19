@@ -43,3 +43,6 @@ supabase/.temp
 # Python
 __pycache__/
 *.pyc
+
+# Netlify (estado local del enlace)
+.netlify
