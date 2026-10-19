@@ -1,0 +1,45 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Entorno (nunca subir claves)
+.env
+.env.*
+!.env.example
+
+# Datos fuente y derivados: contienen datos personales y credenciales
+*.xlsx
+*.xls
+*.csv
+!.claude/skills/**/*.csv
+scripts/migracion/salida/
+docs/**/*.pdf
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+
+# Python
+__pycache__/
+*.pyc

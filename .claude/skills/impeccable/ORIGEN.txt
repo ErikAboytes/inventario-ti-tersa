@@ -1,0 +1,3 @@
+Fuente: https://github.com/pbakaus/impeccable
+Commit: 0665bd812ae0908fcab17b96fd4f840defb882d9 (skill v4.6.0)
+Instalado: 2026-10-19, solo la carpeta .claude/skills/impeccable (sin hooks ni subagentes).

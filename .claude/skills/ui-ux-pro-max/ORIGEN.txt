@@ -1,0 +1,3 @@
+Fuente: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+Commit: 56ea9cf174ed86786187daa9de0e6247cb0747e4
+Instalado: 2026-10-19, solo .claude/skills/ui-ux-pro-max (sin pruebas). Uso: consulta (React/Tailwind/shadcn, UX, graficas); no su generador de estilos.
