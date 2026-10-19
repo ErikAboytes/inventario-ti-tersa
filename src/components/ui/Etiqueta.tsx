@@ -1,12 +1,12 @@
 import clsx from 'clsx'
 
-/** Badge neutro para estados de catálogos (Activa / Inactiva, Persona / Genérico). */
+/** Badge para estados de catálogos (Activa / Inactiva, Persona / Genérico) y estado físico del equipo. */
 export function Etiqueta({
   texto,
   tono = 'neutro',
 }: {
   texto: string
-  tono?: 'neutro' | 'positivo' | 'apagado'
+  tono?: 'neutro' | 'positivo' | 'apagado' | 'aviso' | 'alerta'
 }) {
   return (
     <span
@@ -15,6 +15,8 @@ export function Etiqueta({
         tono === 'positivo' && 'bg-stock-fondo text-stock',
         tono === 'apagado' && 'bg-desactivado-fondo text-desactivado',
         tono === 'neutro' && 'bg-marca-azul-50 text-marca-azul',
+        tono === 'aviso' && 'bg-mantenimiento-fondo text-mantenimiento',
+        tono === 'alerta' && 'bg-no-localizado-fondo text-no-localizado',
       )}
     >
       <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />

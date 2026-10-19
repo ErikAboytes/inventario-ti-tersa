@@ -15,16 +15,44 @@ const POR_RESTRICCION: Record<string, string> = {
   equipos_empresa_del_contrato: 'La empresa no coincide con la del contrato.',
   equipos_asignado_solo_por_flujo:
     'El estado «Asignado» solo cambia al registrar una entrega o devolución.',
+  equipos_detalle_requiere_observaciones:
+    'Faltan las observaciones del estado físico: con «Con detalles» o «Dañado» hay que describir qué tiene el equipo.',
+  asignacion_equipos_detalle_requiere_observaciones:
+    'Faltan las observaciones de la devolución: con «Con detalles» o «Dañado» hay que describir en qué condición regresa el equipo.',
   perfiles_ultimo_admin: 'Debe quedar al menos un Administrador activo.',
+}
+
+/** Campo del formulario al que apunta cada restricción, para mostrar el error junto a él. */
+const CAMPO_POR_RESTRICCION: Record<string, string> = {
+  equipos_serie_uidx: 'serie',
+  equipos_apartado_requiere_etiqueta: 'apartado_para',
+  equipos_desactivado_requiere_motivo: 'motivo_desactivacion',
+  equipos_subcategoria_solo_otro: 'subcategoria_id',
+  equipos_detalle_requiere_observaciones: 'observaciones_estado',
+  asignacion_equipos_detalle_requiere_observaciones: 'observaciones_devolucion',
+}
+
+const textoDe = (error: unknown) => {
+  const e = (error ?? {}) as ErrorBD
+  return `${e.message ?? ''} ${e.details ?? ''}`
+}
+
+// El nombre más largo primero: «asignacion_equipos_detalle…» contiene a «equipos_detalle…».
+const restriccionDe = (texto: string, nombres: string[]) =>
+  [...nombres].sort((a, b) => b.length - a.length).find((n) => texto.includes(n))
+
+/** Nombre del campo que causó el error, o undefined si no se sabe (el error va arriba del formulario). */
+export function campoDeError(error: unknown): string | undefined {
+  const r = restriccionDe(textoDe(error), Object.keys(CAMPO_POR_RESTRICCION))
+  return r ? CAMPO_POR_RESTRICCION[r] : undefined
 }
 
 export function mensajeDeError(error: unknown): string {
   const e = (error ?? {}) as ErrorBD
-  const texto = `${e.message ?? ''} ${e.details ?? ''}`
+  const texto = textoDe(error)
 
-  for (const [restriccion, mensaje] of Object.entries(POR_RESTRICCION)) {
-    if (texto.includes(restriccion)) return mensaje
-  }
+  const r = restriccionDe(texto, Object.keys(POR_RESTRICCION))
+  if (r) return POR_RESTRICCION[r]
 
   switch (e.code) {
     case '23505':

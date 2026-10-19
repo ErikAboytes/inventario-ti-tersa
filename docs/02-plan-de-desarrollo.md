@@ -145,11 +145,16 @@ API le rechaza escrituras · filtros y página sobreviven a la recarga.
 - **D-05** exportación CSV del resultado filtrado completo (no solo la página), UTF-8 con BOM.
 - **P-11 / P-13** alta y edición (número de producto, «sin serie visible», empresa desde el contrato).
 - **P-12** ficha: datos, estado con su etiqueta, **estado físico** (condición + observaciones), historial del equipo.
+- **Estado físico** en P-11/P-13 y filtro «Condición» en P-10. Ya están hechos y probados (rama
+  `bd/mensajes-condicion-equipos`): la validación `exigirObservaciones` (`src/lib/condicion.ts`), los
+  componentes `CamposEstadoFisico` y `EtiquetaCondicion`, y los mensajes del servidor con su campo
+  (`mensajeDeError` / `campoDeError`). La Etapa 3 solo los conecta al formulario y a la ficha.
 - **D-01** cambio de estado manual con «apartado para» y «motivo de desactivación».
 - Búsqueda en la barra superior (solo equipos, por ahora).
 
 **Aceptación:** no se puede repetir una serie (ni con distinto uso de mayúsculas/espacios) · Otro exige
-subcategoría · Apartado exige etiqueta y Desactivado exige motivo · Con detalles/Dañado exige observaciones · `asignado` no se puede elegir a mano ·
+subcategoría · Apartado exige etiqueta y Desactivado exige motivo · Con detalles/Dañado exige observaciones
+(el mensaje dice qué escribir y aparece junto al campo, tanto si lo detecta el cliente como la BD) · `asignado` no se puede elegir a mano ·
 el CSV abre en Excel con acentos correctos · cada edición aparece en el historial con «antes → después».
 
 ## Etapa 4 — Migración del Excel · M
@@ -177,6 +182,9 @@ incidencias resueltas o documentadas.
   folios sin huecos.
 - **P-21** asistente de entrega (con **D-04** datos de firma editables y **D-07** alta rápida de colaborador),
   **P-20** lista, **P-22** detalle, **P-24** vista imprimible, **P-25** devolución, **P-26** detalle de devolución.
+- En **P-25**, cada renglón usa `CamposEstadoFisico` en modo devolución, prellenado con el estado físico del
+  equipo. Los errores `asignacion_equipos_detalle_requiere_observaciones` se muestran en el renglón del equipo
+  que los causó.
 - Asignación actual en **P-12** y equipos actuales en **P-41**.
 
 **Aceptación:** los equipos no asignables no aparecen y la API los rechaza · un Apartado no se entrega sin
