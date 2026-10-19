@@ -1,10 +1,11 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import clsx from 'clsx'
-import { LogOut, Menu, X } from 'lucide-react'
+import { LogOut, Menu, Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router'
 import { Logo } from '@/components/Logo'
 import { useAuth } from '@/features/auth/contexto'
+import { BuscadorGlobal } from '@/features/busqueda/BuscadorGlobal'
 import { menuPara, type ElementoMenu } from './navegacion'
 
 /** Estructura de las pantallas con sesión (doc 04 §4): barra superior, menú lateral y menú móvil. */
@@ -51,10 +52,20 @@ function BarraSuperior({ menu }: { menu: ElementoMenu[] }) {
         <NavLink to="/" aria-label="Grupo Tersa · ir al panel" className="shrink-0 rounded-control">
           <Logo variante="sin-lema" className="h-8 w-auto" />
         </NavLink>
-        <span className="hidden border-l border-borde pl-3 text-sm text-texto-secundario sm:block">
+        <span className="hidden border-l border-borde pl-3 text-sm whitespace-nowrap text-texto-secundario xl:block">
           Inventario de TI
         </span>
+        <div className="mx-2 hidden flex-1 justify-center md:flex">
+          <BuscadorGlobal />
+        </div>
         <div className="ml-auto flex items-center gap-3">
+          <NavLink
+            to="/equipos"
+            aria-label="Buscar en el inventario"
+            className="inline-flex size-10 items-center justify-center rounded-control text-tinta hover:bg-marca-azul-50 md:hidden"
+          >
+            <Search aria-hidden="true" className="size-5" strokeWidth={1.5} />
+          </NavLink>
           <div className="hidden text-right leading-tight sm:block">
             <p className="text-sm font-medium">{perfil?.nombre || perfil?.email}</p>
             <p className="text-sm text-texto-secundario">

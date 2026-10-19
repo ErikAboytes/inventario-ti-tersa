@@ -557,8 +557,8 @@ BARRA SUPERIOR Y MENÚ (escritorio)
 | `AppShell`, `Sidebar`, `TopBar`, `MobileNav` | Estructura y navegación (§4) |
 | `GlobalSearch`, `ScannerDialog` | Búsqueda en barra superior y escáner (D-03) |
 | `PageHeader` | Título, migas de pan, acciones de la pantalla |
-| `DataTable` | Orden, selección, paginación del servidor, vista de tarjetas en móvil, estados vacío/carga/error |
-| `FilterBar` | Filtros sincronizados con la URL, chips de filtros activos, «Limpiar» |
+| `DataTable` | Orden, selección, paginación del servidor, vista de tarjetas en móvil, estados vacío/carga/error. `TablaDatos` acepta `grupo` para «Agrupar por empresa» (encabezado de grupo en tabla y tarjetas) |
+| `FilterBar` | Filtros sincronizados con la URL, chips de filtros activos, «Limpiar». `FiltroMultiple` (casillas en un desplegable) para Estado; «Limpiar» conserva «Agrupar por empresa» |
 | `StatusBadge` | Estado + etiqueta |
 | `Field`, `Select`, `Combobox`, `SegmentedControl`, `DateField`, `Textarea` | Campos con etiqueta, ayuda y error asociados. Ya existen `CampoTexto`, `CampoArea`, `CampoSelect`, `CampoCasilla` y `ControlSegmentado` (radios nativos) |
 | `CamposEstadoFisico`, `EtiquetaCondicion` | Sección «Estado físico» de P-11/P-13 y P-25, y su badge (ya existen, en `src/features/equipos/`) |

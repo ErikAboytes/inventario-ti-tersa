@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, RotateCw } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { TAMANOS_PAGINA, type Orden } from '@/lib/paramsTabla'
 import { Button } from './Button'
 
@@ -33,6 +33,8 @@ type Props<F> = {
   alPaginar: (pagina: number) => void
   alCambiarTamano: (porPagina: number) => void
   alReintentar: () => void
+  /** Agrupa filas consecutivas con el mismo valor (p. ej. «Agrupar por empresa»); las filas ya vienen ordenadas. */
+  grupo?: (fila: F) => string
 }
 
 const formato = new Intl.NumberFormat('es-MX')
@@ -58,6 +60,12 @@ export function TablaDatos<F>(p: Props<F>) {
   const totalPaginas = Math.max(1, Math.ceil(p.total / p.porPagina))
   const desde = p.total === 0 ? 0 : (p.pagina - 1) * p.porPagina + 1
   const hasta = Math.min(p.pagina * p.porPagina, p.total)
+  // Título del grupo solo cuando cambia respecto a la fila anterior.
+  const tituloGrupo = (i: number) => {
+    if (!p.grupo) return null
+    const actual = p.grupo(filas[i])
+    return i === 0 || p.grupo(filas[i - 1]) !== actual ? actual : null
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -106,27 +114,39 @@ export function TablaDatos<F>(p: Props<F>) {
                     ))}
                   </tr>
                 ))
-              : filas.map((f) => (
-                  <tr
-                    key={p.clave(f)}
-                    className={clsx(
-                      'h-11 border-b border-borde last:border-0 hover:bg-fondo',
-                      p.cargando && 'opacity-60',
-                    )}
-                  >
-                    {p.columnas.map((c) => (
-                      <td
-                        key={c.clave}
-                        className={clsx(
-                          'px-4 py-2',
-                          c.mono && 'font-mono',
-                          c.secundaria && 'hidden xl:table-cell',
-                        )}
-                      >
-                        {c.celda(f)}
-                      </td>
-                    ))}
-                  </tr>
+              : filas.map((f, i) => (
+                  <Fragment key={p.clave(f)}>
+                    {tituloGrupo(i) !== null ? (
+                      <tr className="border-b border-borde bg-fondo">
+                        <th
+                          scope="colgroup"
+                          colSpan={p.columnas.length}
+                          className="px-4 py-2 text-left font-semibold text-tinta"
+                        >
+                          {tituloGrupo(i)}
+                        </th>
+                      </tr>
+                    ) : null}
+                    <tr
+                      className={clsx(
+                        'h-11 border-b border-borde last:border-0 hover:bg-fondo',
+                        p.cargando && 'opacity-60',
+                      )}
+                    >
+                      {p.columnas.map((c) => (
+                        <td
+                          key={c.clave}
+                          className={clsx(
+                            'px-4 py-2',
+                            c.mono && 'font-mono',
+                            c.secundaria && 'hidden xl:table-cell',
+                          )}
+                        >
+                          {c.celda(f)}
+                        </td>
+                      ))}
+                    </tr>
+                  </Fragment>
                 ))}
           </tbody>
         </table>
@@ -135,10 +155,15 @@ export function TablaDatos<F>(p: Props<F>) {
 
       {/* Móvil */}
       <ul className="flex flex-col gap-2 md:hidden" aria-label={p.etiqueta} aria-busy={p.cargando}>
-        {filas.map((f) => (
-          <li key={p.clave(f)} className="rounded-tarjeta border border-borde bg-superficie p-4">
-            {p.tarjeta(f)}
-          </li>
+        {filas.map((f, i) => (
+          <Fragment key={p.clave(f)}>
+            {tituloGrupo(i) !== null ? (
+              <li className="pt-2 text-sm font-semibold text-texto-secundario">{tituloGrupo(i)}</li>
+            ) : null}
+            <li className="rounded-tarjeta border border-borde bg-superficie p-4">
+              {p.tarjeta(f)}
+            </li>
+          </Fragment>
         ))}
         {p.cargando && filas.length === 0 ? (
           <li className="p-4 text-texto-secundario">Cargando…</li>

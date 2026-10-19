@@ -817,6 +817,7 @@ export type Database = {
           asignacion_fecha: string | null
           asignacion_folio: string | null
           asignacion_id: string | null
+          busqueda: string | null
           categoria: Database['public']['Enums']['categoria_equipo'] | null
           colaborador_id: string | null
           colaborador_nombre: string | null
@@ -884,6 +885,29 @@ export type Database = {
       }
     }
     Functions: {
+      cambiar_estado: {
+        Args: {
+          p_apartado_para?: string
+          p_equipo: string
+          p_estado: Database['public']['Enums']['estado_equipo']
+          p_motivo?: string
+          p_nota?: string
+        }
+        Returns: undefined
+      }
+      historial_equipo: {
+        Args: { p_equipo: string }
+        Returns: {
+          autor: string
+          cambios: Json
+          creado_en: string
+          estado_anterior: Database['public']['Enums']['estado_equipo']
+          estado_nuevo: Database['public']['Enums']['estado_equipo']
+          id: number
+          nota: string
+          tipo: Database['public']['Enums']['tipo_movimiento']
+        }[]
+      }
       normalizar_texto: { Args: { texto: string }; Returns: string }
       siguiente_folio: { Args: { p_tipo: string }; Returns: string }
     }
