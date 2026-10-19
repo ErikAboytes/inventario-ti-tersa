@@ -33,6 +33,8 @@ dist-ssr
 *.xls
 *.csv
 !.claude/skills/**/*.csv
+# Mapeos de la migración: sin datos personales, se revisan y versionan
+!scripts/migracion/mapeos/*.csv
 scripts/migracion/salida/
 docs/**/*.pdf
 

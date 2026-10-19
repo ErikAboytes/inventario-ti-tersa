@@ -146,3 +146,47 @@ flowchart LR
 - 7 filas con descripción `2F3X8LT`.
 - 14 equipos fuera de contrato sin empresa.
 - Posibles homónimos al unificar colaboradores.
+
+## 9. Resultado de la carga en desarrollo (2026-10-19)
+
+Ejecutada con `scripts/migracion/` (ver su README) sobre «Tersa» (dev). `conciliar.py` devuelve **CONCILIADO**.
+
+| Concepto | Resultado |
+|---|---|
+| Equipos | **1,463** (1,449 del consolidado + 14 fuera de contrato) |
+| Por estado | asignado 547 · no localizado 503 · stock 293 · desactivado 78 · pendiente 37 · apartado 5 |
+| Por categoría | laptop 579 · monitor 438 · desktop 437 · otro 9 |
+| Por empresa | TRO 802 · TAU 294 · CRVH 249 · REVOR 76 · ROVAL 28 · sin empresa 14 |
+| Estado físico | 1,446 sin revisar · 11 con detalles · 4 buen estado · 2 dañado (de los comentarios) |
+| Colaboradores | 498: 383 personas y 115 genéricos ligados a su sucursal; 350 con puesto |
+| Asignaciones históricas | 521: 437 activas y 84 cerradas (con su devolución histórica `DEV-<folio>`) |
+| Catálogos | 5 empresas · 109 contratos usados · 93 ubicaciones (de 186 textos distintos) · subcategoría iPad/Tablet |
+| LogMeIn | 0 valores en la base. 7 celdas de esa columna traían por error un comentario o un puesto que sí se cargan desde su propia columna |
+
+Diferencias con §3:
+
+- **Pendientes: 37 en vez de 35.** Dos equipos ASIGNADA tienen como usuario el texto «NO ASIGNADA». Por eso
+  ASIGNADA sin usuario suma 20 y no 18.
+- **Ningún comentario de puesto en las notas.** Cuando el comentario es el puesto del colaborador, se usa como
+  puesto y no se copia a las notas.
+
+### Incidencias para la sesión de revisión
+
+Están en `scripts/migracion/salida/incidencias.csv`, con serie y fila del Excel. Ese archivo no se versiona.
+
+| Incidencia | Casos | Decisión pendiente |
+|---|---|---|
+| Posible mismo colaborador | 23 | ¿Fusionar? Nombres contenidos uno en otro o casi iguales (un apellido de más, una letra distinta) |
+| Asignada sin usuario | 20 | ¿A quién están asignadas? Hoy quedan como Pendiente |
+| Modelo por identificar | 19 | Descripciones que son números de parte (2F3X8LT, 476T2LT, 3Y0Q4AA) |
+| Coincidencia no única | 14 | Revisar contra el inventario físico |
+| Fuera de contrato sin ubicación | 9 | Ubicación real de los monitores LV1911 y el 24V G5 |
+| Estatus vacío | 8 | Estado real; hoy quedan como Pendiente |
+| Serie dudosa | 6 | Las 5 `ICR…` (¿`1CR…`?) y `CN3221427` |
+| Colaborador con nombre incompleto | 4 | Solo traen el nombre de pila: completar |
+| Colaborador unificado | 3 | Variantes de escritura que ya se unieron; confirmar |
+| No localizado con donativo | 2 | ¿Desactivar como donativo? |
+| Sin serie | 1 | Monitor Pixo → `SINSERIE-0001` |
+
+Las decisiones se aplican en `mapeos/*.csv` (o como reglas en `extraer.py`) y la carga se repite:
+`reiniciar.sql` → `carga.sql` → `conciliar.py`.

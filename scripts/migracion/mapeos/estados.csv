@@ -1,0 +1,11 @@
+﻿estatus,estado,motivo
+ASIGNADA,asignado,
+ASIGANADA,asignado,
+NO LOCALIZADO,no_localizado,
+STOCK,stock,
+STOCK CABOS,stock,
+STOCK SISTEMAS MUEBLE,stock,
+CGE,desactivado,Vendido a CGE
+VENDIDA,desactivado,Vendida
+APARTADA,apartado,
+,pendiente,
