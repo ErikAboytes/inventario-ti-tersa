@@ -157,7 +157,20 @@ subcategoría · Apartado exige etiqueta y Desactivado exige motivo · Con detal
 (el mensaje dice qué escribir y aparece junto al campo, tanto si lo detecta el cliente como la BD) · `asignado` no se puede elegir a mano ·
 el CSV abre en Excel con acentos correctos · cada edición aparece en el historial con «antes → después».
 
-## Etapa 4 — Migración del Excel · M
+**Construido (rama `etapa-3-inventario-equipos`):**
+
+- Migración `20261019150000_inventario_equipos.sql`:
+  - serie interna `SINSERIE-NNNN` asignada por la BD;
+  - columna `busqueda` en `v_equipos` (serie, marca, modelo, número de producto, descripción, operación y
+    colaborador, sin acentos);
+  - `cambiar_estado()` con nota al historial;
+  - `historial_equipo()` con autor y nombres de catálogo en lugar de id.
+- Prueba SQL `supabase/tests/etapa3_inventario_equipos.sql`.
+- Rutas `/equipos`, `/equipos/nuevo`, `/equipos/:id`, `/equipos/:id/editar` y `/e/:id` (destino del QR, lleva a la ficha).
+- Cambios respecto a lo planeado:
+  - La **selección múltiple** de P-10 se mueve a la Etapa 6: su única acción es «Imprimir etiquetas (N)».
+  - El selector de contrato es un `<select>` sin búsqueda. Se cambiará a `Combobox` si la lista de contratos crece.
+ — Migración del Excel · M
 
 **Objetivo:** cargar los **1,463 equipos** reales al entorno dev y validarlos con las pantallas ya hechas.
 
