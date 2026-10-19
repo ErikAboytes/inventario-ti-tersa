@@ -72,9 +72,10 @@ Proyecto:
 - Supabase CLI inicializado y enlazado al proyecto **«Tersa»** como entorno **dev** (ya existe). Producción se
   crea en la Etapa 9.
 - Sitio Netlify conectado a GitHub: `netlify.toml`, `public/_redirects`, variables de entorno, deploy previews.
-  Netlify ya está conectado por su conector (equipo «Aboytes», plan Free). Se crea un **sitio nuevo**
-  (decisión del usuario, 2026-10-19); los sitios `inventarios-web` e `inventarios-dev` de un intento anterior
-  no se tocan.
+  **Hecho (2026-10-19):** sitio **`tersa-it-dev`** (`https://tersa-it-dev.netlify.app`), creado por el usuario y
+  conectado al repositorio. Despliega `main` y genera deploy previews de los PRs, con las variables
+  `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` y `SECRETS_SCAN_OMIT_KEYS`. Los sitios
+  `inventarios-web` e `inventarios-dev` (intento anterior) e `inventario-ti-tersa` (creado y sin usar) no se tocan.
 - README: cómo instalar, correr y desplegar.
 
 Diseño (fase UX-0 del doc 04):
