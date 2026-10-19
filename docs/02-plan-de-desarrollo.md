@@ -144,12 +144,12 @@ API le rechaza escrituras · filtros y página sobreviven a la recarga.
   empresa**, paginación 25/50/100, selección múltiple.
 - **D-05** exportación CSV del resultado filtrado completo (no solo la página), UTF-8 con BOM.
 - **P-11 / P-13** alta y edición (número de producto, «sin serie visible», empresa desde el contrato).
-- **P-12** ficha: datos, estado con su etiqueta, historial del equipo.
+- **P-12** ficha: datos, estado con su etiqueta, **estado físico** (condición + observaciones), historial del equipo.
 - **D-01** cambio de estado manual con «apartado para» y «motivo de desactivación».
 - Búsqueda en la barra superior (solo equipos, por ahora).
 
 **Aceptación:** no se puede repetir una serie (ni con distinto uso de mayúsculas/espacios) · Otro exige
-subcategoría · Apartado exige etiqueta y Desactivado exige motivo · `asignado` no se puede elegir a mano ·
+subcategoría · Apartado exige etiqueta y Desactivado exige motivo · Con detalles/Dañado exige observaciones · `asignado` no se puede elegir a mano ·
 el CSV abre en Excel con acentos correctos · cada edición aparece en el historial con «antes → después».
 
 ## Etapa 4 — Migración del Excel · M
@@ -181,7 +181,7 @@ incidencias resueltas o documentadas.
 
 **Aceptación:** los equipos no asignables no aparecen y la API los rechaza · un Apartado no se entrega sin
 la confirmación · si falla un equipo no se guarda nada · folios consecutivos sin huecos · devolver a
-mantenimiento deja el estado y la ubicación correctos · recargar el asistente no pierde lo capturado.
+mantenimiento deja el estado y la ubicación correctos · la condición de la devolución actualiza el estado físico del equipo · recargar el asistente no pierde lo capturado.
 
 ## Etapa 6 — Cartas, etiquetas, QR y búsqueda · M-L
 

@@ -231,9 +231,10 @@ Orden pensado para quien llega escaneando: **primero a quién está asignado**, 
 - **Asignación actual:** colaborador (enlace), puesto, unidad de negocio, ubicación, folio (enlace), fecha,
   *Ver carta*. Si no está asignado: «Sin asignación» + último colaborador conocido.
 - **Datos:** número de producto, empresa, operación/contrato (con vencimiento), ubicación + detalle,
-  descripción, notas.
+  descripción, **estado físico** (condición + observaciones; «Sin revisar» si no tiene), notas.
 - **QR:** vista previa + *Imprimir etiqueta*.
-- **Historial:** línea de tiempo de movimientos con «campo: antes → después».
+- **Historial:** línea de tiempo de movimientos con «campo: antes → después» (incluye «Estado físico: Buen
+  estado → Con detalles» con sus observaciones).
 
 ```text
 Inventario / 5CD626170N
@@ -288,7 +289,11 @@ Secciones del formulario:
 3. **Ubicación:** Ubicación + detalle (caja, cajón, mueble).
 4. **Estado** (solo en alta; en edición se usa D-01): Stock, Pendiente, Mantenimiento, Apartado, No
    localizado, Desactivado. Nunca «Asignado». Si es Apartado aparece «Apartado para»; si es Desactivado, «Motivo».
-5. **Notas.**
+5. **Estado físico:** Condición (control segmentado: Sin revisar · Buen estado · Con detalles · Dañado) y
+   «Observaciones del estado» (área de texto; obligatoria con Con detalles o Dañado). Texto de ayuda de
+   ejemplo: «Ligero golpe en chasis y leves rayones en la pantalla. Sigue en estado funcional.» Solo se ve
+   en el sistema; **no se imprime en las cartas**.
+6. **Notas.**
 
 Validación al salir de cada campo; al guardar, resumen de errores arriba con enlaces a cada campo. Aviso de
 «cambios sin guardar» al intentar salir. La serie duplicada se informa con enlace al equipo existente.
@@ -348,7 +353,9 @@ Se abre al registrar la entrega y desde el detalle de la asignación.
 ### P-25 · Registrar devolución
 
 - Lista de equipos activos de la asignación con casilla (devolución parcial o total).
-- Por equipo: destino (**Stock** / **Mantenimiento**), condición (Buen estado / Con detalles / Dañado) y observaciones.
+- Por equipo: destino (**Stock** / **Mantenimiento**), condición (Buen estado / Con detalles / Dañado) y observaciones
+  (obligatorias con Con detalles o Dañado). Vienen prellenadas con el estado físico actual del equipo y, al
+  guardar, lo actualizan.
 - Opción separada **«Cierre por incidencia»** (extravío o baja) con destino No localizado / Desactivado y motivo obligatorio.
 - Fecha y confirmación (D-02). Al terminar abre **P-26**, donde está el botón *Generar carta de devolución*
   (no se genera sola) y la edición de firmas (D-04).

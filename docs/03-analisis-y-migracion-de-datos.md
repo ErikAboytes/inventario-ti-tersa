@@ -38,7 +38,7 @@ Ubicación, Ciudad, Usuario, LogMeIn, C. Responsiva, Comentarios, Coincidencia T
 | **Ciudad** | 30 valores que mezclan ciudades y estados (TIJUANA, SINALOA, NAYARIT…); 496 vacíos | Se usa para completar `ciudad`/`estado_republica` de la ubicación |
 | **Usuario** | 559 nombres (542 al normalizar mayúsculas y acentos). 57 valores genéricos en 152 equipos (SERVIDOR, VACANTE, ASESOR DE VENTAS, CONTABILIDAD…) | → `colaboradores` (§5) |
 | **C. Responsiva** | 154 folios, todos con formato `SIS0001`–`SIS0755`; `SIS0044` cubre 2 equipos | Folio de la asignación histórica. Los nuevos usan `CC-AA-NNNN` (D4) |
-| **Comentarios** | Mezcla de puestos («ASESOR DE VENTAS») y notas («Venta 03-09-26», «Detalle en teclado») | Se guarda en `equipos.notas`; el puesto se toma del archivo original |
+| **Comentarios** | Mezcla de puestos («ASESOR DE VENTAS») y notas («Venta 03-09-26», «Detalle en teclado») | Los que describen daño físico («Detalle en teclado») van a `equipos.condicion = con_detalles` + `observaciones_estado`; el resto a `equipos.notas`. Sin comentario de daño, la condición queda «Sin revisar» (nulo). El puesto se toma del archivo original |
 | **LogMeIn** | 45 valores; **16 contienen usuario y contraseña en texto plano** | **No se migra.** Recomendación: cambiar esas contraseñas |
 | **Coincidencia Tersa** | Única 1,435 · Sin coincidencia 7 · Múltiple corregida 7 | No se migra; las 14 no únicas van a revisión |
 
