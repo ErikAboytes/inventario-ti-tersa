@@ -124,6 +124,7 @@ erDiagram
 | `rol_usuario` | `admin`, `lector` |
 | `tipo_movimiento` | `alta`, `edicion`, `cambio_estado`, `asignacion`, `devolucion`, `cierre_incidencia`, `importacion` |
 | `destino_devolucion` | `stock`, `mantenimiento`, `no_localizado`, `desactivado` (los dos últimos solo para cierre por incidencia) |
+| `condicion_equipo` | `buen_estado`, `con_detalles`, `danado` (estado físico del equipo) |
 
 ### 3.2 Tablas
 
@@ -167,6 +168,8 @@ erDiagram
 | `estado` | `estado_equipo` | ver §4 |
 | `apartado_para` | text | obligatorio si `estado = 'apartado'` (CHECK) |
 | `motivo_desactivacion` | text | obligatorio si `estado = 'desactivado'` (CHECK) |
+| `condicion` | `condicion_equipo` | estado físico; **nulo = «Sin revisar»** (p. ej. equipos importados sin ese dato) |
+| `observaciones_estado` | text | detalle del estado físico («Ligero golpe en chasis y leves rayones en la pantalla. Sigue en estado funcional.»); **obligatorio si la condición es `con_detalles` o `danado`** (CHECK) |
 | `notas` | text | |
 | `creado_en/por`, `actualizado_en/por` | | llenados por trigger |
 
@@ -184,7 +187,8 @@ erDiagram
 
 **`asignacion_equipos`** — renglones de la asignación.
 `id`, `asignacion_id`, `equipo_id`, `devolucion_id` (nulo mientras está activo), `destino_devolucion`,
-`condicion_devolucion`.
+`condicion_devolucion` (`condicion_equipo`), `observaciones_devolucion` (obligatorias si la condición es
+`con_detalles` o `danado`).
 Índice único parcial `(equipo_id) where devolucion_id is null` ⇒ **un equipo no puede tener dos
 asignaciones activas**, ni siquiera ante peticiones simultáneas.
 
@@ -214,7 +218,7 @@ Lo llena un trigger `AFTER INSERT OR UPDATE` en `equipos`; las funciones RPC ind
 | `v_asignaciones` | Historial de asignaciones con conteo de equipos activos/devueltos |
 | `metricas_panel()` | Conteos por estado, categoría y empresa; contratos por vencer; movimientos recientes |
 | `crear_asignacion(colaborador, equipos[], fecha, firmas, lugar, observaciones)` | Transacción atómica; ver §4.2 |
-| `registrar_devolucion(asignacion, items[{equipo, destino, condicion}], fecha, firmas, observaciones)` | Transacción atómica; ver §4.3 |
+| `registrar_devolucion(asignacion, items[{equipo, destino, condicion, observaciones}], fecha, firmas, observaciones)` | Transacción atómica; ver §4.3 |
 | `actualizar_firmas(asignacion \| devolucion, firmas, lugar)` | Corrige los datos de firma antes de reimprimir (queda en historial) |
 | `cambiar_estado(equipo, estado, apartado_para, motivo, nota)` | Cambios manuales permitidos (§4.1) |
 | `buscar_global(texto)` | QR/URL, UUID, serie, colaborador, folio (insensible a acentos con `unaccent` + `pg_trgm`) |
@@ -274,6 +278,9 @@ stateDiagram-v2
 2. `registrar_devolucion` crea la devolución con folio, cierra los renglones, cambia el estado de los equipos
    (ubicación por defecto: almacén de Sistemas) y registra movimientos. Si ya no quedan renglones activos,
    marca la asignación como cerrada.
+   La condición y observaciones de cada renglón **actualizan el estado físico del equipo** (`condicion`,
+   `observaciones_estado`); si un renglón no trae condición, el equipo conserva la que tenía. El cambio queda
+   en el historial como «Estado físico: antes → después».
 3. La **carta de devolución** no se genera automáticamente: hay un botón «Generar carta de devolución» en
    la devolución para cuando se requiera; antes de imprimir se pueden editar los datos de firma.
 4. **Cierre por incidencia** (extravío o baja de un equipo que estaba asignado): mismo flujo con destino
@@ -350,6 +357,7 @@ Tamaño carta, generada en HTML para imprimir o guardar como PDF. Estructura tom
 3. **Datos del Equipo:** Marca / Modelo · Número de serie · Número de producto · Contrato (operación).
    - 1 equipo: mismo formato vertical de la carta actual.
    - 2 o más equipos: tabla con un renglón por equipo y las mismas cuatro columnas.
+   - El estado físico (condición y observaciones) **no se imprime**; solo se consulta en el sistema.
 4. **Datos del Usuario:** Nombre · Puesto · Unidad de Negocios · Ubicación (de la instantánea de la asignación).
 5. Texto de compromiso y las **6 cláusulas** de la carta actual + «Manifiesto haber leído…». El texto queda
    versionado en el código junto con el código de formato `F.TI-006-02`; si cambia, se sube la revisión del formato.

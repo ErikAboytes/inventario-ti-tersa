@@ -11,27 +11,30 @@ export type Database = {
       asignacion_equipos: {
         Row: {
           asignacion_id: string
-          condicion_devolucion: string | null
+          condicion_devolucion: Database['public']['Enums']['condicion_equipo'] | null
           destino_devolucion: Database['public']['Enums']['destino_devolucion'] | null
           devolucion_id: string | null
           equipo_id: string
           id: string
+          observaciones_devolucion: string | null
         }
         Insert: {
           asignacion_id: string
-          condicion_devolucion?: string | null
+          condicion_devolucion?: Database['public']['Enums']['condicion_equipo'] | null
           destino_devolucion?: Database['public']['Enums']['destino_devolucion'] | null
           devolucion_id?: string | null
           equipo_id: string
           id?: string
+          observaciones_devolucion?: string | null
         }
         Update: {
           asignacion_id?: string
-          condicion_devolucion?: string | null
+          condicion_devolucion?: Database['public']['Enums']['condicion_equipo'] | null
           destino_devolucion?: Database['public']['Enums']['destino_devolucion'] | null
           devolucion_id?: string | null
           equipo_id?: string
           id?: string
+          observaciones_devolucion?: string | null
         }
         Relationships: [
           {
@@ -417,6 +420,7 @@ export type Database = {
           actualizado_por: string | null
           apartado_para: string | null
           categoria: Database['public']['Enums']['categoria_equipo']
+          condicion: Database['public']['Enums']['condicion_equipo'] | null
           contrato_id: string | null
           creado_en: string
           creado_por: string | null
@@ -429,6 +433,7 @@ export type Database = {
           motivo_desactivacion: string | null
           notas: string | null
           numero_producto: string | null
+          observaciones_estado: string | null
           serie: string
           subcategoria_id: string | null
           ubicacion_detalle: string | null
@@ -439,6 +444,7 @@ export type Database = {
           actualizado_por?: string | null
           apartado_para?: string | null
           categoria: Database['public']['Enums']['categoria_equipo']
+          condicion?: Database['public']['Enums']['condicion_equipo'] | null
           contrato_id?: string | null
           creado_en?: string
           creado_por?: string | null
@@ -451,6 +457,7 @@ export type Database = {
           motivo_desactivacion?: string | null
           notas?: string | null
           numero_producto?: string | null
+          observaciones_estado?: string | null
           serie: string
           subcategoria_id?: string | null
           ubicacion_detalle?: string | null
@@ -461,6 +468,7 @@ export type Database = {
           actualizado_por?: string | null
           apartado_para?: string | null
           categoria?: Database['public']['Enums']['categoria_equipo']
+          condicion?: Database['public']['Enums']['condicion_equipo'] | null
           contrato_id?: string | null
           creado_en?: string
           creado_por?: string | null
@@ -473,6 +481,7 @@ export type Database = {
           motivo_desactivacion?: string | null
           notas?: string | null
           numero_producto?: string | null
+          observaciones_estado?: string | null
           serie?: string
           subcategoria_id?: string | null
           ubicacion_detalle?: string | null
@@ -808,6 +817,7 @@ export type Database = {
           categoria: Database['public']['Enums']['categoria_equipo'] | null
           colaborador_id: string | null
           colaborador_nombre: string | null
+          condicion: Database['public']['Enums']['condicion_equipo'] | null
           contrato_id: string | null
           contrato_operacion: string | null
           contrato_vencimiento: string | null
@@ -823,6 +833,7 @@ export type Database = {
           motivo_desactivacion: string | null
           notas: string | null
           numero_producto: string | null
+          observaciones_estado: string | null
           serie: string | null
           subcategoria: string | null
           subcategoria_id: string | null
@@ -875,6 +886,7 @@ export type Database = {
     }
     Enums: {
       categoria_equipo: 'desktop' | 'laptop' | 'monitor' | 'otro'
+      condicion_equipo: 'buen_estado' | 'con_detalles' | 'danado'
       destino_devolucion: 'stock' | 'mantenimiento' | 'no_localizado' | 'desactivado'
       estado_equipo:
         | 'stock'
@@ -1015,6 +1027,7 @@ export const Constants = {
   public: {
     Enums: {
       categoria_equipo: ['desktop', 'laptop', 'monitor', 'otro'],
+      condicion_equipo: ['buen_estado', 'con_detalles', 'danado'],
       destino_devolucion: ['stock', 'mantenimiento', 'no_localizado', 'desactivado'],
       estado_equipo: [
         'stock',
