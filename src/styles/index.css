@@ -1,0 +1,68 @@
+/* Identidad visual Grupo Tersa — ver docs/04-diseno-ui-ux.md §7. */
+@import '@fontsource/atkinson-hyperlegible-next/400.css';
+@import '@fontsource/atkinson-hyperlegible-next/500.css';
+@import '@fontsource/atkinson-hyperlegible-next/600.css';
+@import '@fontsource/atkinson-hyperlegible-mono/400.css';
+@import '@fontsource/atkinson-hyperlegible-mono/500.css';
+@import 'tailwindcss';
+
+@theme {
+  /* Tipografía: se eligió por distinguir 1/I/l y 0/O al leer series (§7.4). */
+  --font-sans: 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+  --font-mono: 'Atkinson Hyperlegible Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+  /* Marca (medidos del logotipo) */
+  --color-marca-azul: #0055a3;
+  --color-marca-azul-oscuro: #00478a;
+  --color-marca-azul-50: #e8f0f8;
+  --color-marca-amarillo: #fff100;
+
+  /* Neutros */
+  --color-tinta: #0f1b2d;
+  --color-texto-secundario: #4a5568;
+  --color-fondo: #f5f8fc;
+  --color-superficie: #ffffff;
+  --color-borde: #d9e0e8;
+  --color-borde-control: #7a8699;
+
+  /* Estados del equipo: texto / fondo (contraste ≥ 6.4:1, §7.3) */
+  --color-stock: #166534;
+  --color-stock-fondo: #dcfce7;
+  --color-asignado: #0055a3;
+  --color-asignado-fondo: #e8f0f8;
+  --color-mantenimiento: #92400e;
+  --color-mantenimiento-fondo: #fef3c7;
+  --color-apartado: #5b21b6;
+  --color-apartado-fondo: #ede9fe;
+  --color-pendiente: #155e75;
+  --color-pendiente-fondo: #cffafe;
+  --color-no-localizado: #991b1b;
+  --color-no-localizado-fondo: #fee2e2;
+  --color-desactivado: #374151;
+  --color-desactivado-fondo: #eef0f3;
+
+  --radius-control: 8px;
+  --radius-tarjeta: 12px;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  body {
+    @apply bg-fondo font-sans text-base text-tinta antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-marca-azul);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
