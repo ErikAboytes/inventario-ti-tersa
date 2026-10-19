@@ -26,6 +26,26 @@ describe('formulario de equipo', () => {
     expect(Object.keys(errores({ condicion: 'danado' }))).toEqual(['observaciones_estado'])
   })
 
+  it('especificaciones opcionales; la RAM solo acepta GB enteros y solo cuenta en Desktop/Laptop', () => {
+    expect(errores({})).toEqual({})
+    expect(errores({ ram_gb: '8 GB' })).toEqual({ ram_gb: MENSAJES_EQUIPO.ram })
+    expect(errores({ ram_gb: '0' })).toEqual({ ram_gb: MENSAJES_EQUIPO.ram })
+    expect(errores({ ram_gb: '16' })).toEqual({})
+    expect(errores({ categoria: 'monitor', ram_gb: 'x' })).toEqual({})
+
+    const laptop = esquemaEquipo.parse({ ...base, cpu: ' i5-1135G7 ', ram_gb: '16' })
+    expect(aFilaEquipo(laptop, true)).toMatchObject({ cpu: 'i5-1135G7', ram_gb: 16 })
+    expect(aFilaEquipo({ ...laptop, ram_gb: '' }, true).ram_gb).toBeNull()
+    const monitor = esquemaEquipo.parse({ ...base, categoria: 'monitor', cpu: 'i5', ram_gb: '8' })
+    expect(aFilaEquipo(monitor, true)).toMatchObject({
+      cpu: null,
+      gpu: null,
+      ram_gb: null,
+      almacenamiento: null,
+      sistema_operativo: null,
+    })
+  })
+
   it('en edición no envía el estado; con contrato, la empresa la pone la BD', () => {
     const v = esquemaEquipo.parse({
       ...base,

@@ -13,6 +13,11 @@ export const ETIQUETA_CATEGORIA: Record<Categoria, string> = {
   monitor: 'Monitor',
   otro: 'Otro',
 }
+// Solo las computadoras llevan especificaciones (CPU, GPU, RAM…); en otras categorías van vacías.
+export const CATEGORIAS_CON_ESPECIFICACIONES: readonly Categoria[] = ['desktop', 'laptop']
+export const tieneEspecificaciones = (c: Categoria | null | undefined) =>
+  c != null && CATEGORIAS_CON_ESPECIFICACIONES.includes(c)
+
 export const OPCIONES_CATEGORIA: Opcion[] = CATEGORIAS.map((c) => ({
   valor: c,
   texto: ETIQUETA_CATEGORIA[c],
@@ -37,7 +42,12 @@ export const MENSAJES_EQUIPO = {
   subcategoria: 'Elige la subcategoría (solo para la categoría «Otro»).',
   apartado: 'Indica para quién o para qué está apartado.',
   motivo: 'Indica el motivo de la desactivación.',
+  ram: 'Escribe la RAM en GB, solo el número (p. ej. 8).',
 } as const
+
+// RAM en GB: vacío = sin dato; si no, un entero de 1 a 4096 (equipos_ram_gb_rango).
+const ramValida = (v: string) =>
+  v === '' || (/^\d+$/.test(v) && Number(v) >= 1 && Number(v) <= 4096)
 
 /** Formulario P-11 / P-13. En edición el estado no se cambia aquí, sino con D-01. */
 export const esquemaEquipo = z
@@ -54,6 +64,11 @@ export const esquemaEquipo = z
     marca: texto(60).min(1, 'Escribe la marca.'),
     modelo: texto(100).min(1, 'Escribe el modelo.'),
     descripcion: texto(500),
+    cpu: texto(100),
+    gpu: texto(100),
+    ram_gb: z.string().trim(),
+    almacenamiento: texto(100),
+    sistema_operativo: texto(100),
     contrato_id: z.string(),
     empresa_id: z.string(),
     ubicacion_id: z.string(),
@@ -76,6 +91,9 @@ export const esquemaEquipo = z
       falta('apartado_para', MENSAJES_EQUIPO.apartado)
     if (v.estado === 'desactivado' && !v.motivo_desactivacion)
       falta('motivo_desactivacion', MENSAJES_EQUIPO.motivo)
+    // Solo se valida si la sección está visible: en Monitor u Otro la RAM no se guarda.
+    if (tieneEspecificaciones(v.categoria) && !ramValida(v.ram_gb))
+      falta('ram_gb', MENSAJES_EQUIPO.ram)
   })
   .superRefine(exigirObservaciones('condicion', 'observaciones_estado'))
 
@@ -116,6 +134,11 @@ export const VACIO: EntradaEquipo = {
   marca: '',
   modelo: '',
   descripcion: '',
+  cpu: '',
+  gpu: '',
+  ram_gb: '',
+  almacenamiento: '',
+  sistema_operativo: '',
   contrato_id: '',
   empresa_id: '',
   ubicacion_id: '',
@@ -137,6 +160,11 @@ export const valoresDe = (e: FilaEquipo): EntradaEquipo => ({
   marca: e.marca ?? '',
   modelo: e.modelo ?? '',
   descripcion: e.descripcion ?? '',
+  cpu: e.cpu ?? '',
+  gpu: e.gpu ?? '',
+  ram_gb: e.ram_gb?.toString() ?? '',
+  almacenamiento: e.almacenamiento ?? '',
+  sistema_operativo: e.sistema_operativo ?? '',
   contrato_id: e.contrato_id ?? '',
   empresa_id: e.empresa_id ?? '',
   ubicacion_id: e.ubicacion_id ?? '',
@@ -151,6 +179,7 @@ export const valoresDe = (e: FilaEquipo): EntradaEquipo => ({
 
 /** Valores del formulario → fila de equipos. En edición el estado no viaja: se cambia con D-01. */
 export function aFilaEquipo(v: ValoresEquipo, alta: boolean): DatosEquipo {
+  const conSpecs = tieneEspecificaciones(v.categoria)
   return {
     categoria: v.categoria,
     subcategoria_id: v.categoria === 'otro' ? v.subcategoria_id : null,
@@ -159,6 +188,12 @@ export function aFilaEquipo(v: ValoresEquipo, alta: boolean): DatosEquipo {
     marca: v.marca,
     modelo: v.modelo,
     descripcion: v.descripcion,
+    // Al pasar a Monitor u Otro las especificaciones se guardan vacías (equipos_especificaciones_solo_computo).
+    cpu: conSpecs ? v.cpu : null,
+    gpu: conSpecs ? v.gpu : null,
+    ram_gb: conSpecs && v.ram_gb ? Number(v.ram_gb) : null,
+    almacenamiento: conSpecs ? v.almacenamiento : null,
+    sistema_operativo: conSpecs ? v.sistema_operativo : null,
     contrato_id: v.contrato_id,
     // Con contrato, la BD toma la empresa del contrato (preparar_equipo).
     empresa_id: v.contrato_id ? null : v.empresa_id,

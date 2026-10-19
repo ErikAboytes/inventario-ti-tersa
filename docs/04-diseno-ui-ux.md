@@ -197,12 +197,16 @@ si el correo existe. Si se llegó desde un QR, debajo del título se avisa: «In
 
 - **Encabezado:** título, contador («1,463 equipos»), acciones: *Exportar CSV*, *+ Nuevo equipo* (admin).
   Con selección: *Imprimir etiquetas (N)*.
-- **Filtros** (sincronizados con la URL): búsqueda de texto, Categoría, Estado (multiselección), Empresa,
+- **Búsqueda:** en escritorio, la de la **barra superior** filtra la tabla (en esta pantalla muestra el texto
+  buscado, que es el `q` de la URL); no hay un segundo buscador en la página. En móvil, donde la barra superior
+  no tiene buscador, el campo de búsqueda aparece junto a los filtros.
+- **Filtros** (sincronizados con la URL): búsqueda de texto (solo móvil), Categoría, Estado (multiselección), Empresa,
   Contrato, Ubicación, Subcategoría, **Condición** (Sin revisar · Buen estado · Con detalles · Dañado; sirve
   para revisar los equipos migrados sin ese dato); *Limpiar filtros*; interruptor **Agrupar por empresa**.
 - **Tabla:** casilla · Serie · Categoría · Marca/Modelo · Empresa · Operación · Ubicación · Estado (badge +
   etiqueta) · Asignado a. Orden al hacer clic en el encabezado (incluida Empresa). Clic en la fila → ficha.
-- **Pie:** *Mostrar 25/50/100* · «1–25 de 1,463» · paginación.
+- **Pie:** *Mostrar 25/50/100* · «1–25 de 1,463» · paginación. El contenido deja espacio inferior para que
+  ningún elemento flotante del hosting (p. ej. la insignia de Netlify) tape la paginación.
 - **Móvil:** cada equipo es una tarjeta (serie en negritas, modelo, badge, ubicación o colaborador).
 - **Estados de la pantalla:** cargando (esqueleto), vacío («No hay equipos con estos filtros» + *Limpiar*),
   error (mensaje + *Reintentar*).
@@ -210,8 +214,8 @@ si el correo existe. Si se llegó desde un QR, debajo del título se avisa: «In
 ```text
 Inventario                                          [Exportar CSV] [+ Nuevo equipo]
 1,463 equipos
-[Buscar en inventario.........] [Categoría v] [Estado v] [Empresa v] [Ubicación v]
-[Contrato v] [Limpiar]                                   [ ] Agrupar por empresa
+[Categoría v] [Estado v] [Empresa v] [Contrato v] [Ubicación v] [Limpiar]
+                                                         [ ] Agrupar por empresa
 +---+------------+---------+-------------------+-------+------------+-------------+
 |[ ]| Serie      |Categoría| Marca / Modelo    |Empresa| Estado     | Asignado a  |
 +---+------------+---------+-------------------+-------+------------+-------------+
@@ -234,6 +238,9 @@ Orden pensado para quien llega escaneando: **primero a quién está asignado**, 
 - **Datos:** número de producto, empresa, operación/contrato (con vencimiento), ubicación + detalle,
   descripción, **estado físico** (`EtiquetaCondicion` + observaciones debajo; «Sin revisar» si no tiene), notas.
   El admin lo cambia desde *Editar* (P-13), sin pasar por D-01: no es un cambio de estado del equipo.
+- **Especificaciones** (solo Desktop y Laptop): Procesador, Tarjeta gráfica, Memoria RAM, Almacenamiento y
+  Sistema operativo; los vacíos se muestran como «—». Si no tiene ninguna: «Sin especificaciones
+  registradas.» y, para el admin, *Agregar* (lleva a P-13).
 - **QR:** vista previa + *Imprimir etiqueta*.
 - **Historial:** línea de tiempo de movimientos con «campo: antes → después» (incluye «Estado físico: Buen
   estado → Con detalles» con sus observaciones).
@@ -286,6 +293,10 @@ Secciones del formulario:
 1. **Identificación:** Categoría (control segmentado: Desktop · Laptop · Monitor · Otro); Subcategoría
    (solo si Otro); Serie (+ casilla «No tiene serie visible»); Número de producto; Marca; Modelo
    (autocompletado con los existentes); Descripción.
+   - **Especificaciones** (solo si la categoría es Desktop o Laptop; todas opcionales): Procesador (CPU) y
+     Sistema operativo (autocompletados con los existentes), Tarjeta gráfica (GPU; «Déjalo vacío si usa la
+     gráfica integrada»), Memoria RAM en GB (solo el número) y Almacenamiento (texto libre, p. ej. «SSD 256 GB»).
+     Al cambiar a Monitor u Otro la sección se oculta y esos datos se guardan vacíos.
 2. **Propiedad:** Contrato/operación (selector con búsqueda; al elegirlo se llena la Empresa); Empresa
    (editable solo si no hay contrato).
 3. **Ubicación:** Ubicación + detalle (caja, cajón, mueble).

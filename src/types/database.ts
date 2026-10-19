@@ -421,15 +421,18 @@ export type Database = {
         Row: {
           actualizado_en: string
           actualizado_por: string | null
+          almacenamiento: string | null
           apartado_para: string | null
           categoria: Database['public']['Enums']['categoria_equipo']
           condicion: Database['public']['Enums']['condicion_equipo'] | null
           contrato_id: string | null
+          cpu: string | null
           creado_en: string
           creado_por: string | null
           descripcion: string | null
           empresa_id: string | null
           estado: Database['public']['Enums']['estado_equipo']
+          gpu: string | null
           id: string
           marca: string
           modelo: string
@@ -437,7 +440,9 @@ export type Database = {
           notas: string | null
           numero_producto: string | null
           observaciones_estado: string | null
+          ram_gb: number | null
           serie: string
+          sistema_operativo: string | null
           subcategoria_id: string | null
           ubicacion_detalle: string | null
           ubicacion_id: string | null
@@ -445,15 +450,18 @@ export type Database = {
         Insert: {
           actualizado_en?: string
           actualizado_por?: string | null
+          almacenamiento?: string | null
           apartado_para?: string | null
           categoria: Database['public']['Enums']['categoria_equipo']
           condicion?: Database['public']['Enums']['condicion_equipo'] | null
           contrato_id?: string | null
+          cpu?: string | null
           creado_en?: string
           creado_por?: string | null
           descripcion?: string | null
           empresa_id?: string | null
           estado?: Database['public']['Enums']['estado_equipo']
+          gpu?: string | null
           id?: string
           marca: string
           modelo: string
@@ -461,7 +469,9 @@ export type Database = {
           notas?: string | null
           numero_producto?: string | null
           observaciones_estado?: string | null
+          ram_gb?: number | null
           serie: string
+          sistema_operativo?: string | null
           subcategoria_id?: string | null
           ubicacion_detalle?: string | null
           ubicacion_id?: string | null
@@ -469,15 +479,18 @@ export type Database = {
         Update: {
           actualizado_en?: string
           actualizado_por?: string | null
+          almacenamiento?: string | null
           apartado_para?: string | null
           categoria?: Database['public']['Enums']['categoria_equipo']
           condicion?: Database['public']['Enums']['condicion_equipo'] | null
           contrato_id?: string | null
+          cpu?: string | null
           creado_en?: string
           creado_por?: string | null
           descripcion?: string | null
           empresa_id?: string | null
           estado?: Database['public']['Enums']['estado_equipo']
+          gpu?: string | null
           id?: string
           marca?: string
           modelo?: string
@@ -485,7 +498,9 @@ export type Database = {
           notas?: string | null
           numero_producto?: string | null
           observaciones_estado?: string | null
+          ram_gb?: number | null
           serie?: string
+          sistema_operativo?: string | null
           subcategoria_id?: string | null
           ubicacion_detalle?: string | null
           ubicacion_id?: string | null
@@ -813,6 +828,7 @@ export type Database = {
       v_equipos: {
         Row: {
           actualizado_en: string | null
+          almacenamiento: string | null
           apartado_para: string | null
           asignacion_fecha: string | null
           asignacion_folio: string | null
@@ -825,12 +841,14 @@ export type Database = {
           contrato_id: string | null
           contrato_operacion: string | null
           contrato_vencimiento: string | null
+          cpu: string | null
           creado_en: string | null
           descripcion: string | null
           empresa_clave: string | null
           empresa_id: string | null
           empresa_razon_social: string | null
           estado: Database['public']['Enums']['estado_equipo'] | null
+          gpu: string | null
           id: string | null
           marca: string | null
           modelo: string | null
@@ -838,7 +856,9 @@ export type Database = {
           notas: string | null
           numero_producto: string | null
           observaciones_estado: string | null
+          ram_gb: number | null
           serie: string | null
+          sistema_operativo: string | null
           subcategoria: string | null
           subcategoria_id: string | null
           ubicacion: string | null

@@ -23,6 +23,22 @@ describe('CSV del inventario', () => {
     expect(linea).toContain('Apartado,Rossy Insunza,,Sin revisar')
   })
 
+  it('exporta las especificaciones después de la descripción', () => {
+    const csv = equiposACsv([
+      fila({
+        descripcion: 'ProBook',
+        cpu: 'i5-6200U',
+        ram_gb: 8,
+        sistema_operativo: 'Windows 10 Pro',
+      }),
+    ])
+    const [encabezado, linea] = csv.split('\r\n')
+    expect(encabezado).toContain(
+      'Descripción,Procesador,Tarjeta gráfica,Memoria RAM (GB),Almacenamiento,Sistema operativo,',
+    )
+    expect(linea).toContain('ProBook,i5-6200U,,8,,Windows 10 Pro,')
+  })
+
   it('pone comillas a comas, comillas y saltos, y neutraliza fórmulas', () => {
     expect(celdaCsv('Golpe, rayones')).toBe('"Golpe, rayones"')
     expect(celdaCsv('Pantalla de 24"')).toBe('"Pantalla de 24"""')

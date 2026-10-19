@@ -19,6 +19,9 @@ const POR_RESTRICCION: Record<string, string> = {
     'Faltan las observaciones del estado físico: con «Con detalles» o «Dañado» hay que describir qué tiene el equipo.',
   asignacion_equipos_detalle_requiere_observaciones:
     'Faltan las observaciones de la devolución: con «Con detalles» o «Dañado» hay que describir en qué condición regresa el equipo.',
+  equipos_ram_gb_rango: 'La memoria RAM debe estar entre 1 y 4096 GB.',
+  equipos_especificaciones_solo_computo:
+    'Las especificaciones solo aplican a equipos Desktop y Laptop.',
   perfiles_ultimo_admin: 'Debe quedar al menos un Administrador activo.',
 }
 
@@ -29,6 +32,7 @@ const CAMPO_POR_RESTRICCION: Record<string, string> = {
   equipos_desactivado_requiere_motivo: 'motivo_desactivacion',
   equipos_subcategoria_solo_otro: 'subcategoria_id',
   equipos_detalle_requiere_observaciones: 'observaciones_estado',
+  equipos_ram_gb_rango: 'ram_gb',
   asignacion_equipos_detalle_requiere_observaciones: 'observaciones_devolucion',
 }
 

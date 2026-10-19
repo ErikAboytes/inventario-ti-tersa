@@ -9,9 +9,9 @@ import { NoEncontrada } from '@/features/errores/NoEncontrada'
 import { mensajeDeError } from '@/lib/errores'
 import { fechaCorta, oGuion } from '@/lib/formato'
 import { useTitulo } from '@/lib/useTitulo'
-import { useEquipo, useHistorialEquipo } from './datos'
+import { useEquipo, useHistorialEquipo, type FilaEquipo } from './datos'
 import { DialogoCambioEstado } from './DialogoCambioEstado'
-import { detalleEstado, ETIQUETA_CATEGORIA } from './esquema'
+import { detalleEstado, ETIQUETA_CATEGORIA, tieneEspecificaciones } from './esquema'
 import { EtiquetaCondicion } from './EstadoFisico'
 import { cambiosLegibles, ETIQUETA_MOVIMIENTO, fechaHora } from './historial'
 
@@ -109,6 +109,10 @@ export function FichaEquipo() {
         </Tarjeta>
       </div>
 
+      {tieneEspecificaciones(e.categoria) ? (
+        <Especificaciones equipo={e} enlaceEditar={esAdmin ? `/equipos/${e.id}/editar` : null} />
+      ) : null}
+
       <Tarjeta titulo="Datos" id="datos">
         <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
           <Dato titulo="Número de producto">
@@ -136,6 +140,44 @@ export function FichaEquipo() {
         <DialogoCambioEstado equipo={equipo} alCerrar={() => setCambiandoEstado(false)} />
       ) : null}
     </div>
+  )
+}
+
+function Especificaciones({
+  equipo: e,
+  enlaceEditar,
+}: {
+  equipo: FilaEquipo
+  enlaceEditar: string | null
+}) {
+  const hayDatos = [e.cpu, e.gpu, e.ram_gb, e.almacenamiento, e.sistema_operativo].some(
+    (v) => v != null && v !== '',
+  )
+
+  return (
+    <Tarjeta titulo="Especificaciones" id="especificaciones">
+      {hayDatos ? (
+        <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Dato titulo="Procesador">{oGuion(e.cpu)}</Dato>
+          <Dato titulo="Memoria RAM">{e.ram_gb ? `${e.ram_gb} GB` : '—'}</Dato>
+          <Dato titulo="Almacenamiento">{oGuion(e.almacenamiento)}</Dato>
+          <Dato titulo="Tarjeta gráfica">{oGuion(e.gpu)}</Dato>
+          <Dato titulo="Sistema operativo">{oGuion(e.sistema_operativo)}</Dato>
+        </dl>
+      ) : (
+        <p className="text-texto-secundario">
+          Sin especificaciones registradas.
+          {enlaceEditar ? (
+            <>
+              {' '}
+              <Link to={enlaceEditar} className="font-medium text-marca-azul hover:underline">
+                Agregar<span className="sr-only"> especificaciones</span>
+              </Link>
+            </>
+          ) : null}
+        </p>
+      )}
+    </Tarjeta>
   )
 }
 

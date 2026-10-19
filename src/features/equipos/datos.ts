@@ -204,18 +204,30 @@ export function useOpcionesSubcategorias() {
   })
 }
 
-/** Marcas y modelos ya capturados, para autocompletar (doc 04 P-11). */
+/** Marcas, modelos, procesadores y sistemas ya capturados, para autocompletar (doc 04 P-11). */
 export function useMarcasYModelos() {
   return useQuery({
     queryKey: ['opciones', 'modelos'],
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.from('equipos').select('marca, modelo').limit(5000)
+      const { data, error } = await supabase
+        .from('equipos')
+        .select('marca, modelo, cpu, sistema_operativo')
+        .limit(5000)
       if (error) throw error
-      const orden = (s: Set<string>) => [...s].sort((a, b) => a.localeCompare(b, 'es'))
+      const unicos = (valores: (string | null)[]) =>
+        [...new Set(valores.filter((v): v is string => Boolean(v)))].sort((a, b) =>
+          a.localeCompare(b, 'es'),
+        )
       return {
-        marcas: orden(new Set(data.map((e) => e.marca))),
-        modelos: orden(new Set(data.map((e) => e.modelo))),
+        marcas: unicos(data.map((e) => e.marca)),
+        modelos: unicos(data.map((e) => e.modelo)),
+        cpus: unicos(data.map((e) => e.cpu)),
+        sistemas: unicos([
+          'Windows 11 Pro',
+          'Windows 10 Pro',
+          ...data.map((e) => e.sistema_operativo),
+        ]),
       }
     },
   })
