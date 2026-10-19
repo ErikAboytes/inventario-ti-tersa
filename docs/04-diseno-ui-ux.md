@@ -372,12 +372,51 @@ Se abre al registrar la entrega y desde el detalle de la asignación.
 
 ### P-03 · Panel operativo
 
-- Tarjetas de cifras: Activos · Stock · Asignados · Mantenimiento · Apartados · Pendientes · No localizados.
-  **Cada cifra es un enlace** al inventario con ese filtro.
-- «Equipos por empresa» (barras apiladas por estado) y «Por categoría».
-- «Contratos por vencer (90 días)».
-- «Movimientos recientes» (10) con enlace al historial.
-- Accesos rápidos: *Nueva entrega*, *Escanear QR*, *Nuevo equipo* (admin).
+**Requisito del usuario (2026-10-19):** el panel muestra **datos útiles para decidir**, de forma
+**profesional y minimalista**. Cada elemento responde una pregunta concreta de quien lo mira; si no responde
+ninguna, no va en el panel.
+
+**Qué pregunta responde cada bloque** (en este orden, de arriba abajo):
+
+| Bloque | Pregunta | Contenido |
+|---|---|---|
+| 1. Cifras clave (4, no más) | ¿Cómo está el inventario hoy? | **Equipos activos** (sin desactivados) · **Asignados** (% del activo) · **Disponibles para entregar** (Stock) · **No localizados** (con su tendencia contra el mes anterior: es la meta de éxito de `PRODUCT.md`) |
+| 2. Requiere atención | ¿Qué tengo que resolver? | Lista corta con conteos y enlace: pendientes de revisar, en mantenimiento por más de 30 días, apartados por más de 15 días, contratos que vencen en 90 días, equipos asignados a colaboradores dados de baja. Si todo está en cero: «Nada pendiente» |
+| 3. Distribución por empresa | ¿Dónde están los equipos de cada razón social? | Una barra horizontal apilada por empresa (TRO, TAU, CRVH, REVOR, ROVAL, Sin empresa) con los estados; el total al final de cada barra |
+| 4. Avance de localización | ¿Estamos bajando los no localizados? | Línea simple por semana o mes de equipos «No localizado» desde la migración |
+| 5. Actividad reciente | ¿Qué se movió? | Últimos 8 movimientos (entregas, devoluciones, cambios de estado) con fecha, equipo, colaborador y usuario; enlace a P-30 |
+
+**Por rol:** el Administrador ve los cinco bloques y accesos rápidos (*Nueva entrega*, *Escanear QR*). Dirección
+y Contabilidad ven los bloques 1, 3 y 4 arriba; «Requiere atención» queda abajo, solo para consulta.
+
+**Reglas de presentación:**
+- Cifras grandes en la tipografía de la app con números tabulares, etiqueta corta arriba y contexto abajo
+  («62 % del activo», «−14 vs. septiembre»). Sin iconos decorativos dentro de las tarjetas.
+- Gráficas sobrias según el skill **dataviz**: un solo tipo por pregunta, sin 3D, sin pasteles, sin leyendas
+  que obliguen a buscar; los colores de estado del §7.3 y etiquetas directas sobre los datos.
+- Todo es un enlace: cada cifra, segmento de barra o renglón abre el inventario o el historial con el filtro
+  equivalente.
+- Fecha y hora de cálculo visibles («Actualizado 19/10/2026 10:42»).
+- Estados vacíos honestos: con pocos datos se dice («Aún no hay historial suficiente para la tendencia»), no se
+  inventan gráficas.
+- En móvil los bloques se apilan en el mismo orden; las barras se convierten en lista con totales.
+
+```text
+Panel                                                        Actualizado 19/10/2026 10:42
++----------------+  +----------------+  +----------------+  +----------------+
+| Activos        |  | Asignados      |  | Disponibles    |  | No localizados |
+| 1,385          |  | 566            |  | 289            |  | 503            |
+| sin bajas      |  | 41 % del activo|  | en stock       |  | −14 vs. sep.   |
++----------------+  +----------------+  +----------------+  +----------------+
+REQUIERE ATENCIÓN                         DISTRIBUCIÓN POR EMPRESA
+26  Pendientes de revisar        →        TRO   ███████████▒▒▒▒░░  802
+ 4  En mantenimiento > 30 días   →        TAU   ████▒▒░            294
+ 3  Contratos vencen en 90 días  →        CRVH  ███▒▒░             249
+                                          ...
+AVANCE DE LOCALIZACIÓN                    ACTIVIDAD RECIENTE
+503 ▔▔▔▔╲___  489                          19/10 Entrega CC-26-0001 · 5CD626170N · J. C. López
+                                           ...                           Ver historial →
+```
 
 ### P-30 · Historial
 

@@ -205,7 +205,11 @@ encuentra «Chavez» cuando el dato es «Chávez» · en un navegador sin cámar
 
 - `metricas_panel()`: equipos activos, conteos por estado/categoría/empresa, contratos por vencer (90 días),
   movimientos recientes.
-- **P-03** panel con tarjetas y gráficas (skill dataviz); cada cifra abre el inventario ya filtrado.
+- **P-03** panel según el doc 04 §6 (datos útiles, profesional y minimalista): 4 cifras clave, «Requiere
+  atención», distribución por empresa, avance de localización y actividad reciente (skill dataviz). Cada
+  cifra abre el inventario ya filtrado. `metricas_panel()` calcula además el tiempo en el estado actual (a
+  partir de `movimientos`), la serie semanal de «No localizado» y las asignaciones activas de colaboradores
+  dados de baja.
 - **P-30** historial filtrable con detalle de cambios y exportación.
 
 **Aceptación:** cada cifra del panel coincide con su consulta de verificación · hacer clic en una cifra abre
