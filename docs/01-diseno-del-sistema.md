@@ -84,7 +84,7 @@ y no se usa.
 > Por decisión del usuario (2026-10-19) **se conservan** el usuario de Auth `test@test.com` (no se borra sin
 > preguntar) y el event trigger `ensure_rls`, que activa RLS automáticamente en las tablas nuevas de `public`.
 
-Variables de entorno del frontend: `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` (clave pública).
+Variables de entorno del frontend: `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (clave pública `sb_publishable_…`).
 La clave `service_role` **nunca** llega al frontend; solo la usa la Edge Function.
 
 Netlify sirve `index.html` para cualquier ruta (`public/_redirects`: `/*  /index.html  200`), por lo que
