@@ -201,6 +201,13 @@ incidencias resueltas o documentadas.
 - Pendiente: la **sesión de revisión contigo** de las incidencias (doc 03 §9). Las decisiones se aplican en los
   mapeos o en la BD y la carga se repite.
 
+**Ajustes tras revisar la migración (rama `ajustes-inventario-especificaciones`):**
+
+- Especificaciones opcionales de Desktop y Laptop (CPU, GPU, RAM, almacenamiento y sistema operativo) en el
+  formulario y la ficha; migración `20261020120000_especificaciones_equipos.sql`.
+- Inventario con un solo buscador: en escritorio filtra la barra superior; el de la página queda solo en móvil.
+- Espacio inferior en el contenido para que la insignia flotante de Netlify no tape la paginación.
+
 ## Etapa 5 — Entregas y devoluciones · L
 
 **Objetivo:** el flujo operativo diario con reglas garantizadas por la base de datos.
@@ -208,6 +215,9 @@ incidencias resueltas o documentadas.
 - Funciones `crear_asignacion`, `registrar_devolucion` (parcial/total, destino stock o mantenimiento, cierre
   por incidencia) y `actualizar_firmas`; folios **`CC-AA-NNNN`** y **`CD-AA-NNNN`** con `folios_control`.
 - Apartados asignables solo con confirmación explícita.
+- **Regularizar Pendientes:** varios de los 37 equipos `pendiente` de la migración ya están entregados en la
+  realidad. Se pasan a Asignado con este mismo asistente (P-21), por lo que `crear_asignacion` debe aceptar una
+  **fecha de entrega pasada**. No se hace un flujo aparte (decisión del 2026-10-19).
 - Pruebas SQL: equipo no asignable rechazado, doble asignación concurrente rechazada, transacción atómica,
   folios sin huecos.
 - **P-21** asistente de entrega (con **D-04** datos de firma editables y **D-07** alta rápida de colaborador),

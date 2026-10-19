@@ -33,7 +33,8 @@ export function AppShell() {
         <main
           id="contenido"
           tabIndex={-1}
-          className="min-w-0 flex-1 px-4 py-6 outline-none sm:px-6 lg:px-8"
+          // pb-24: espacio para que una insignia flotante del hosting (Netlify) no tape la paginación.
+          className="min-w-0 flex-1 px-4 pt-6 pb-24 outline-none sm:px-6 lg:px-8"
         >
           <Outlet />
         </main>

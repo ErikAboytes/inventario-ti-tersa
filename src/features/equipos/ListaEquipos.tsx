@@ -178,6 +178,7 @@ export function ListaEquipos() {
         placeholder="Buscar por serie, modelo, número de producto o colaborador"
         hayFiltros={hayFiltros}
         alLimpiar={limpiarFiltros}
+        busquedaSoloMovil
       >
         <FiltroSelect etiqueta="Categoría" opciones={OPCIONES_CATEGORIA} {...filtro('categoria')} />
         <FiltroMultiple etiqueta="Estado" opciones={OPCIONES_ESTADO} {...filtro('estado')} />

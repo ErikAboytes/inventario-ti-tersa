@@ -26,7 +26,14 @@ vi.mock('./datos', () => ({
   useHistorialEquipo: () => ({ isPending: false, error: null, data: m.historial }),
   useGuardarEquipo: () => ({ mutateAsync: m.guardar }),
   useCambiarEstado: () => ({ mutateAsync: m.cambiar }),
-  useMarcasYModelos: () => ({ data: { marcas: ['HP'], modelos: ['ProBook 440 G8'] } }),
+  useMarcasYModelos: () => ({
+    data: {
+      marcas: ['HP'],
+      modelos: ['ProBook 440 G8'],
+      cpus: ['Intel Core i5-1135G7'],
+      sistemas: ['Windows 11 Pro'],
+    },
+  }),
   useOpcionesContratos: () => ({
     data: [{ valor: 'c1', texto: 'PEUGEOT006 · REVOR', empresaId: 'e1' }],
   }),
@@ -172,6 +179,31 @@ describe('P-11 · Nuevo equipo', () => {
   })
 })
 
+describe('P-11 / P-13 · Especificaciones', () => {
+  it('solo aparecen en Desktop y Laptop, validan la RAM y se guardan vacías en Monitor', async () => {
+    const u = userEvent.setup()
+    montar('/equipos/nuevo')
+
+    expect(screen.getByRole('heading', { name: 'Especificaciones' })).toBeInTheDocument()
+    await u.type(screen.getByLabelText(/Número de serie/), 'PRB1')
+    await u.type(screen.getByLabelText(/^Marca/), 'HP')
+    await u.type(screen.getByLabelText(/^Modelo/), 'ProBook 440 G8')
+    await u.type(screen.getByLabelText(/Procesador/), 'Intel Core i5-1135G7')
+    await u.type(screen.getByLabelText(/Memoria RAM/), '8 GB')
+    await u.click(screen.getByRole('button', { name: 'Registrar equipo' }))
+    expect(screen.getByLabelText(/Memoria RAM/)).toHaveAccessibleDescription(
+      expect.stringContaining('solo el número'),
+    )
+    expect(m.guardar).not.toHaveBeenCalled()
+
+    // En Monitor la sección se oculta, su RAM inválida ya no bloquea y lo capturado no viaja.
+    await u.click(screen.getByRole('radio', { name: 'Monitor' }))
+    expect(screen.queryByRole('heading', { name: 'Especificaciones' })).not.toBeInTheDocument()
+    await u.click(screen.getByRole('button', { name: 'Registrar equipo' }))
+    expect(m.guardar.mock.calls[0][0].datos).toMatchObject({ cpu: null, ram_gb: null })
+  })
+})
+
 describe('P-13 · Editar equipo', () => {
   it('no muestra el estado, toma la empresa del contrato y no envía el estado', async () => {
     const u = userEvent.setup()
@@ -225,6 +257,31 @@ describe('P-12 · Ficha y D-01', () => {
     expect(historial).toHaveTextContent('Inés González')
     expect(historial).toHaveTextContent(/Apartado para:\s*—\s*→\s*cambió a\s*Rossy Insunza/)
     expect(historial).toHaveTextContent('Nota: Nuevo ingreso')
+  })
+
+  it('muestra las especificaciones de una laptop, o invita a agregarlas', () => {
+    m.equipo = { ...EQUIPO, cpu: 'Intel Core i5-6200U', ram_gb: 8, almacenamiento: 'HDD 1 TB' }
+    montar('/equipos/eq1')
+    const specs = screen.getByRole('region', { name: 'Especificaciones' })
+    expect(specs).toHaveTextContent('Intel Core i5-6200U')
+    expect(specs).toHaveTextContent('8 GB')
+    expect(specs).toHaveTextContent('HDD 1 TB')
+    cleanup()
+
+    m.equipo = EQUIPO
+    montar('/equipos/eq1')
+    expect(screen.getByRole('region', { name: 'Especificaciones' })).toHaveTextContent(
+      'Sin especificaciones registradas.',
+    )
+    expect(screen.getByRole('link', { name: /Agregar/ })).toHaveAttribute(
+      'href',
+      '/equipos/eq1/editar',
+    )
+    cleanup()
+
+    m.equipo = { ...EQUIPO, categoria: 'monitor' }
+    montar('/equipos/eq1')
+    expect(screen.queryByRole('region', { name: 'Especificaciones' })).not.toBeInTheDocument()
   })
 
   it('cambia el estado exigiendo la etiqueta de Apartado', async () => {

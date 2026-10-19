@@ -30,6 +30,7 @@ import {
   esquemaEquipo,
   OPCIONES_CATEGORIA,
   OPCIONES_ESTADO_MANUAL,
+  tieneEspecificaciones,
   VACIO,
   valoresDe,
   type EntradaEquipo,
@@ -265,6 +266,58 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
           />
         </Seccion>
 
+        {tieneEspecificaciones(categoria) ? (
+          <Seccion titulo="Especificaciones" descripcion="Opcionales. Puedes llenarlas después.">
+            <CampoTexto
+              etiqueta="Procesador (CPU)"
+              list="sugerencias-cpu"
+              autoComplete="off"
+              placeholder="p. ej. Intel Core i5-1135G7"
+              error={e.cpu?.message}
+              {...form.register('cpu')}
+            />
+            <CampoTexto
+              etiqueta="Tarjeta gráfica (GPU)"
+              autoComplete="off"
+              ayuda="Déjalo vacío si usa la gráfica integrada."
+              error={e.gpu?.message}
+              {...form.register('gpu')}
+            />
+            <CampoTexto
+              etiqueta="Memoria RAM (GB)"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="p. ej. 8"
+              error={e.ram_gb?.message}
+              {...form.register('ram_gb')}
+            />
+            <CampoTexto
+              etiqueta="Almacenamiento"
+              autoComplete="off"
+              placeholder="p. ej. SSD 256 GB"
+              error={e.almacenamiento?.message}
+              {...form.register('almacenamiento')}
+            />
+            <CampoTexto
+              etiqueta="Sistema operativo"
+              list="sugerencias-so"
+              autoComplete="off"
+              error={e.sistema_operativo?.message}
+              {...form.register('sistema_operativo')}
+            />
+            <datalist id="sugerencias-cpu">
+              {sugerencias.data?.cpus.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+            <datalist id="sugerencias-so">
+              {sugerencias.data?.sistemas.map((so) => (
+                <option key={so} value={so} />
+              ))}
+            </datalist>
+          </Seccion>
+        ) : null}
+
         <Seccion titulo="Propiedad">
           <CampoSelect
             etiqueta="Contrato / operación"
@@ -388,19 +441,25 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
 
 function Seccion({
   titulo,
+  descripcion,
   columnas = 2,
   children,
 }: {
   titulo: string
+  descripcion?: string
   columnas?: 1 | 2
   children: ReactNode
 }) {
   const id = `seccion-${titulo.toLowerCase().replace(/\s+/g, '-')}`
   return (
     <section aria-labelledby={id} className="rounded-tarjeta border border-borde bg-superficie p-6">
-      <h2 id={id} className="mb-5 text-base font-semibold">
+      <h2
+        id={id}
+        className={descripcion ? 'text-base font-semibold' : 'mb-5 text-base font-semibold'}
+      >
         {titulo}
       </h2>
+      {descripcion ? <p className="mb-5 text-sm text-texto-secundario">{descripcion}</p> : null}
       <div className={columnas === 2 ? 'grid gap-5 sm:grid-cols-2' : 'flex flex-col gap-5'}>
         {children}
       </div>

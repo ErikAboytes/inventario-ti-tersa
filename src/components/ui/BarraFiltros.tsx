@@ -1,14 +1,20 @@
+import clsx from 'clsx'
 import { ChevronDown, Search, X } from 'lucide-react'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Button } from './Button'
+import { useTextoBusqueda } from './useTextoBusqueda'
 
-/** FilterBar del doc 04 §8: búsqueda con espera breve, filtros y «Limpiar». */
+/**
+ * FilterBar del doc 04 §8: búsqueda con espera breve, filtros y «Limpiar».
+ * Con `busquedaSoloMovil` el campo solo se ve en móvil: en escritorio busca la barra superior.
+ */
 export function BarraFiltros({
   q,
   alBuscar,
   placeholder,
   hayFiltros,
   alLimpiar,
+  busquedaSoloMovil = false,
   children,
 }: {
   q: string
@@ -16,31 +22,16 @@ export function BarraFiltros({
   placeholder: string
   hayFiltros: boolean
   alLimpiar: () => void
+  busquedaSoloMovil?: boolean
   children?: ReactNode
 }) {
-  const [texto, setTexto] = useState(q)
-  const [qPrevio, setQPrevio] = useState(q)
-  const buscar = useRef(alBuscar)
-
-  // La URL manda: si cambia desde fuera (Limpiar, atrás), se refleja en el campo.
-  if (q !== qPrevio) {
-    setQPrevio(q)
-    setTexto(q)
-  }
-
-  useEffect(() => {
-    buscar.current = alBuscar
-  })
-
-  useEffect(() => {
-    if (texto === q) return
-    const t = setTimeout(() => buscar.current(texto), 300)
-    return () => clearTimeout(t)
-  }, [texto, q])
+  const [texto, setTexto] = useTextoBusqueda(q, alBuscar)
 
   return (
     <div role="search" className="flex flex-wrap items-end gap-3">
-      <div className="relative min-w-60 flex-1 sm:max-w-sm">
+      <div
+        className={clsx('relative min-w-60 flex-1 sm:max-w-sm', busquedaSoloMovil && 'md:hidden')}
+      >
         <Search
           aria-hidden="true"
           className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-texto-secundario"

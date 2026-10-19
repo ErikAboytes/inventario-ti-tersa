@@ -1,18 +1,33 @@
 import { Search } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
+import { useTextoBusqueda } from '@/components/ui/useTextoBusqueda'
 import { idPorSerie } from '@/features/equipos/datos'
+import { aplicarCambios } from '@/lib/paramsTabla'
 import { destinoBusqueda } from './destino'
 
 /**
  * Búsqueda de la barra superior (por ahora solo equipos; la global completa llega en la Etapa 6).
  * Una serie exacta abre la ficha; si no, lleva al inventario filtrado. «/» enfoca el campo.
+ * En el inventario es su buscador: muestra y filtra el `q` de la URL mientras se escribe.
  */
 export function BuscadorGlobal() {
+  const { pathname } = useLocation()
+  const enInventario = pathname === '/equipos'
+  // La clave reinicia el campo al entrar o salir del inventario.
+  return <CampoBusqueda key={enInventario ? 'inventario' : 'global'} enInventario={enInventario} />
+}
+
+function CampoBusqueda({ enInventario }: { enInventario: boolean }) {
   const navigate = useNavigate()
+  const [params, setParams] = useSearchParams()
   const campo = useRef<HTMLInputElement>(null)
-  const [texto, setTexto] = useState('')
   const [buscando, setBuscando] = useState(false)
+  const q = enInventario ? (params.get('q') ?? '') : ''
+  const filtrar = (texto: string) => {
+    if (enInventario) setParams((p) => aplicarCambios(p, { q: texto }), { replace: true })
+  }
+  const [texto, setTexto] = useTextoBusqueda(q, filtrar)
 
   useEffect(() => {
     const atajo = (e: KeyboardEvent) => {
@@ -30,17 +45,25 @@ export function BuscadorGlobal() {
   async function buscar(e: React.FormEvent) {
     e.preventDefault()
     const destino = destinoBusqueda(texto)
-    if (!destino) return
+    if (!destino) {
+      filtrar('')
+      return
+    }
     if (destino.tipo === 'equipo') {
       navigate(`/equipos/${destino.id}`)
     } else {
       setBuscando(true)
       const id = await idPorSerie(destino.texto).catch(() => null)
       setBuscando(false)
-      navigate(id ? `/equipos/${id}` : `/equipos?q=${encodeURIComponent(destino.texto)}`)
+      if (id) navigate(`/equipos/${id}`)
+      else if (enInventario) filtrar(destino.texto)
+      else navigate(`/equipos?q=${encodeURIComponent(destino.texto)}`)
     }
-    setTexto('')
-    campo.current?.blur()
+    // En el inventario el texto se queda: es el filtro de la tabla.
+    if (!enInventario) {
+      setTexto('')
+      campo.current?.blur()
+    }
   }
 
   return (

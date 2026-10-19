@@ -170,6 +170,8 @@ erDiagram
 | `motivo_desactivacion` | text | obligatorio si `estado = 'desactivado'` (CHECK) |
 | `condicion` | `condicion_equipo` | estado físico; **nulo = «Sin revisar»** (p. ej. equipos importados sin ese dato) |
 | `observaciones_estado` | text | detalle del estado físico («Ligero golpe en chasis y leves rayones en la pantalla. Sigue en estado funcional.»); **obligatorio si la condición es `con_detalles` o `danado`** (CHECK) |
+| `cpu`, `gpu`, `almacenamiento`, `sistema_operativo` | text | especificaciones, opcionales; **solo Desktop y Laptop** (CHECK: nulas en otras categorías) |
+| `ram_gb` | smallint | memoria RAM en GB (1–4096), opcional; solo Desktop y Laptop |
 | `notas` | text | |
 | `creado_en/por`, `actualizado_en/por` | | llenados por trigger |
 
