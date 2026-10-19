@@ -17,6 +17,9 @@ end $$;
 
 update public.perfiles set activo = true, rol = 'admin' where id = '00000000-0000-4000-8000-0000000000a1';
 update public.perfiles set activo = true where id = '00000000-0000-4000-8000-0000000000b2';
+-- Dentro de la transacción, el admin de prueba queda como único admin activo (para probar la protección).
+update public.perfiles set activo = false
+ where rol = 'admin' and id <> '00000000-0000-4000-8000-0000000000a1';
 
 -- ── Administrador ─────────────────────────────────────────────────────────────
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-0000000000a1","role":"authenticated"}', true);

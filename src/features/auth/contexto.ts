@@ -14,6 +14,12 @@ export type EstadoAuth = {
 
 export const AuthContext = createContext<EstadoAuth | null>(null)
 
+/** ¿El usuario en sesión es Administrador activo? Solo decide qué se muestra; la BD valida igual. */
+export function useEsAdmin() {
+  const { perfil } = useAuth()
+  return perfil?.rol === 'admin' && perfil.activo
+}
+
 export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth debe usarse dentro de <AuthProvider>')
