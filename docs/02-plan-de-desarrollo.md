@@ -231,6 +231,41 @@ incidencias resueltas o documentadas.
 la confirmación · si falla un equipo no se guarda nada · folios consecutivos sin huecos · devolver a
 mantenimiento deja el estado y la ubicación correctos · la condición de la devolución actualiza el estado físico del equipo · recargar el asistente no pierde lo capturado.
 
+**Construido (rama `etapa-5-entregas-devoluciones`):**
+
+- Migración `20261021120000_entregas_y_devoluciones.sql`:
+  - `crear_asignacion`, `registrar_devolucion` y `actualizar_firmas`: *security definer* con validación del
+    rol, porque `authenticated` no puede escribir directo en esas tablas;
+  - vista `v_asignaciones`;
+  - folio `CI-AA-NNNN` para el cierre por incidencia.
+- Prueba SQL `supabase/tests/etapa5_entregas_y_devoluciones.sql`. Cubre:
+  - Lector rechazado;
+  - equipo no asignable y entrega atómica;
+  - Apartado sin confirmar;
+  - fecha pasada sí, futura no;
+  - folios consecutivos;
+  - devolución parcial a Mantenimiento con estado físico;
+  - cierre por incidencia con motivo;
+  - firmas.
+
+  La concurrencia real (dos sesiones a la vez) no se puede probar en una sola transacción: la cubren el
+  `FOR UPDATE` en orden fijo y el índice único de asignación activa.
+- Pantallas:
+  - P-20 `/asignaciones`;
+  - P-21 `/asignaciones/nueva`: con D-04, D-07 y precarga `?equipo=` / `?colaborador=` desde las fichas;
+  - P-22 `/asignaciones/:id`;
+  - P-24 `/asignaciones/:id/imprimir`;
+  - P-25 `/asignaciones/:id/devolucion`;
+  - P-26 `/devoluciones/:id`;
+  - en P-12 se agregan las acciones *Entregar* y *Registrar devolución*;
+  - en P-41, los equipos actuales y las entregas del colaborador.
+- Cambios respecto a lo planeado:
+  - Mientras no exista P-23 (Etapa 6), al registrar una entrega se abre su detalle (P-22).
+  - P-24 es un comprobante sencillo con líneas de firma; la carta formal F.TI-006-02 queda en P-23.
+  - El cierre por incidencia usa su propio consecutivo `CI-AA-NNNN`, así no deja huecos en los folios `CD`.
+  - `actualizar_firmas` no deja un movimiento en el historial de los equipos: el historial es por equipo y la
+    firma pertenece a la carta. Se puede agregar una bitácora de documentos en la Etapa 7 si hace falta.
+
 ## Etapa 6 — Cartas, etiquetas, QR y búsqueda · M-L
 
 **Objetivo:** documentos imprimibles e identificación rápida de equipos.

@@ -7,6 +7,7 @@ import { Cargando } from '@/components/Cargando'
 import { useEsAdmin } from '@/features/auth/contexto'
 import { NoEncontrada } from '@/features/errores/NoEncontrada'
 import { mensajeDeError } from '@/lib/errores'
+import { ESTADOS_ASIGNABLES } from '@/lib/estados'
 import { fechaCorta, oGuion } from '@/lib/formato'
 import { useTitulo } from '@/lib/useTitulo'
 import { useEquipo, useHistorialEquipo, type FilaEquipo } from './datos'
@@ -42,6 +43,7 @@ export function FichaEquipo() {
   if (!e?.id || !e.estado) return <NoEncontrada dentroDeLaApp />
   const equipo = { ...e, id: e.id, estado: e.estado }
   const modelo = [e.marca, e.modelo].filter(Boolean).join(' ')
+  const asignable = ESTADOS_ASIGNABLES.includes(e.estado)
 
   return (
     <div className="flex flex-col gap-6">
@@ -64,7 +66,22 @@ export function FichaEquipo() {
                   Cambiar estado
                 </Button>
               ) : null}
-              <Button onClick={() => navigate(`/equipos/${e.id}/editar`)}>Editar</Button>
+              <Button
+                variante={e.estado === 'asignado' || asignable ? 'secundario' : 'primario'}
+                onClick={() => navigate(`/equipos/${e.id}/editar`)}
+              >
+                Editar
+              </Button>
+              {asignable ? (
+                <Button onClick={() => navigate(`/asignaciones/nueva?equipo=${e.id}`)}>
+                  Entregar
+                </Button>
+              ) : null}
+              {e.estado === 'asignado' && e.asignacion_id ? (
+                <Button onClick={() => navigate(`/asignaciones/${e.asignacion_id}/devolucion`)}>
+                  Registrar devolución
+                </Button>
+              ) : null}
             </>
           ) : null
         }
@@ -85,13 +102,21 @@ export function FichaEquipo() {
                 {e.colaborador_nombre}
               </Link>
               <p className="text-sm text-texto-secundario">
-                Folio <span className="font-mono">{oGuion(e.asignacion_folio)}</span> ·{' '}
-                {fechaCorta(e.asignacion_fecha)}
+                Folio{' '}
+                <Link
+                  to={`/asignaciones/${e.asignacion_id}`}
+                  className="font-mono text-marca-azul hover:underline"
+                >
+                  {oGuion(e.asignacion_folio)}
+                </Link>{' '}
+                · {fechaCorta(e.asignacion_fecha)}
               </p>
             </div>
           ) : (
             <p className="text-texto-secundario">
-              Sin asignación. Las entregas se registran a partir de la Etapa 5.
+              Sin asignación.{' '}
+              {asignable ? 'Se puede entregar.' : 'No se puede entregar en su estado actual.'} Las
+              entregas anteriores aparecen en el historial.
             </p>
           )}
         </Tarjeta>

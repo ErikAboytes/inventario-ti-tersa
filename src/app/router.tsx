@@ -1,4 +1,10 @@
 import { createBrowserRouter, Navigate } from 'react-router'
+import { AsistenteEntrega } from '@/features/asignaciones/AsistenteEntrega'
+import { DetalleAsignacion } from '@/features/asignaciones/DetalleAsignacion'
+import { DetalleDevolucion } from '@/features/asignaciones/DetalleDevolucion'
+import { ImprimirAsignacion } from '@/features/asignaciones/ImprimirAsignacion'
+import { ListaAsignaciones } from '@/features/asignaciones/ListaAsignaciones'
+import { PaginaRegistrarDevolucion } from '@/features/asignaciones/RegistrarDevolucion'
 import { RequiereRol, RequiereSesion } from '@/features/auth/Guardas'
 import { Login } from '@/features/auth/Login'
 import { Recuperar } from '@/features/auth/Recuperar'
@@ -16,7 +22,7 @@ import { MuestraDiseno } from '@/features/muestra/MuestraDiseno'
 import { AppShell } from './AppShell'
 import { MENU } from './navegacion'
 
-const CONSTRUIDAS = new Set(['/', '/equipos', '/colaboradores', '/catalogos'])
+const CONSTRUIDAS = new Set(['/', '/equipos', '/asignaciones', '/colaboradores', '/catalogos'])
 
 // Secciones de etapas futuras: marcador «Próximamente».
 const proximas = MENU.filter((m) => !CONSTRUIDAS.has(m.ruta) && !m.soloRol).map((m) => ({
@@ -24,7 +30,7 @@ const proximas = MENU.filter((m) => !CONSTRUIDAS.has(m.ruta) && !m.soloRol).map(
   element: <Proximamente titulo={m.texto} etapa={m.etapa} />,
 }))
 
-// Rutas del doc 04 §5 construidas hasta la Etapa 3.
+// Rutas del doc 04 §5 construidas hasta la Etapa 5.
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/recuperar', element: <Recuperar /> },
@@ -33,6 +39,8 @@ export const router = createBrowserRouter([
   {
     element: <RequiereSesion />,
     children: [
+      // Vista imprimible sin la estructura de la app (P-24).
+      { path: 'asignaciones/:id/imprimir', element: <ImprimirAsignacion /> },
       {
         element: <AppShell />,
         children: [
@@ -40,6 +48,9 @@ export const router = createBrowserRouter([
           { path: 'equipos', element: <ListaEquipos /> },
           { path: 'equipos/:id', element: <FichaEquipo /> },
           { path: 'e/:id', element: <RedirigirQr /> },
+          { path: 'asignaciones', element: <ListaAsignaciones /> },
+          { path: 'asignaciones/:id', element: <DetalleAsignacion /> },
+          { path: 'devoluciones/:id', element: <DetalleDevolucion /> },
           { path: 'colaboradores', element: <ListaColaboradores /> },
           { path: 'colaboradores/:id', element: <FichaColaborador /> },
           { path: 'catalogos', element: <Navigate to="/catalogos/empresas" replace /> },
@@ -50,6 +61,8 @@ export const router = createBrowserRouter([
             children: [
               { path: 'equipos/nuevo', element: <PaginaFormularioEquipo /> },
               { path: 'equipos/:id/editar', element: <PaginaFormularioEquipo /> },
+              { path: 'asignaciones/nueva', element: <AsistenteEntrega /> },
+              { path: 'asignaciones/:id/devolucion', element: <PaginaRegistrarDevolucion /> },
               { path: 'admin/usuarios', element: <Proximamente titulo="Usuarios" etapa={8} /> },
             ],
           },

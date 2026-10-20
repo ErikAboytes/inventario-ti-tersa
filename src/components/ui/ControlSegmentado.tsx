@@ -8,7 +8,9 @@ type Props = {
   ayuda?: string
   error?: string
   className?: string
-} & Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'value'>
+  /** Modo controlado: la opción marcada. Sin él, el grupo es no controlado (react-hook-form). */
+  valor?: string
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'checked'>
 
 /**
  * Grupo de radios con aspecto segmentado (doc 04 §8). Son radios nativos: flechas para moverse,
@@ -21,6 +23,7 @@ export function ControlSegmentado({
   error,
   className,
   required,
+  valor,
   ...props
 }: Props) {
   const id = useId()
@@ -51,6 +54,7 @@ export function ControlSegmentado({
             <input
               type="radio"
               value={o.valor}
+              {...(valor !== undefined ? { checked: o.valor === valor } : {})}
               required={required}
               aria-invalid={error ? true : undefined}
               aria-describedby={describedBy}
