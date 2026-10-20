@@ -28,6 +28,10 @@ supabase db query --linked -f scripts/migracion/salida/carga.sql
 python scripts/migracion/conciliar.py
 ```
 
+`conciliar.py` compara contra el Excel: sirve justo después de cargar. En cuanto alguien cambia un equipo
+en el sistema (p. ej. desactivar un no localizado por donativo), los conteos por estado dejan de coincidir; eso
+es esperado y no indica un error de la carga.
+
 Para repetir la carga **en desarrollo**, primero `supabase db query --linked -f scripts/migracion/reiniciar.sql`.
 Se niega a borrar si ya hay entregas registradas en el sistema (no históricas).
 
