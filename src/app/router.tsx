@@ -24,6 +24,7 @@ import { Proximamente } from '@/features/inicio/Proximamente'
 import { PaginaHistorial } from '@/features/historial/PaginaHistorial'
 import { MuestraDiseno } from '@/features/muestra/MuestraDiseno'
 import { Panel } from '@/features/panel/Panel'
+import { PaginaUsuarios } from '@/features/usuarios/PaginaUsuarios'
 import { AppShell } from './AppShell'
 import { MENU } from './navegacion'
 
@@ -42,7 +43,7 @@ const proximas = MENU.filter((m) => !CONSTRUIDAS.has(m.ruta) && !m.soloRol).map(
   element: <Proximamente titulo={m.texto} etapa={m.etapa} />,
 }))
 
-// Rutas del doc 04 §5 construidas hasta la Etapa 7.
+// Rutas del doc 04 §5 construidas hasta la Etapa 8.
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/recuperar', element: <Recuperar /> },
@@ -80,7 +81,7 @@ export const router = createBrowserRouter([
               { path: 'equipos/:id/editar', element: <PaginaFormularioEquipo /> },
               { path: 'asignaciones/nueva', element: <AsistenteEntrega /> },
               { path: 'asignaciones/:id/devolucion', element: <PaginaRegistrarDevolucion /> },
-              { path: 'admin/usuarios', element: <Proximamente titulo="Usuarios" etapa={8} /> },
+              { path: 'admin/usuarios', element: <PaginaUsuarios /> },
             ],
           },
           { path: '*', element: <NoEncontrada dentroDeLaApp /> },
