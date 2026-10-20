@@ -39,6 +39,8 @@ vi.mock('./datos', () => ({
   }),
   useOpcionesSubcategorias: () => ({ data: [{ valor: 's1', texto: 'iPad/Tablet' }] }),
   idPorSerie: m.idPorSerie,
+  SIN_EMPRESA: 'sin_empresa',
+  FILTROS_ATENCION: { mantenimiento_30: 'En Mantenimiento por más de 30 días' },
   useListaEquipos: () => ({
     isFetching: false,
     error: null,

@@ -218,7 +218,8 @@ Lo llena un trigger `AFTER INSERT OR UPDATE` en `equipos`; las funciones RPC ind
 |---|---|
 | `v_equipos` (`security_invoker`) | Lista/ficha/exportación: equipo + empresa + contrato + ubicación + asignación activa + colaborador |
 | `v_asignaciones` | Historial de asignaciones con conteo de equipos activos/devueltos |
-| `metricas_panel()` | Conteos por estado, categoría y empresa; contratos por vencer; movimientos recientes |
+| `metricas_panel()` | Cifras clave, «Requiere atención», distribución por empresa, serie semanal de «No localizado» y movimientos recientes (doc 04 P-03) |
+| `historial_global(...)` | Historial de todos los equipos con filtros y paginación (P-30) |
 | `crear_asignacion(colaborador, equipos[], fecha, firmas, lugar, observaciones)` | Transacción atómica; ver §4.2 |
 | `registrar_devolucion(asignacion, items[{equipo, destino, condicion, observaciones}], fecha, firmas, observaciones)` | Transacción atómica; ver §4.3 |
 | `actualizar_firmas(asignacion \| devolucion, firmas, lugar)` | Corrige los datos de firma antes de reimprimir (queda en historial) |

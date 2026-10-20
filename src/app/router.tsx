@@ -20,13 +20,21 @@ import { FichaEquipo, RedirigirQr } from '@/features/equipos/FichaEquipo'
 import { PaginaFormularioEquipo } from '@/features/equipos/FormularioEquipo'
 import { ListaEquipos } from '@/features/equipos/ListaEquipos'
 import { NoEncontrada } from '@/features/errores/NoEncontrada'
-import { Inicio } from '@/features/inicio/Inicio'
 import { Proximamente } from '@/features/inicio/Proximamente'
+import { PaginaHistorial } from '@/features/historial/PaginaHistorial'
 import { MuestraDiseno } from '@/features/muestra/MuestraDiseno'
+import { Panel } from '@/features/panel/Panel'
 import { AppShell } from './AppShell'
 import { MENU } from './navegacion'
 
-const CONSTRUIDAS = new Set(['/', '/equipos', '/asignaciones', '/colaboradores', '/catalogos'])
+const CONSTRUIDAS = new Set([
+  '/',
+  '/equipos',
+  '/asignaciones',
+  '/historial',
+  '/colaboradores',
+  '/catalogos',
+])
 
 // Secciones de etapas futuras: marcador «Próximamente».
 const proximas = MENU.filter((m) => !CONSTRUIDAS.has(m.ruta) && !m.soloRol).map((m) => ({
@@ -34,7 +42,7 @@ const proximas = MENU.filter((m) => !CONSTRUIDAS.has(m.ruta) && !m.soloRol).map(
   element: <Proximamente titulo={m.texto} etapa={m.etapa} />,
 }))
 
-// Rutas del doc 04 §5 construidas hasta la Etapa 6.
+// Rutas del doc 04 §5 construidas hasta la Etapa 7.
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/recuperar', element: <Recuperar /> },
@@ -51,7 +59,7 @@ export const router = createBrowserRouter([
       {
         element: <AppShell />,
         children: [
-          { index: true, element: <Inicio /> },
+          { index: true, element: <Panel /> },
           { path: 'equipos', element: <ListaEquipos /> },
           { path: 'equipos/:id', element: <FichaEquipo /> },
           { path: 'e/:id', element: <RedirigirQr /> },
@@ -59,6 +67,7 @@ export const router = createBrowserRouter([
           { path: 'asignaciones/:id', element: <DetalleAsignacion /> },
           { path: 'devoluciones/:id', element: <DetalleDevolucion /> },
           { path: 'buscar', element: <PaginaBusqueda /> },
+          { path: 'historial', element: <PaginaHistorial /> },
           { path: 'colaboradores', element: <ListaColaboradores /> },
           { path: 'colaboradores/:id', element: <FichaColaborador /> },
           { path: 'catalogos', element: <Navigate to="/catalogos/empresas" replace /> },
