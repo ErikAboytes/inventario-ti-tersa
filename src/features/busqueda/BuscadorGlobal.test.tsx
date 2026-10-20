@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { act, cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, Link, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -55,7 +55,8 @@ describe('Búsqueda de la barra superior', () => {
     await u.type(campo(), 'tecate{Enter}')
     expect(router.state.location.pathname).toBe('/equipos')
     expect(router.state.location.search).toBe('?q=tecate')
-    expect(campo()).toHaveValue('tecate')
+    // Al entrar al inventario el campo se vuelve a montar (key); bajo carga ese render llega un poco después.
+    await waitFor(() => expect(campo()).toHaveValue('tecate'))
 
     idPorSerie.mockResolvedValue('eq1')
     await u.clear(campo())
