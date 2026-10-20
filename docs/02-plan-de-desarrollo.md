@@ -349,6 +349,41 @@ encuentra «Chavez» cuando el dato es «Chávez» · en un navegador sin cámar
 **Aceptación:** cada cifra del panel coincide con su consulta de verificación · hacer clic en una cifra abre
 la lista con el filtro equivalente.
 
+**Construido (rama `etapa-7-panel-historial`):**
+
+- Migración `20261023120000_panel_e_historial.sql`:
+  - `v_equipos` gana `estado_desde` (último movimiento que dejó al equipo en su estado actual; para lo
+    migrado es la fecha de la importación) y `colaborador_activo`;
+  - `metricas_panel()`: cifras clave, «Requiere atención», distribución por empresa, serie semanal de
+    «No localizado» reconstruida desde `movimientos` (hasta 26 semanas) y los 8 movimientos más recientes;
+  - `historial_global(desde, hasta, tipos, texto, usuario, límite, desplazamiento)` y `usuarios_historial()`.
+  - Las tres funciones son *security definer* con validación de usuario activo: muestran el nombre de quien
+    hizo cada cambio y el Lector no puede leer perfiles ajenos. Tiempos con los datos reales: panel ≈ 30 ms,
+    historial ≈ 17 ms, página del inventario ≈ 23 ms.
+- Prueba SQL `supabase/tests/etapa7_panel_e_historial.sql`. Compara las cifras antes y después de sus propios
+  datos (la BD tiene el inventario real) y cubre:
+  - umbrales de mantenimiento (30 días) y apartado (15 días);
+  - asignados a colaboradores dados de baja;
+  - la distribución suma los activos y «Sin empresa» va al final;
+  - actividad con folio, colaborador y autor visible para el Lector, sin la importación;
+  - historial por texto, colaborador, tipo, usuario, fechas y paginación;
+  - `anon` rechazado.
+- **P-03** `/`: los 5 bloques del doc 04. El Administrador ve primero «Requiere atención» y tiene *Nueva entrega*
+  y *Escanear QR*; el Lector ve primero la distribución y el avance. Todo es enlace al inventario filtrado:
+  - filtro nuevo `?atencion=` (mantenimiento > 30 días, apartado > 15 días, colaborador dado de baja, contrato
+    vencido, contrato que vence en 90 días), con un aviso «Desde el panel: …» y *Quitar este filtro*;
+  - filtro `empresa=sin_empresa`.
+- **P-30** `/historial`: filtros de texto (serie, colaborador o folio), fechas, tipo y usuario en la URL; cada
+  resumen se despliega en la tabla de cambios campo por campo; exportación CSV del resultado completo.
+- Cambios respecto a lo planeado:
+  - «Requiere atención» separa los contratos **vencidos** con equipos activos (hoy 292 equipos) de los que
+    vencen en 90 días (75): ambos sirven para decidir renovaciones.
+  - Las cifras de «Requiere atención» cuentan **equipos**, no contratos.
+  - La tendencia de «No localizado» y la comparación con el mes anterior dicen «sin comparación aún» hasta que
+    el historial cubra ese periodo (empieza con la migración del 19/10/2026). No se inventan datos.
+  - El tiempo en Mantenimiento o Apartado de lo migrado se cuenta desde la importación, porque el Excel no trae
+    esa fecha.
+
 ## Etapa 8 — Administración de accesos · S-M
 
 **Objetivo:** que un Administrador gestione usuarios sin entrar al panel de Supabase.

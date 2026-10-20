@@ -17,7 +17,10 @@ import { useEstadoTabla, type Orden } from '@/lib/paramsTabla'
 import { useTitulo } from '@/lib/useTitulo'
 import { descargarCsv, equiposACsv } from './csv'
 import {
+  FILTROS_ATENCION,
+  SIN_EMPRESA,
   SIN_REVISAR,
+  type FiltroAtencion,
   traerTodosLosEquipos,
   useListaEquipos,
   useOpcionesContratos,
@@ -109,6 +112,10 @@ export function ListaEquipos() {
   const [progreso, setProgreso] = useState<string | null>(null)
   // Equipos marcados para imprimir etiquetas (P-70); se conservan al paginar o filtrar.
   const [seleccion, setSeleccion] = useState<Set<string>>(() => new Set())
+  const atencion =
+    estado.filtros.atencion && estado.filtros.atencion in FILTROS_ATENCION
+      ? (estado.filtros.atencion as FiltroAtencion)
+      : null
   const hayFiltros = estado.q !== '' || Object.keys(estado.filtros).some((k) => k !== 'agrupar')
 
   // «Limpiar» conserva la vista agrupada: es una preferencia de visualización, no un filtro.
@@ -188,6 +195,24 @@ export function ListaEquipos() {
         }
       />
 
+      {atencion ? (
+        <p
+          role="status"
+          className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-control border border-mantenimiento bg-mantenimiento-fondo px-3 py-2 text-sm text-mantenimiento"
+        >
+          <span>
+            Desde el panel: <span className="font-medium">{FILTROS_ATENCION[atencion]}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => estado.cambiar({ filtros: { atencion: null } })}
+            className="font-medium underline underline-offset-4"
+          >
+            Quitar este filtro
+          </button>
+        </p>
+      ) : null}
+
       <BarraFiltros
         q={estado.q}
         alBuscar={(q) => estado.cambiar({ q })}
@@ -198,7 +223,11 @@ export function ListaEquipos() {
       >
         <FiltroSelect etiqueta="Categoría" opciones={OPCIONES_CATEGORIA} {...filtro('categoria')} />
         <FiltroMultiple etiqueta="Estado" opciones={OPCIONES_ESTADO} {...filtro('estado')} />
-        <FiltroSelect etiqueta="Empresa" opciones={empresas.data ?? []} {...filtro('empresa')} />
+        <FiltroSelect
+          etiqueta="Empresa"
+          opciones={[...(empresas.data ?? []), { valor: SIN_EMPRESA, texto: 'Sin empresa' }]}
+          {...filtro('empresa')}
+        />
         <FiltroSelect etiqueta="Contrato" opciones={contratos.data ?? []} {...filtro('contrato')} />
         <FiltroSelect
           etiqueta="Ubicación"

@@ -889,6 +889,7 @@ export type Database = {
           asignacion_id: string | null
           busqueda: string | null
           categoria: Database['public']['Enums']['categoria_equipo'] | null
+          colaborador_activo: boolean | null
           colaborador_id: string | null
           colaborador_nombre: string | null
           condicion: Database['public']['Enums']['condicion_equipo'] | null
@@ -902,6 +903,7 @@ export type Database = {
           empresa_id: string | null
           empresa_razon_social: string | null
           estado: Database['public']['Enums']['estado_equipo'] | null
+          estado_desde: string | null
           gpu: string | null
           id: string | null
           marca: string | null
@@ -1021,6 +1023,39 @@ export type Database = {
           tipo: Database['public']['Enums']['tipo_movimiento']
         }[]
       }
+      historial_global: {
+        Args: {
+          p_desde?: string
+          p_desplazamiento?: number
+          p_hasta?: string
+          p_limite?: number
+          p_texto?: string
+          p_tipos?: Database['public']['Enums']['tipo_movimiento'][]
+          p_usuario?: string
+        }
+        Returns: {
+          asignacion_id: string
+          autor: string
+          cambios: Json
+          categoria: Database['public']['Enums']['categoria_equipo']
+          colaborador_id: string
+          colaborador_nombre: string
+          creado_en: string
+          devolucion_id: string
+          equipo_id: string
+          estado_anterior: Database['public']['Enums']['estado_equipo']
+          estado_nuevo: Database['public']['Enums']['estado_equipo']
+          folio: string
+          id: number
+          marca: string
+          modelo: string
+          nota: string
+          serie: string
+          tipo: Database['public']['Enums']['tipo_movimiento']
+          total: number
+        }[]
+      }
+      metricas_panel: { Args: never; Returns: Json }
       normalizar_texto: { Args: { texto: string }; Returns: string }
       registrar_devolucion: {
         Args: {
@@ -1039,6 +1074,13 @@ export type Database = {
         Returns: Json
       }
       siguiente_folio: { Args: { p_tipo: string }; Returns: string }
+      usuarios_historial: {
+        Args: never
+        Returns: {
+          id: string
+          nombre: string
+        }[]
+      }
     }
     Enums: {
       categoria_equipo: 'desktop' | 'laptop' | 'monitor' | 'otro'

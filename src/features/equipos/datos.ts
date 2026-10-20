@@ -24,6 +24,27 @@ export const FILTROS_EQUIPO = {
 /** Valor de filtro para los equipos sin condición registrada. */
 export const SIN_REVISAR = 'sin_revisar'
 
+/** Valor del filtro «empresa» para los equipos sin empresa (enlace desde el panel). */
+export const SIN_EMPRESA = 'sin_empresa'
+
+/**
+ * Filtro `?atencion=` que abre el bloque «Requiere atención» del panel (doc 04 P-03). Los umbrales son los
+ * mismos de public.metricas_panel().
+ */
+export const FILTROS_ATENCION = {
+  mantenimiento_30: 'En Mantenimiento por más de 30 días',
+  apartado_15: 'Apartados por más de 15 días',
+  colaborador_baja: 'Asignados a colaboradores dados de baja',
+  contrato_vencido: 'Activos con contrato vencido',
+  contrato_90: 'Activos con contrato que vence en 90 días',
+} as const
+export type FiltroAtencion = keyof typeof FILTROS_ATENCION
+
+const DIA = 24 * 60 * 60 * 1000
+const haceDias = (n: number) => new Date(Date.now() - n * DIA).toISOString()
+const fechaTijuana = (dias = 0) =>
+  new Date(Date.now() + dias * DIA).toLocaleDateString('sv-SE', { timeZone: 'America/Tijuana' })
+
 /** Consulta con búsqueda, filtros y orden; la comparten la lista y la exportación CSV. */
 function consultaFiltrada(estado: EstadoTabla, agrupar: boolean) {
   let c = supabase.from('v_equipos').select('*', { count: 'exact' })
@@ -33,7 +54,28 @@ function consultaFiltrada(estado: EstadoTabla, agrupar: boolean) {
     if (!valor) continue
     if (param === 'estado') c = c.in('estado', valor.split(',') as EstadoEquipoBD[])
     else if (param === 'condicion' && valor === SIN_REVISAR) c = c.is('condicion', null)
+    else if (param === 'empresa' && valor === SIN_EMPRESA) c = c.is('empresa_id', null)
     else c = c.eq(columna, valor)
+  }
+  switch (estado.filtros.atencion as FiltroAtencion | undefined) {
+    case 'mantenimiento_30':
+      c = c.eq('estado', 'mantenimiento').lt('estado_desde', haceDias(30))
+      break
+    case 'apartado_15':
+      c = c.eq('estado', 'apartado').lt('estado_desde', haceDias(15))
+      break
+    case 'colaborador_baja':
+      c = c.eq('estado', 'asignado').eq('colaborador_activo', false)
+      break
+    case 'contrato_vencido':
+      c = c.neq('estado', 'desactivado').lt('contrato_vencimiento', fechaTijuana())
+      break
+    case 'contrato_90':
+      c = c
+        .neq('estado', 'desactivado')
+        .gte('contrato_vencimiento', fechaTijuana())
+        .lte('contrato_vencimiento', fechaTijuana(90))
+      break
   }
   if (agrupar) c = c.order('empresa_clave', { ascending: true, nullsFirst: false })
   return c
