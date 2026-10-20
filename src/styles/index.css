@@ -66,3 +66,29 @@
     animation-duration: 0.01ms !important;
   }
 }
+
+/* ── Documentos imprimibles (doc 04 §11) ─────────────────────────────────────────────────────────
+   Hoja carta. Las cartas usan márgenes normales; la hoja de etiquetas ya trae sus márgenes dentro
+   (rejilla centrada de 195 × 256 mm), así que su página no lleva margen. */
+@page {
+  size: letter;
+  margin: 12mm 16mm;
+}
+@page etiquetas {
+  size: letter;
+  margin: 0;
+}
+@media print {
+  .hoja-etiquetas {
+    page: etiquetas;
+  }
+  /* Cada hoja (y la parte que sigue a una carta) empieza en página nueva. Un salto al inicio del
+     documento no genera una página en blanco. */
+  .hoja-etiquetas:not(:first-child),
+  .salto-pagina {
+    break-before: page;
+  }
+  .documento-carta tr {
+    break-inside: avoid;
+  }
+}

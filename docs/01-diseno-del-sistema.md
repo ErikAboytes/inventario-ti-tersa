@@ -223,7 +223,7 @@ Lo llena un trigger `AFTER INSERT OR UPDATE` en `equipos`; las funciones RPC ind
 | `registrar_devolucion(asignacion, items[{equipo, destino, condicion, observaciones}], fecha, firmas, observaciones)` | Transacción atómica; ver §4.3 |
 | `actualizar_firmas(asignacion \| devolucion, firmas, lugar)` | Corrige los datos de firma antes de reimprimir (queda en historial) |
 | `cambiar_estado(equipo, estado, apartado_para, motivo, nota)` | Cambios manuales permitidos (§4.1) |
-| `buscar_global(texto)` | QR/URL, UUID, serie, colaborador, folio (insensible a acentos con `unaccent` + `pg_trgm`) |
+| `buscar_global(texto, limite)` | Serie, colaborador, folio (sin acentos, palabras salteadas); la URL del QR y el UUID los resuelve el cliente |
 | `siguiente_folio(tipo)` | Uso interno de las RPC: `CC-26-0001`, `CD-26-0001` |
 | `privado.es_admin()`, `privado.es_usuario_activo()` | Helpers `security definer` usados por las políticas RLS; en un esquema que la API no expone |
 
@@ -350,10 +350,11 @@ Pantallas, rutas, navegación y flujos de interfaz: ver **[04 — Diseño UI/UX]
 
 ## 7. Documentos imprimibles y QR
 
-### 7.1 Carta custodia (réplica del formato F.TI-006-02)
+### 7.1 Carta custodia (formato F.TI-006-02)
 
-Tamaño carta, generada en HTML para imprimir o guardar como PDF. Estructura tomada de la carta actual
-(folio SIS0750 de ejemplo):
+Tamaño carta, generada en HTML para imprimir o guardar como PDF. No es una réplica visual de la carta
+anterior: lleva sus datos y su texto con un diseño propio y profesional (decisión del usuario, 2026-10-19).
+Contenido tomado de la carta actual (folio SIS0750 de ejemplo):
 
 1. Logotipo de Grupo Tersa (arriba izquierda) y recuadro **Folio** (arriba derecha).
 2. Título «Carta Custodia / Equipo de Cómputo»; línea «**Tijuana BC, a 09 de 07 del 2026**» (lugar editable + fecha).

@@ -37,7 +37,7 @@ export function Dialogo({
             origen.current =
               document.activeElement instanceof HTMLElement ? document.activeElement : null
             const campo = (e.currentTarget as HTMLElement).querySelector<HTMLElement>(
-              '[data-cuerpo] :is(input, select, textarea):not([disabled])',
+              '[data-cuerpo] :is(input, select, textarea):not([disabled], [data-sin-autofoco])',
             )
             if (campo) {
               e.preventDefault()

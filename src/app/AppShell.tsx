@@ -1,11 +1,14 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import clsx from 'clsx'
-import { LogOut, Menu, Search, X } from 'lucide-react'
+import { LogOut, Menu, ScanLine, Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router'
 import { Logo } from '@/components/Logo'
 import { useAuth } from '@/features/auth/contexto'
 import { BuscadorGlobal } from '@/features/busqueda/BuscadorGlobal'
+import { DialogoEscaner } from '@/features/busqueda/DialogoEscaner'
+import { useIrABusqueda } from '@/features/busqueda/useIrABusqueda'
+import { hayCamara } from '@/lib/escaner'
 import { menuPara, type ElementoMenu } from './navegacion'
 
 /** Estructura de las pantallas con sesión (doc 04 §4): barra superior, menú lateral y menú móvil. */
@@ -60,9 +63,10 @@ function BarraSuperior({ menu }: { menu: ElementoMenu[] }) {
           <BuscadorGlobal />
         </div>
         <div className="ml-auto flex items-center gap-3">
+          <BotonEscaner />
           <NavLink
-            to="/equipos"
-            aria-label="Buscar en el inventario"
+            to="/buscar"
+            aria-label="Buscar"
             className="inline-flex size-10 items-center justify-center rounded-control text-tinta hover:bg-marca-azul-50 md:hidden"
           >
             <Search aria-hidden="true" className="size-5" strokeWidth={1.5} />
@@ -85,6 +89,31 @@ function BarraSuperior({ menu }: { menu: ElementoMenu[] }) {
         </div>
       </div>
     </header>
+  )
+}
+
+/** D-03 en la barra superior. Sin cámara (o fuera de https) no se ofrece: queda la búsqueda por texto. */
+function BotonEscaner() {
+  const [abierto, setAbierto] = useState(false)
+  const ir = useIrABusqueda()
+  if (!hayCamara()) return null
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setAbierto(true)}
+        className="inline-flex min-h-10 items-center gap-2 rounded-control px-3 text-sm font-medium text-tinta transition-colors duration-150 hover:bg-marca-azul-50"
+      >
+        <ScanLine aria-hidden="true" className="size-5" strokeWidth={1.5} />
+        <span className="hidden sm:inline">Escanear QR</span>
+        <span className="sr-only sm:hidden">Escanear QR</span>
+      </button>
+      <DialogoEscaner
+        abierto={abierto}
+        alCerrar={() => setAbierto(false)}
+        alLeer={(t) => void ir(t)}
+      />
+    </>
   )
 }
 

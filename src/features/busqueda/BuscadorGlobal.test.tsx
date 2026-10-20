@@ -6,8 +6,15 @@ import { createMemoryRouter, Link, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BuscadorGlobal } from './BuscadorGlobal'
 
-const idPorSerie = vi.hoisted(() => vi.fn())
+const { idPorSerie, buscarGlobal } = vi.hoisted(() => ({
+  idPorSerie: vi.fn(),
+  buscarGlobal: vi.fn(),
+}))
 vi.mock('@/features/equipos/datos', () => ({ idPorSerie }))
+vi.mock('./datos', async (original) => ({
+  ...(await original<typeof import('./datos')>()),
+  buscarGlobal,
+}))
 
 function montar(ruta: string) {
   const pagina = (
@@ -21,6 +28,8 @@ function montar(ruta: string) {
       { path: '/', element: pagina },
       { path: '/equipos', element: pagina },
       { path: '/equipos/:id', element: <p>Ficha</p> },
+      { path: '/buscar', element: pagina },
+      { path: '/asignaciones/:id', element: <p>Entrega</p> },
     ],
     { initialEntries: [ruta] },
   )
@@ -30,7 +39,10 @@ function montar(ruta: string) {
 
 const campo = () => screen.getByRole('searchbox')
 
-beforeEach(() => idPorSerie.mockReset().mockResolvedValue(null))
+beforeEach(() => {
+  idPorSerie.mockReset().mockResolvedValue(null)
+  buscarGlobal.mockReset().mockResolvedValue({ exacto: null })
+})
 afterEach(cleanup)
 
 describe('Búsqueda de la barra superior', () => {
@@ -49,18 +61,33 @@ describe('Búsqueda de la barra superior', () => {
     expect(campo()).toHaveValue('')
   })
 
-  it('fuera del inventario lleva al inventario filtrado y una serie exacta abre la ficha', async () => {
+  it('fuera del inventario: un folio exacto abre su registro y lo demás va a los resultados', async () => {
     const u = userEvent.setup()
     const router = montar('/')
     await u.type(campo(), 'tecate{Enter}')
-    expect(router.state.location.pathname).toBe('/equipos')
+    await waitFor(() => expect(router.state.location.pathname).toBe('/buscar'))
     expect(router.state.location.search).toBe('?q=tecate')
-    // Al entrar al inventario el campo se vuelve a montar (key); bajo carga ese render llega un poco después.
-    await waitFor(() => expect(campo()).toHaveValue('tecate'))
+    expect(buscarGlobal).toHaveBeenCalledWith('tecate', 1)
 
+    // Desde los resultados, la barra sigue buscando.
+    buscarGlobal.mockResolvedValue({ exacto: { tipo: 'asignacion', id: 'a1' } })
+    await u.type(campo(), 'cc-26-0001{Enter}')
+    await waitFor(() => expect(router.state.location.pathname).toBe('/asignaciones/a1'))
+  })
+
+  it('la URL de un QR abre la ficha sin consultar la búsqueda', async () => {
+    const u = userEvent.setup()
+    const router = montar('/')
+    await u.type(campo(), 'https://inventario.test/e/0E8F4A2B-1C3D-4E5F-8A9B-0C1D2E3F4A5B{Enter}')
+    expect(router.state.location.pathname).toBe('/equipos/0e8f4a2b-1c3d-4e5f-8a9b-0c1d2e3f4a5b')
+    expect(buscarGlobal).not.toHaveBeenCalled()
+  })
+
+  it('en el inventario una serie exacta abre la ficha', async () => {
+    const u = userEvent.setup()
+    const router = montar('/equipos')
     idPorSerie.mockResolvedValue('eq1')
-    await u.clear(campo())
     await u.type(campo(), '5cd626170n{Enter}')
-    expect(router.state.location.pathname).toBe('/equipos/eq1')
+    await waitFor(() => expect(router.state.location.pathname).toBe('/equipos/eq1'))
   })
 })

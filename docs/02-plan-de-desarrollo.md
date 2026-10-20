@@ -260,7 +260,8 @@ mantenimiento deja el estado y la ubicación correctos · la condición de la de
   - en P-12 se agregan las acciones *Entregar* y *Registrar devolución*;
   - en P-41, los equipos actuales y las entregas del colaborador.
 - Cambios respecto a lo planeado:
-  - Mientras no exista P-23 (Etapa 6), al registrar una entrega se abre su detalle (P-22).
+  - Mientras no exista P-23 (Etapa 6), al registrar una entrega se abre su detalle (P-22). Desde la
+    Etapa 6 se abre P-23.
   - P-24 es un comprobante sencillo con líneas de firma; la carta formal F.TI-006-02 queda en P-23.
   - El cierre por incidencia usa su propio consecutivo `CI-AA-NNNN`, así no deja huecos en los folios `CD`.
   - `actualizar_firmas` no deja un movimiento en el historial de los equipos: el historial es por equipo y la
@@ -270,17 +271,67 @@ mantenimiento deja el estado y la ubicación correctos · la condición de la de
 
 **Objetivo:** documentos imprimibles e identificación rápida de equipos.
 
-- **Carta custodia** réplica del formato **F.TI-006-02** (1 equipo = formato actual; varios = tabla), firmas
-  editables, nombre de archivo sugerido al guardar como PDF.
+- **Carta custodia** con los datos y el texto del formato **F.TI-006-02** (1 equipo = datos en vertical;
+  varios = tabla), firmas editables, nombre de archivo sugerido al guardar como PDF. No tiene que ser una
+  réplica visual del formato anterior: basta con los datos importantes y un diseño profesional (decisión del
+  usuario, 2026-10-19).
 - **P-23** documentos de la asignación: **carta + hoja de etiquetas generadas juntas** al completar la entrega.
 - **Carta de devolución** bajo demanda desde **P-26**.
 - **Etiquetas QR** en hoja carta (3 × 8 con guías de corte) por asignación y por lote (**P-70**); ruta **P-14** `/e/:id`.
 - **P-31** búsqueda global (URL de QR, UUID, serie, colaborador sin importar acentos, folios CC/CD/SIS/HIST).
 - **D-03** escáner con cámara: `BarcodeDetector` o respaldo zxing; mensajes claros sin soporte o sin permiso.
 
-**Aceptación:** la carta coincide con F.TI-006-02 y cabe en hoja carta · las etiquetas impresas en papel
+**Aceptación:** la carta lleva los datos y las cláusulas de F.TI-006-02 y cabe en hoja carta · las etiquetas impresas en papel
 normal se leen con un celular · un QR escaneado sin sesión lleva al login y luego a la ficha · la búsqueda
 encuentra «Chavez» cuando el dato es «Chávez» · en un navegador sin cámara se explica la alternativa.
+
+**Construido (rama `etapa-6-cartas-etiquetas-busqueda`):**
+
+- Migración `20261022120000_busqueda_global.sql`: `buscar_global(texto, límite)`.
+  - Es *security invoker*, así que respeta el RLS. Responde con la coincidencia exacta (serie o folio) y
+    los grupos Equipos, Colaboradores, Entregas y Devoluciones.
+  - No distingue acentos ni mayúsculas, acepta palabras salteadas («jose lopez») y escapa los comodines.
+  - Tarda unos 50 ms con los 1,463 equipos.
+- Prueba SQL `supabase/tests/etapa6_busqueda_global.sql`. Cubre:
+  - acentos y palabras salteadas;
+  - serie exacta frente a parcial;
+  - folio exacto;
+  - comodines escapados;
+  - límite de resultados;
+  - el Lector puede buscar;
+  - `anon` rechazado.
+- Documentos (`src/features/documentos/`), fuera de la estructura de la app y con el título de la pestaña
+  igual al nombre del PDF:
+  - **P-23** `/asignaciones/:id/documentos`: carta custodia y hoja de etiquetas. Permite *Imprimir todo*,
+    *Imprimir carta* o *Imprimir etiquetas*, además de *Datos de firma*. Se abre al registrar la entrega.
+  - Carta de devolución `/devoluciones/:id/carta`: botón *Generar carta de devolución* en P-26. Los cierres
+    por incidencia no la generan.
+  - **P-70** `/etiquetas?ids=…`: se abre desde la selección múltiple de P-10 (*Imprimir etiquetas (N)*) y
+    desde *Imprimir etiqueta* en P-12.
+  - Etiquetas en rejilla de 3 × 8 de 65 × 32 mm, con QR de 26 mm (nivel M) y guías de corte. *Empezar en la
+    etiqueta N* permite reutilizar una hoja ya empezada.
+- **P-31** `/buscar` y la barra superior:
+  - la URL del QR o un UUID abren la ficha;
+  - una serie o un folio exactos abren su registro;
+  - lo demás lleva a los resultados agrupados;
+  - en móvil, la lupa abre P-31.
+- **D-03** escáner:
+  - está en la barra superior, en P-31 y en el paso 2 de P-21. En P-21 un QR agrega el equipo directo y un
+    código de barras de serie se busca como texto;
+  - usa `BarcodeDetector` y, si no existe, `@zxing/browser`, que se carga aparte (≈ 125 kB comprimido) solo
+    al abrir el escáner;
+  - cuando no hay cámara, no hay permiso o falla, muestra un mensaje claro y deja escribir la serie o el folio.
+- Prueba unitaria: el QR que genera la etiqueta se vuelve a leer con el mismo decodificador de zxing.
+- Cambios respecto a lo planeado:
+  - La carta es un diseño propio con los datos y el texto de F.TI-006-02, no una réplica visual. Las
+    6 cláusulas se conservan sin cambios de redacción. Con varios equipos solo cambia el número gramatical
+    del párrafo de compromiso.
+  - El nombre del PDF lleva el nombre completo del colaborador sin acentos (p. ej.
+    `F.TI-006-02 Carta Custodia CC-26-0001 5CD626170N Nombre Apellido Apellido`).
+  - El QR usa `VITE_URL_PUBLICA` si está definida; si no, el dominio desde el que se abre la app. Hay que
+    definirla en Netlify antes de imprimir etiquetas definitivas (Etapa 9), para que no apunten a un *deploy
+    preview*.
+  - Las entregas importadas del Excel no tienen firmas ni fecha real: P-23 lo avisa antes de reimprimir.
 
 ## Etapa 7 — Panel operativo e historial global · M
 

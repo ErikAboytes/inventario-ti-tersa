@@ -1,5 +1,6 @@
+import { Printer } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
 import { Etiqueta } from '@/components/ui/Etiqueta'
@@ -24,6 +25,7 @@ export function DetalleDevolucion() {
   useTitulo(d?.folio ?? 'Devolución')
   const esAdmin = useEsAdmin()
   const [firmas, setFirmas] = useState(false)
+  const navigate = useNavigate()
 
   if (consulta.isPending) return <Cargando />
   if (consulta.error) {
@@ -49,11 +51,18 @@ export function DetalleDevolucion() {
           { texto: d.folio },
         ]}
         acciones={
-          esAdmin && !d.es_cierre_incidencia ? (
-            <Button variante="secundario" onClick={() => setFirmas(true)}>
-              Datos de firma
-            </Button>
-          ) : null
+          d.es_cierre_incidencia ? null : (
+            <>
+              <Button onClick={() => navigate(`/devoluciones/${d.id}/carta`)}>
+                <Printer aria-hidden="true" className="size-4" /> Generar carta de devolución
+              </Button>
+              {esAdmin ? (
+                <Button variante="secundario" onClick={() => setFirmas(true)}>
+                  Datos de firma
+                </Button>
+              ) : null}
+            </>
+          )
         }
       />
 

@@ -1,4 +1,4 @@
-import { Plus, X } from 'lucide-react'
+import { Plus, ScanLine, X } from 'lucide-react'
 import { useDeferredValue, useEffect, useState, type Dispatch, type SetStateAction } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
@@ -7,12 +7,14 @@ import { Confirmacion } from '@/components/ui/Confirmacion'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
 import { Pasos } from '@/components/ui/Pasos'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { useAvisos } from '@/components/ui/avisosContexto'
 import { useAuth } from '@/features/auth/contexto'
 import { useOpcionesUnidades } from '@/features/colaboradores/datos'
 import { FormularioColaborador } from '@/features/colaboradores/FormularioColaborador'
+import { DialogoEscaner } from '@/features/busqueda/DialogoEscaner'
+import { destinoBusqueda } from '@/features/busqueda/destino'
 import { detalleEstado, ETIQUETA_CATEGORIA } from '@/features/equipos/esquema'
 import { mensajeDeError } from '@/lib/errores'
+import { hayCamara } from '@/lib/escaner'
 import { ESTADOS_ASIGNABLES, ETIQUETA_ESTADO } from '@/lib/estados'
 import { fechaCorta, oGuion } from '@/lib/formato'
 import { useTitulo } from '@/lib/useTitulo'
@@ -49,7 +51,6 @@ export function AsistenteEntrega() {
   useTitulo('Nueva entrega')
   const { perfil } = useAuth()
   const navigate = useNavigate()
-  const { avisar } = useAvisos()
   const crear = useCrearAsignacion()
   const [params, setParams] = useSearchParams()
   const [b, setB, descartar] = useBorrador({
@@ -120,8 +121,8 @@ export function AsistenteEntrega() {
     try {
       const r = await crear.mutateAsync(aDatosEntrega(b))
       descartar()
-      avisar({ tipo: 'exito', texto: `Entrega ${r.folio} registrada.` })
-      navigate(`/asignaciones/${r.id}`, { replace: true })
+      // El aviso de éxito con el folio lo muestra P-23 (Documentos).
+      navigate(`/asignaciones/${r.id}/documentos?nueva=1`, { replace: true })
     } catch (err) {
       setError(mensajeDeError(err))
     }
@@ -345,10 +346,34 @@ function PasoEquipos({ b, setB }: { b: Borrador; setB: Cambiar }) {
   const resultados = useBuscarEquiposEntrega(buscado)
   const agregados = new Set(b.equipos.map((e) => e.id))
   const asignables = resultados.data?.asignables ?? []
+  const [escaneando, setEscaneando] = useState(false)
+  // Resultado de un QR escaneado que no se pudo agregar (el de serie lo da la búsqueda).
+  const [avisoQr, setAvisoQr] = useState<string | null>(null)
 
   function agregar(e: EquipoEntrega) {
     setB((x) => conEquipo(x, e))
     setTexto('')
+    setAvisoQr(null)
+  }
+
+  /** El QR de la etiqueta trae el id: se agrega directo. Un código de barras de serie se busca como texto. */
+  async function alEscanear(valor: string) {
+    setAvisoQr(null)
+    const destino = destinoBusqueda(valor)
+    if (!destino) return
+    if (destino.tipo === 'texto') {
+      setTexto(destino.texto)
+      return
+    }
+    try {
+      const e = await traerEquipoEntrega(destino.id)
+      if (!e) setAvisoQr('El QR no corresponde a ningún equipo del inventario.')
+      else if (!ESTADOS_ASIGNABLES.includes(e.estado!))
+        setAvisoQr(`${e.serie} no se puede entregar. ${motivoNoAsignable(e)}`)
+      else agregar(e)
+    } catch (err) {
+      setAvisoQr(mensajeDeError(err))
+    }
   }
 
   return (
@@ -371,6 +396,25 @@ function PasoEquipos({ b, setB }: { b: Borrador; setB: Cambiar }) {
           }}
           ayuda="Serie, modelo o número de producto. Se pueden entregar equipos en Stock, Mantenimiento, No localizado, Pendiente o Apartado."
         />
+        {hayCamara() ? (
+          <Button variante="secundario" className="self-start" onClick={() => setEscaneando(true)}>
+            <ScanLine aria-hidden="true" className="size-4" /> Escanear QR
+          </Button>
+        ) : null}
+        <DialogoEscaner
+          abierto={escaneando}
+          alCerrar={() => setEscaneando(false)}
+          alLeer={(t) => void alEscanear(t)}
+          ayuda="Apunta al QR de la etiqueta o al código de barras de la serie."
+        />
+        {avisoQr ? (
+          <p
+            role="status"
+            className="rounded-control border border-mantenimiento bg-mantenimiento-fondo px-3 py-2 text-sm text-mantenimiento"
+          >
+            {avisoQr}
+          </p>
+        ) : null}
         {resultados.data?.noAsignable ? (
           <p
             role="status"
