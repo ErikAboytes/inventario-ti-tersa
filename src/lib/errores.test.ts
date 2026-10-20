@@ -25,3 +25,25 @@ describe('errores de la regla de estado físico', () => {
     expect(campoDeError(e)).toBeUndefined()
   })
 })
+
+describe('errores de las funciones de entrega y devolución', () => {
+  it('muestra el mensaje redactado por la función, no uno genérico', () => {
+    const e = { code: '23514', message: 'El equipo 5CD1 no se puede entregar: está «desactivado».' }
+    expect(mensajeDeError(e)).toBe('El equipo 5CD1 no se puede entregar: está «desactivado».')
+    expect(
+      mensajeDeError({ code: '42501', message: 'Solo un Administrador puede registrar entregas.' }),
+    ).toBe('Solo un Administrador puede registrar entregas.')
+  })
+
+  it('no muestra textos técnicos de Postgres', () => {
+    expect(
+      mensajeDeError({ code: '42501', message: 'permission denied for table asignaciones' }),
+    ).toBe('No tienes permiso para hacer este cambio.')
+    expect(
+      mensajeDeError({
+        code: '23505',
+        message: 'duplicate key value violates unique constraint "asignacion_equipos_activa_uidx"',
+      }),
+    ).toMatch(/acaba de entregarse/)
+  })
+})

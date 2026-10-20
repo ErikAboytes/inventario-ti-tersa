@@ -118,7 +118,9 @@ export const esquemaCambioEstado = z
 export type ValoresCambioEstado = z.output<typeof esquemaCambioEstado>
 
 /** Detalle que acompaña al estado: para quién está apartado o por qué se desactivó. */
-export const detalleEstado = (e: FilaEquipo) =>
+export const detalleEstado = (
+  e: Pick<FilaEquipo, 'estado' | 'apartado_para' | 'motivo_desactivacion'>,
+) =>
   e.estado === 'apartado'
     ? (e.apartado_para ?? undefined)
     : e.estado === 'desactivado'

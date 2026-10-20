@@ -1,11 +1,12 @@
 import { useState, type ReactNode } from 'react'
-import { useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { Confirmacion } from '@/components/ui/Confirmacion'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
 import { Etiqueta, EtiquetaActiva } from '@/components/ui/Etiqueta'
 import { useAvisos } from '@/components/ui/avisosContexto'
 import { Cargando } from '@/components/Cargando'
+import { EquiposDeColaborador } from '@/features/asignaciones/EquiposDeColaborador'
 import { useEsAdmin } from '@/features/auth/contexto'
 import { NoEncontrada } from '@/features/errores/NoEncontrada'
 import { mensajeDeError } from '@/lib/errores'
@@ -21,6 +22,7 @@ export function FichaColaborador() {
   const c = consulta.data
   useTitulo(c?.nombre_completo ?? 'Colaborador')
   const esAdmin = useEsAdmin()
+  const navigate = useNavigate()
   const { avisar } = useAvisos()
   const guardar = useGuardarColaborador()
   const [editando, setEditando] = useState(false)
@@ -65,7 +67,17 @@ export function FichaColaborador() {
               <Button variante="secundario" onClick={() => setCambiandoEstado(true)}>
                 {c.activo ? 'Dar de baja' : 'Reactivar'}
               </Button>
-              <Button onClick={() => setEditando(true)}>Editar</Button>
+              <Button
+                variante={c.activo ? 'secundario' : 'primario'}
+                onClick={() => setEditando(true)}
+              >
+                Editar
+              </Button>
+              {c.activo ? (
+                <Button onClick={() => navigate(`/asignaciones/nueva?colaborador=${c.id}`)}>
+                  Nueva entrega
+                </Button>
+              ) : null}
             </>
           ) : null
         }
@@ -98,15 +110,7 @@ export function FichaColaborador() {
         </dl>
       </section>
 
-      <section aria-labelledby="equipos" className="flex flex-col gap-2">
-        <h2 id="equipos" className="text-base font-semibold">
-          Equipos asignados
-        </h2>
-        <p className="text-texto-secundario">
-          Los equipos que tiene y su historial de entregas aparecerán aquí cuando se habiliten las
-          entregas (Etapa 5).
-        </p>
-      </section>
+      <EquiposDeColaborador colaboradorId={c.id} />
 
       {editando ? (
         <FormularioColaborador colaborador={c} alCerrar={() => setEditando(false)} />

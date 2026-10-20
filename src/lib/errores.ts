@@ -23,6 +23,8 @@ const POR_RESTRICCION: Record<string, string> = {
   equipos_especificaciones_solo_computo:
     'Las especificaciones solo aplican a equipos Desktop y Laptop.',
   perfiles_ultimo_admin: 'Debe quedar al menos un Administrador activo.',
+  asignacion_equipos_activa_uidx:
+    'Uno de los equipos acaba de entregarse en otra asignación. Recarga la página y revisa la lista.',
 }
 
 /** Campo del formulario al que apunta cada restricción, para mostrar el error junto a él. */
@@ -51,12 +53,32 @@ export function campoDeError(error: unknown): string | undefined {
   return r ? CAMPO_POR_RESTRICCION[r] : undefined
 }
 
+// Mensajes técnicos de Postgres: nunca se muestran tal cual.
+const TECNICO =
+  /violates|permission denied|row-level security|duplicate key|null value|syntax|relation|function/i
+
+/**
+ * Las funciones de la BD (crear_asignacion, registrar_devolucion…) lanzan sus reglas con un mensaje ya
+ * redactado para el usuario («El equipo 5CD… no se puede entregar: está «desactivado»»); la API no expone el
+ * nombre de la restricción en ese caso, así que se usa el mensaje.
+ */
+const mensajePropio = (e: ErrorBD) =>
+  ['23514', '42501', 'P0002', '22023'].includes(e.code ?? '') &&
+  e.message &&
+  // Los mensajes redactados terminan en punto; los de Postgres no.
+  e.message.endsWith('.') &&
+  !TECNICO.test(e.message)
+    ? e.message
+    : null
+
 export function mensajeDeError(error: unknown): string {
   const e = (error ?? {}) as ErrorBD
   const texto = textoDe(error)
 
   const r = restriccionDe(texto, Object.keys(POR_RESTRICCION))
   if (r) return POR_RESTRICCION[r]
+  const propio = mensajePropio(e)
+  if (propio) return propio
 
   switch (e.code) {
     case '23505':

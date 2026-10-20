@@ -45,6 +45,13 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
+            foreignKeyName: 'asignacion_equipos_asignacion_id_fkey'
+            columns: ['asignacion_id']
+            isOneToOne: false
+            referencedRelation: 'v_asignaciones'
+            referencedColumns: ['id']
+          },
+          {
             foreignKeyName: 'asignacion_equipos_devolucion_id_fkey'
             columns: ['devolucion_id']
             isOneToOne: false
@@ -358,6 +365,13 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
+            foreignKeyName: 'devoluciones_asignacion_id_fkey'
+            columns: ['asignacion_id']
+            isOneToOne: false
+            referencedRelation: 'v_asignaciones'
+            referencedColumns: ['id']
+          },
+          {
             foreignKeyName: 'devoluciones_recibido_por_fkey'
             columns: ['recibido_por']
             isOneToOne: false
@@ -617,6 +631,13 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
+            foreignKeyName: 'movimientos_asignacion_id_fkey'
+            columns: ['asignacion_id']
+            isOneToOne: false
+            referencedRelation: 'v_asignaciones'
+            referencedColumns: ['id']
+          },
+          {
             foreignKeyName: 'movimientos_devolucion_id_fkey'
             columns: ['devolucion_id']
             isOneToOne: false
@@ -825,6 +846,39 @@ export type Database = {
       }
     }
     Views: {
+      v_asignaciones: {
+        Row: {
+          activa: boolean | null
+          busqueda: string | null
+          cerrada_en: string | null
+          colaborador_id: string | null
+          colaborador_nombre: string | null
+          creado_en: string | null
+          equipos_activos: number | null
+          equipos_devueltos: number | null
+          es_historica: boolean | null
+          fecha_entrega: string | null
+          folio: string | null
+          id: string | null
+          ubicacion: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'asignaciones_colaborador_id_fkey'
+            columns: ['colaborador_id']
+            isOneToOne: false
+            referencedRelation: 'colaboradores'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'asignaciones_colaborador_id_fkey'
+            columns: ['colaborador_id']
+            isOneToOne: false
+            referencedRelation: 'v_equipos'
+            referencedColumns: ['colaborador_id']
+          },
+        ]
+      }
       v_equipos: {
         Row: {
           actualizado_en: string | null
@@ -874,6 +928,13 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
+            foreignKeyName: 'asignacion_equipos_asignacion_id_fkey'
+            columns: ['asignacion_id']
+            isOneToOne: false
+            referencedRelation: 'v_asignaciones'
+            referencedColumns: ['id']
+          },
+          {
             foreignKeyName: 'equipos_contrato_id_fkey'
             columns: ['contrato_id']
             isOneToOne: false
@@ -905,6 +966,18 @@ export type Database = {
       }
     }
     Functions: {
+      actualizar_firmas: {
+        Args: {
+          p_firma_entrega_nombre: string
+          p_firma_entrega_puesto: string
+          p_firma_recibe_nombre: string
+          p_firma_recibe_puesto: string
+          p_id: string
+          p_lugar: string
+          p_tipo: string
+        }
+        Returns: undefined
+      }
       cambiar_estado: {
         Args: {
           p_apartado_para?: string
@@ -914,6 +987,22 @@ export type Database = {
           p_nota?: string
         }
         Returns: undefined
+      }
+      crear_asignacion: {
+        Args: {
+          p_apartados_confirmados?: string[]
+          p_colaborador: string
+          p_equipos: string[]
+          p_fecha?: string
+          p_firma_entrega_nombre?: string
+          p_firma_entrega_puesto?: string
+          p_firma_recibe_nombre?: string
+          p_firma_recibe_puesto?: string
+          p_lugar?: string
+          p_observaciones?: string
+          p_unidad_negocio?: string
+        }
+        Returns: Json
       }
       historial_equipo: {
         Args: { p_equipo: string }
@@ -929,6 +1018,22 @@ export type Database = {
         }[]
       }
       normalizar_texto: { Args: { texto: string }; Returns: string }
+      registrar_devolucion: {
+        Args: {
+          p_asignacion: string
+          p_cierre_incidencia?: boolean
+          p_fecha?: string
+          p_firma_entrega_nombre?: string
+          p_firma_entrega_puesto?: string
+          p_firma_recibe_nombre?: string
+          p_firma_recibe_puesto?: string
+          p_items: Json
+          p_lugar?: string
+          p_motivo?: string
+          p_observaciones?: string
+        }
+        Returns: Json
+      }
       siguiente_folio: { Args: { p_tipo: string }; Returns: string }
     }
     Enums: {

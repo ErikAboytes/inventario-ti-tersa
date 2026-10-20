@@ -297,6 +297,7 @@ cada año.
 |---|---|---|
 | Carta custodia (asignación) | `CC-26-0001` | Se reconoce el tipo y el año a simple vista; ordena bien; 9,999 por año (hoy se emiten unas cuantas centenas) |
 | Carta de devolución | `CD-26-0001` | Misma lógica; no se confunde con la custodia |
+| Cierre por incidencia (sin carta) | `CI-26-0001` | Consecutivo propio: no consume folios `CD` y las cartas siguen sin huecos |
 
 - Se generan dentro de la transacción con `folios_control` ⇒ consecutivos **sin huecos** y sin duplicados.
 - Las asignaciones importadas del Excel conservan su folio `SIS0001`–`SIS0755`; las que no tenían carta
