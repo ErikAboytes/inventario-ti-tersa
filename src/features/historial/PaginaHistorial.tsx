@@ -243,7 +243,8 @@ export function PaginaHistorial() {
               <Link to={`/equipos/${m.equipo_id}`} className="font-mono text-marca-azul">
                 {m.serie}
               </Link>
-              <Folio m={m} />
+              {/* En la tarjeta el folio solo aparece si existe; el «—» es para la columna de la tabla. */}
+              {m.folio ? <Folio m={m} /> : null}
             </p>
             <Resumen m={m} />
             <p className="text-texto-secundario">

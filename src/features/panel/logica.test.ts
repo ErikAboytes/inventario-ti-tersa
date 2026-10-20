@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { fechaHora } from '@/features/equipos/historial'
 import type { FilaHistorial } from '@/features/historial/datos'
 import { autorDe, historialACsv, resumenMovimiento, rutaFolio } from '@/features/historial/resumen'
 import {
@@ -91,6 +92,11 @@ const fila = (extra: Partial<FilaHistorial>): FilaHistorial =>
   }) as FilaHistorial
 
 describe('historial', () => {
+  it('fecha y hora en dd/mm/aaaa HH:mm de Tijuana', () => {
+    expect(fechaHora('2026-10-20T02:24:00Z')).toBe('19/10/2026 19:24')
+    expect(fechaHora('2026-01-05T08:03:00Z')).toBe('05/01/2026 00:03')
+  })
+
   it('resume cada movimiento en una línea', () => {
     expect(resumenMovimiento(fila({}))).toBe('Estado: Stock → Pendiente')
     expect(resumenMovimiento(fila({ tipo: 'importacion', estado_anterior: null }))).toBe(

@@ -66,11 +66,20 @@ export function cambiosLegibles(m: Pick<Movimiento, 'cambios'>): Cambio[] {
     }))
 }
 
-/** «19/10/2026 14:05» en la hora de Tijuana. */
+const FORMATO_FECHA_HORA = new Intl.DateTimeFormat('es-MX', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+  timeZone: 'America/Tijuana',
+})
+
+/** «19/10/2026 14:05» en la hora de Tijuana: dd/mm/aaaa como el resto de la app (doc 01 §11). */
 export function fechaHora(iso: string): string {
-  return new Intl.DateTimeFormat('es-MX', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-    timeZone: 'America/Tijuana',
-  }).format(new Date(iso))
+  const p = Object.fromEntries(
+    FORMATO_FECHA_HORA.formatToParts(new Date(iso)).map((x) => [x.type, x.value]),
+  )
+  return `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}`
 }

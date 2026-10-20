@@ -51,22 +51,35 @@ export function Panel() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col">
           <h1 className="text-2xl font-semibold outline-none">Panel</h1>
-          <p className="text-sm text-texto-secundario" aria-live="polite">
-            {m ? `Actualizado ${fechaHora(m.calculado_en)}` : 'Inventario de equipos de cómputo'}
-          </p>
+          <div className="-ml-2 flex flex-wrap items-center text-sm text-texto-secundario">
+            <span aria-live="polite" className="pl-2">
+              {consulta.isFetching && m
+                ? 'Actualizando…'
+                : m
+                  ? `Actualizado ${fechaHora(m.calculado_en)}`
+                  : 'Inventario de equipos de cómputo'}
+            </span>
+            <button
+              type="button"
+              onClick={() => consulta.refetch()}
+              disabled={consulta.isFetching}
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-control px-2 font-medium text-marca-azul hover:bg-marca-azul-50 disabled:opacity-50"
+            >
+              <RotateCw
+                aria-hidden="true"
+                className={clsx('size-4', consulta.isFetching && 'motion-safe:animate-spin')}
+              />
+              Actualizar
+            </button>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variante="fantasma"
-            onClick={() => consulta.refetch()}
-            disabled={consulta.isFetching}
-          >
-            <RotateCw aria-hidden="true" className="size-4" /> Actualizar
-          </Button>
-          {esAdmin ? <AccesosRapidos /> : null}
-        </div>
+        {esAdmin ? (
+          <div className="flex flex-wrap gap-2">
+            <AccesosRapidos />
+          </div>
+        ) : null}
       </div>
 
       {consulta.error ? (
@@ -122,10 +135,13 @@ function AccesosRapidos() {
   const [escaneando, setEscaneando] = useState(false)
   return (
     <>
+      {/* En móvil el escáner ya está en la barra superior: aquí solo ocuparía altura. */}
       {hayCamara() ? (
-        <Button variante="secundario" onClick={() => setEscaneando(true)}>
-          <ScanLine aria-hidden="true" className="size-4" /> Escanear QR
-        </Button>
+        <div className="hidden sm:block">
+          <Button variante="secundario" onClick={() => setEscaneando(true)}>
+            <ScanLine aria-hidden="true" className="size-4" /> Escanear QR
+          </Button>
+        </div>
       ) : null}
       <Button onClick={() => navigate('/asignaciones/nueva')}>
         <Plus aria-hidden="true" className="size-4" /> Nueva entrega
@@ -150,7 +166,8 @@ function CifrasClave({ m }: { m: MetricasPanel }) {
   )
   return (
     <section aria-label="Cifras clave">
-      <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* 2 × 2 desde el celular: «Requiere atención» queda a la vista sin tanto desplazamiento. */}
+      <ul className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Cifra
           etiqueta="Equipos activos"
           valor={c.activos}
@@ -198,10 +215,10 @@ function Cifra({
     <li>
       <Link
         to={ruta}
-        className="flex h-full flex-col gap-1 rounded-tarjeta border border-borde bg-superficie p-5 transition-colors duration-150 hover:border-marca-azul"
+        className="flex h-full flex-col gap-1 rounded-tarjeta border border-borde bg-superficie p-4 transition-colors duration-150 hover:border-marca-azul sm:p-5"
       >
         <span className="text-sm text-texto-secundario">{etiqueta}</span>
-        <span className="text-3xl font-semibold text-tinta tabular-nums">
+        <span className="text-2xl font-semibold text-tinta tabular-nums sm:text-3xl">
           {formatoNumero(valor)}
         </span>
         <span
@@ -363,11 +380,21 @@ function Distribucion({ m }: { m: MetricasPanel }) {
                     <span>{e.clave ?? 'Sin empresa'}</span>
                     <span className="tabular-nums">{formatoNumero(e.total)}</span>
                   </Link>
-                  <p className="text-sm text-texto-secundario">
-                    {segmentos(e.estados)
-                      .map((s) => `${ETIQUETA_ESTADO[s.estado]} ${formatoNumero(s.n)}`)
-                      .join(' · ')}
-                  </p>
+                  {/* Cada «Estado N» va junto (sin partirse entre líneas), con el color de la barra. */}
+                  <ul className="flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-texto-secundario">
+                    {segmentos(e.estados).map((s) => (
+                      <li
+                        key={s.estado}
+                        className="inline-flex items-center gap-1.5 whitespace-nowrap"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={clsx('size-2 rounded-sm', RELLENO[s.estado])}
+                        />
+                        {ETIQUETA_ESTADO[s.estado]} {formatoNumero(s.n)}
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               )
             })}
