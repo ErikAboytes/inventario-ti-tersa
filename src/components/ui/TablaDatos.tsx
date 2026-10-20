@@ -35,6 +35,15 @@ type Props<F> = {
   alReintentar: () => void
   /** Agrupa filas consecutivas con el mismo valor (p. ej. «Agrupar por empresa»); las filas ya vienen ordenadas. */
   grupo?: (fila: F) => string
+  /** Selección múltiple con casillas (P-10 → etiquetas). Se conserva al cambiar de página o de filtros. */
+  seleccion?: Seleccion<F>
+}
+
+export type Seleccion<F> = {
+  ids: ReadonlySet<string>
+  alCambiar: (ids: Set<string>) => void
+  /** Nombre accesible de la casilla de cada fila («Seleccionar 5CD626170N»). */
+  etiqueta: (fila: F) => string
 }
 
 const formato = new Intl.NumberFormat('es-MX')
@@ -57,6 +66,15 @@ export function TablaDatos<F>(p: Props<F>) {
   }
 
   const filas = p.filas ?? []
+  const sel = p.seleccion
+  const marcadas = sel ? filas.filter((f) => sel.ids.has(p.clave(f))).length : 0
+  const marcar = (claves: string[], valor: boolean) => {
+    if (!sel) return
+    const ids = new Set(sel.ids)
+    claves.forEach((c) => (valor ? ids.add(c) : ids.delete(c)))
+    sel.alCambiar(ids)
+  }
+  const columnasTotales = p.columnas.length + (sel ? 1 : 0)
   const totalPaginas = Math.max(1, Math.ceil(p.total / p.porPagina))
   const desde = p.total === 0 ? 0 : (p.pagina - 1) * p.porPagina + 1
   const hasta = Math.min(p.pagina * p.porPagina, p.total)
@@ -75,6 +93,21 @@ export function TablaDatos<F>(p: Props<F>) {
           <caption className="sr-only">{p.etiqueta}</caption>
           <thead className="border-b border-borde text-texto-secundario">
             <tr>
+              {sel ? (
+                <th scope="col" className="w-10 pl-4">
+                  <input
+                    type="checkbox"
+                    aria-label="Seleccionar los de esta página"
+                    checked={filas.length > 0 && marcadas === filas.length}
+                    ref={(el) => {
+                      if (el) el.indeterminate = marcadas > 0 && marcadas < filas.length
+                    }}
+                    disabled={!filas.length}
+                    onChange={(e) => marcar(filas.map(p.clave), e.target.checked)}
+                    className="size-5 accent-marca-azul"
+                  />
+                </th>
+              ) : null}
               {p.columnas.map((c) => (
                 <th
                   key={c.clave}
@@ -104,6 +137,7 @@ export function TablaDatos<F>(p: Props<F>) {
             {p.cargando && filas.length === 0
               ? Array.from({ length: 6 }, (_, i) => (
                   <tr key={i} className="h-11 border-b border-borde last:border-0">
+                    {sel ? <td className="pl-4" /> : null}
                     {p.columnas.map((c) => (
                       <td
                         key={c.clave}
@@ -120,7 +154,7 @@ export function TablaDatos<F>(p: Props<F>) {
                       <tr className="border-b border-borde bg-fondo">
                         <th
                           scope="colgroup"
-                          colSpan={p.columnas.length}
+                          colSpan={columnasTotales}
                           className="px-4 py-2 text-left font-semibold text-tinta"
                         >
                           {tituloGrupo(i)}
@@ -131,8 +165,20 @@ export function TablaDatos<F>(p: Props<F>) {
                       className={clsx(
                         'h-11 border-b border-borde last:border-0 hover:bg-fondo',
                         p.cargando && 'opacity-60',
+                        sel?.ids.has(p.clave(f)) && 'bg-marca-azul-50',
                       )}
                     >
+                      {sel ? (
+                        <td className="pl-4">
+                          <input
+                            type="checkbox"
+                            aria-label={sel.etiqueta(f)}
+                            checked={sel.ids.has(p.clave(f))}
+                            onChange={(e) => marcar([p.clave(f)], e.target.checked)}
+                            className="size-5 accent-marca-azul"
+                          />
+                        </td>
+                      ) : null}
                       {p.columnas.map((c) => (
                         <td
                           key={c.clave}
@@ -160,8 +206,17 @@ export function TablaDatos<F>(p: Props<F>) {
             {tituloGrupo(i) !== null ? (
               <li className="pt-2 text-sm font-semibold text-texto-secundario">{tituloGrupo(i)}</li>
             ) : null}
-            <li className="rounded-tarjeta border border-borde bg-superficie p-4">
-              {p.tarjeta(f)}
+            <li className="flex items-start gap-3 rounded-tarjeta border border-borde bg-superficie p-4">
+              {sel ? (
+                <input
+                  type="checkbox"
+                  aria-label={sel.etiqueta(f)}
+                  checked={sel.ids.has(p.clave(f))}
+                  onChange={(e) => marcar([p.clave(f)], e.target.checked)}
+                  className="mt-0.5 size-5 shrink-0 accent-marca-azul"
+                />
+              ) : null}
+              <div className="min-w-0 flex-1">{p.tarjeta(f)}</div>
             </li>
           </Fragment>
         ))}

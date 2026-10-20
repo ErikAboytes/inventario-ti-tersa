@@ -1,4 +1,4 @@
-import { Download, Plus } from 'lucide-react'
+import { Download, Plus, QrCode } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { BarraFiltros, FiltroMultiple, FiltroSelect } from '@/components/ui/BarraFiltros'
@@ -107,6 +107,8 @@ export function ListaEquipos() {
   const ubicaciones = useOpcionesUbicaciones()
   const subcategorias = useOpcionesSubcategorias()
   const [progreso, setProgreso] = useState<string | null>(null)
+  // Equipos marcados para imprimir etiquetas (P-70); se conservan al paginar o filtrar.
+  const [seleccion, setSeleccion] = useState<Set<string>>(() => new Set())
   const hayFiltros = estado.q !== '' || Object.keys(estado.filtros).some((k) => k !== 'agrupar')
 
   // «Limpiar» conserva la vista agrupada: es una preferencia de visualización, no un filtro.
@@ -154,6 +156,20 @@ export function ListaEquipos() {
         }
         acciones={
           <>
+            {seleccion.size ? (
+              <>
+                <Button variante="fantasma" onClick={() => setSeleccion(new Set())}>
+                  Quitar selección
+                </Button>
+                <Button
+                  variante="secundario"
+                  onClick={() => navigate(`/etiquetas?ids=${[...seleccion].join(',')}`)}
+                >
+                  <QrCode aria-hidden="true" className="size-4" /> Imprimir etiquetas (
+                  {formato.format(seleccion.size)})
+                </Button>
+              </>
+            ) : null}
             <Button
               variante="secundario"
               onClick={exportar}
@@ -213,6 +229,11 @@ export function ListaEquipos() {
         columnas={columnas}
         filas={lista.data?.filas}
         clave={(e) => e.id ?? e.serie ?? ''}
+        seleccion={{
+          ids: seleccion,
+          alCambiar: setSeleccion,
+          etiqueta: (e) => `Seleccionar ${e.serie ?? 'equipo'}`,
+        }}
         grupo={
           agrupar ? (e) => e.empresa_razon_social ?? e.empresa_clave ?? 'Sin empresa' : undefined
         }

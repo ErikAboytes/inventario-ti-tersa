@@ -52,9 +52,15 @@ export function DetalleAsignacion() {
           <>
             <Button
               variante="secundario"
+              onClick={() => navigate(`/asignaciones/${a.id}/documentos`)}
+            >
+              <Printer aria-hidden="true" className="size-4" /> Carta y etiquetas
+            </Button>
+            <Button
+              variante="secundario"
               onClick={() => navigate(`/asignaciones/${a.id}/imprimir`)}
             >
-              <Printer aria-hidden="true" className="size-4" /> Vista imprimible
+              Comprobante
             </Button>
             {esAdmin ? (
               <Button variante="secundario" onClick={() => setFirmas(true)}>

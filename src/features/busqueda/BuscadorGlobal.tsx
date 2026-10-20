@@ -5,10 +5,11 @@ import { useTextoBusqueda } from '@/components/ui/useTextoBusqueda'
 import { idPorSerie } from '@/features/equipos/datos'
 import { aplicarCambios } from '@/lib/paramsTabla'
 import { destinoBusqueda } from './destino'
+import { useIrABusqueda } from './useIrABusqueda'
 
 /**
- * Búsqueda de la barra superior (por ahora solo equipos; la global completa llega en la Etapa 6).
- * Una serie exacta abre la ficha; si no, lleva al inventario filtrado. «/» enfoca el campo.
+ * Búsqueda global de la barra superior (doc 04 P-31). Una URL de QR, UUID, serie o folio exactos abren su
+ * registro; lo demás lleva a los resultados agrupados. «/» enfoca el campo.
  * En el inventario es su buscador: muestra y filtra el `q` de la URL mientras se escribe.
  */
 export function BuscadorGlobal() {
@@ -20,6 +21,7 @@ export function BuscadorGlobal() {
 
 function CampoBusqueda({ enInventario }: { enInventario: boolean }) {
   const navigate = useNavigate()
+  const ir = useIrABusqueda()
   const [params, setParams] = useSearchParams()
   const campo = useRef<HTMLInputElement>(null)
   const [buscando, setBuscando] = useState(false)
@@ -49,16 +51,18 @@ function CampoBusqueda({ enInventario }: { enInventario: boolean }) {
       filtrar('')
       return
     }
+    setBuscando(true)
     if (destino.tipo === 'equipo') {
       navigate(`/equipos/${destino.id}`)
-    } else {
-      setBuscando(true)
+    } else if (enInventario) {
+      // En el inventario una serie exacta abre la ficha y lo demás filtra la tabla.
       const id = await idPorSerie(destino.texto).catch(() => null)
-      setBuscando(false)
       if (id) navigate(`/equipos/${id}`)
-      else if (enInventario) filtrar(destino.texto)
-      else navigate(`/equipos?q=${encodeURIComponent(destino.texto)}`)
+      else filtrar(destino.texto)
+    } else {
+      await ir(destino.texto)
     }
+    setBuscando(false)
     // En el inventario el texto se queda: es el filtro de la tabla.
     if (!enInventario) {
       setTexto('')
@@ -77,10 +81,10 @@ function CampoBusqueda({ enInventario }: { enInventario: boolean }) {
         type="search"
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
-        aria-label="Buscar equipo por serie, modelo, número de producto o colaborador"
+        aria-label="Buscar equipo, colaborador o folio"
         aria-keyshortcuts="/"
         aria-busy={buscando}
-        placeholder="Buscar serie, modelo o colaborador…"
+        placeholder="Buscar serie, colaborador o folio…"
         className="min-h-10 w-full rounded-control border border-borde-control bg-superficie pr-10 pl-10 placeholder:text-texto-secundario"
       />
       <kbd

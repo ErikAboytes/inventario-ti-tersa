@@ -127,6 +127,7 @@ function montar(ruta: string) {
       { path: '/asignaciones/nueva', element: <AsistenteEntrega /> },
       { path: '/asignaciones/:id/devolucion', element: <PaginaRegistrarDevolucion /> },
       { path: '/asignaciones/:id', element: <h1>Detalle</h1> },
+      { path: '/asignaciones/:id/documentos', element: <h1>Documentos</h1> },
       { path: '/devoluciones/:id', element: <h1>Devolución</h1> },
     ],
     { initialEntries: [ruta] },
@@ -192,6 +193,8 @@ describe('P-21 · Asistente de entrega', () => {
       }),
     )
     expect(sessionStorage.getItem(CLAVE_BORRADOR)).not.toContain('e1')
+    // Al registrar se abren los documentos (P-23) con el aviso de éxito.
+    expect(screen.getByRole('heading', { name: 'Documentos' })).toBeInTheDocument()
   })
 
   it('un ?paso= adelantado regresa al primer paso incompleto', () => {

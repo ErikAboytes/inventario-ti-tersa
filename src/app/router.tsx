@@ -10,8 +10,12 @@ import { Login } from '@/features/auth/Login'
 import { Recuperar } from '@/features/auth/Recuperar'
 import { Restablecer } from '@/features/auth/Restablecer'
 import { PaginaCatalogo } from '@/features/catalogos/PaginaCatalogo'
+import { PaginaBusqueda } from '@/features/busqueda/PaginaBusqueda'
 import { FichaColaborador } from '@/features/colaboradores/FichaColaborador'
 import { ListaColaboradores } from '@/features/colaboradores/ListaColaboradores'
+import { DocumentosAsignacion } from '@/features/documentos/DocumentosAsignacion'
+import { EtiquetasLote } from '@/features/documentos/EtiquetasLote'
+import { PaginaCartaDevolucion } from '@/features/documentos/PaginaCartaDevolucion'
 import { FichaEquipo, RedirigirQr } from '@/features/equipos/FichaEquipo'
 import { PaginaFormularioEquipo } from '@/features/equipos/FormularioEquipo'
 import { ListaEquipos } from '@/features/equipos/ListaEquipos'
@@ -30,7 +34,7 @@ const proximas = MENU.filter((m) => !CONSTRUIDAS.has(m.ruta) && !m.soloRol).map(
   element: <Proximamente titulo={m.texto} etapa={m.etapa} />,
 }))
 
-// Rutas del doc 04 §5 construidas hasta la Etapa 5.
+// Rutas del doc 04 §5 construidas hasta la Etapa 6.
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/recuperar', element: <Recuperar /> },
@@ -39,8 +43,11 @@ export const router = createBrowserRouter([
   {
     element: <RequiereSesion />,
     children: [
-      // Vista imprimible sin la estructura de la app (P-24).
+      // Documentos imprimibles, sin la estructura de la app (P-23, P-24, carta de devolución, P-70).
       { path: 'asignaciones/:id/imprimir', element: <ImprimirAsignacion /> },
+      { path: 'asignaciones/:id/documentos', element: <DocumentosAsignacion /> },
+      { path: 'devoluciones/:id/carta', element: <PaginaCartaDevolucion /> },
+      { path: 'etiquetas', element: <EtiquetasLote /> },
       {
         element: <AppShell />,
         children: [
@@ -51,6 +58,7 @@ export const router = createBrowserRouter([
           { path: 'asignaciones', element: <ListaAsignaciones /> },
           { path: 'asignaciones/:id', element: <DetalleAsignacion /> },
           { path: 'devoluciones/:id', element: <DetalleDevolucion /> },
+          { path: 'buscar', element: <PaginaBusqueda /> },
           { path: 'colaboradores', element: <ListaColaboradores /> },
           { path: 'colaboradores/:id', element: <FichaColaborador /> },
           { path: 'catalogos', element: <Navigate to="/catalogos/empresas" replace /> },

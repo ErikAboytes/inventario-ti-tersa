@@ -978,6 +978,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      buscar_global: {
+        Args: { p_limite?: number; p_texto: string }
+        Returns: Json
+      }
       cambiar_estado: {
         Args: {
           p_apartado_para?: string
