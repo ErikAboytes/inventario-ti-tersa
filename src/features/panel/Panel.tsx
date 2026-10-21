@@ -306,7 +306,6 @@ function RequiereAtencion({ m }: { m: MetricasPanel }) {
 
 function Distribucion({ m }: { m: MetricasPanel }) {
   const max = Math.max(1, ...m.por_empresa.map((e) => e.total))
-  const presentes = ESTADOS_ACTIVOS.filter((s) => m.por_empresa.some((e) => e.estados[s]))
 
   return (
     <Bloque
@@ -317,40 +316,36 @@ function Distribucion({ m }: { m: MetricasPanel }) {
         <p className="text-texto-secundario">Aún no hay equipos activos.</p>
       ) : (
         <>
-          {/* Clave de colores en una línea, arriba de las barras. */}
-          <ul aria-hidden="true" className="hidden flex-wrap gap-x-4 gap-y-1 text-sm sm:flex">
-            {presentes.map((s) => (
-              <li key={s} className="flex items-center gap-1.5">
-                <span className={clsx('size-2.5 rounded-sm', RELLENO[s])} />
-                {ETIQUETA_ESTADO[s]}
-              </li>
-            ))}
-          </ul>
-
-          {/* Escritorio y tableta: barras apiladas; cada segmento abre el inventario filtrado. */}
-          <ul className="hidden flex-col gap-2.5 sm:flex">
+          {/*
+            Una sola vista para todos los anchos. La barra es la gráfica (atajo con el ratón, fuera del
+            orden del teclado); los enlaces de texto de abajo son el control equivalente con área de toque
+            suficiente (WCAG 2.2 · 2.5.8) y llevan las etiquetas directas sobre los datos.
+          */}
+          <ul className="flex flex-col divide-y divide-borde">
             {m.por_empresa.map((e) => {
               const nombre = e.clave ?? 'Sin empresa'
               const empresa = e.empresa_id ?? SIN_EMPRESA
+              const partes = segmentos(e.estados)
               return (
-                <li key={empresa} className="grid grid-cols-[6.5rem_1fr] items-center gap-3">
+                <li key={empresa} className="flex flex-col gap-1.5 py-2.5 first:pt-0 last:pb-0">
                   <Link
                     to={rutaInventario({ empresa, estado: ESTADOS_ACTIVOS.join(',') })}
                     title={e.razon_social ?? undefined}
-                    className="truncate text-sm font-medium hover:text-marca-azul hover:underline"
+                    className="flex min-h-6 items-center justify-between gap-3 font-medium hover:text-marca-azul"
                   >
-                    {nombre}
+                    <span className="truncate">{nombre}</span>
+                    <span className="tabular-nums">{formatoNumero(e.total)}</span>
                   </Link>
-                  <div className="flex items-center gap-2">
+                  <div aria-hidden="true" className="hidden h-3 sm:block">
                     <div
-                      className="flex h-6 overflow-hidden rounded-sm"
+                      className="flex h-full overflow-hidden rounded-sm"
                       style={{ width: `${(e.total / max) * 100}%` }}
                     >
-                      {segmentos(e.estados).map((s) => (
+                      {partes.map((s) => (
                         <Link
                           key={s.estado}
                           to={rutaInventario({ empresa, estado: s.estado })}
-                          aria-label={`${nombre}: ${formatoNumero(s.n)} en ${ETIQUETA_ESTADO[s.estado]}`}
+                          tabIndex={-1}
                           title={`${ETIQUETA_ESTADO[s.estado]}: ${formatoNumero(s.n)}`}
                           className={clsx(
                             'h-full border-r border-superficie last:border-r-0 hover:opacity-80',
@@ -360,38 +355,21 @@ function Distribucion({ m }: { m: MetricasPanel }) {
                         />
                       ))}
                     </div>
-                    <span className="text-sm tabular-nums">{formatoNumero(e.total)}</span>
                   </div>
-                </li>
-              )
-            })}
-          </ul>
-
-          {/* Móvil: lista con totales. */}
-          <ul className="flex flex-col divide-y divide-borde sm:hidden">
-            {m.por_empresa.map((e) => {
-              const empresa = e.empresa_id ?? SIN_EMPRESA
-              return (
-                <li key={empresa} className="flex flex-col gap-1 py-2">
-                  <Link
-                    to={rutaInventario({ empresa, estado: ESTADOS_ACTIVOS.join(',') })}
-                    className="flex justify-between font-medium"
-                  >
-                    <span>{e.clave ?? 'Sin empresa'}</span>
-                    <span className="tabular-nums">{formatoNumero(e.total)}</span>
-                  </Link>
-                  {/* Cada «Estado N» va junto (sin partirse entre líneas), con el color de la barra. */}
-                  <ul className="flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-texto-secundario">
-                    {segmentos(e.estados).map((s) => (
-                      <li
-                        key={s.estado}
-                        className="inline-flex items-center gap-1.5 whitespace-nowrap"
-                      >
-                        <span
-                          aria-hidden="true"
-                          className={clsx('size-2 rounded-sm', RELLENO[s.estado])}
-                        />
-                        {ETIQUETA_ESTADO[s.estado]} {formatoNumero(s.n)}
+                  <ul className="flex flex-wrap gap-x-3 text-sm text-texto-secundario">
+                    {partes.map((s) => (
+                      <li key={s.estado}>
+                        <Link
+                          to={rutaInventario({ empresa, estado: s.estado })}
+                          aria-label={`${nombre}: ${formatoNumero(s.n)} en ${ETIQUETA_ESTADO[s.estado]}`}
+                          className="inline-flex min-h-6 items-center gap-1.5 whitespace-nowrap hover:text-marca-azul hover:underline"
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={clsx('size-2 rounded-sm', RELLENO[s.estado])}
+                          />
+                          {ETIQUETA_ESTADO[s.estado]} {formatoNumero(s.n)}
+                        </Link>
                       </li>
                     ))}
                   </ul>

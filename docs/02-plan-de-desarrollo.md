@@ -438,6 +438,53 @@ petición · no es posible quedarse sin Administradores.
 **Aceptación:** e2e en verde · sin alertas críticas en *advisors* · conciliación final aprobada · usuarios
 capacitados.
 
+**Construido (rama `etapa-9-endurecimiento`):**
+
+- **Alcance ajustado (decisión del usuario, 2026-10-21):** la salida a producción (proyecto de Supabase y
+  Netlify en cuentas de Grupo Tersa, SMTP, dominio), la migración final y las 109 incidencias de la migración
+  se planean aparte en la **Etapa 10**, después de presentar el proyecto a la empresa. Esta etapa cubre el
+  endurecimiento.
+- **Pruebas e2e con Playwright** (`e2e/`, `npm run e2e`, guía en `e2e/README.md`):
+  - escritorio (1366 × 860) y móvil (Pixel 7);
+  - públicas: ruta protegida → login con regreso, QR sin sesión, login, invitación vencida;
+  - Administrador: panel → inventario filtrado, búsqueda por serie y QR, CSV, carta y etiquetas, historial,
+    usuarios;
+  - Lector: sin pantallas ni acciones de Administrador;
+  - móvil: menú con Escape y foco, búsqueda, sin desbordamiento horizontal;
+  - flujo completo que escribe datos (alta → entrega → documentos → devolución), solo con permiso explícito.
+  - Las que requieren sesión leen credenciales de prueba del entorno y se omiten si no existen. Las públicas
+    pasan (8/8); las de sesión quedan para correrlas con las cuentas de prueba.
+- **Accesibilidad:** axe-core (WCAG 2.2 AA) en `e2e/accesibilidad.spec.ts`, más una pasada con la sesión del
+  Administrador sobre las 9 pantallas principales. Único hallazgo: los segmentos angostos de la distribución
+  por empresa medían menos de 24 × 24 px (criterio 2.5.8). Ahora cada estado tiene su enlace de texto con
+  color y número, y la barra queda como gráfica. Resultado: 0 violaciones en las 12 pantallas revisadas.
+- **Advisors de Supabase:** ningún hallazgo crítico (ERROR).
+  - Migración `20261025120000_indices_auditoria.sql`: índices para las 14 llaves `creado_por` /
+    `actualizado_por`.
+  - Aceptados y documentados:
+    - las funciones *security definer* llamables por `authenticated` validan el rol por dentro (cubierto por
+      las pruebas SQL);
+    - `folios_control` sin políticas a propósito;
+    - los índices «sin uso» se reevalúan con tráfico real.
+  - Pendiente en el panel de Supabase: activar la protección contra contraseñas filtradas (*Leaked password
+    protection*, disponible según el plan).
+- **Manual de usuario:** `docs/05-manual-de-usuario.md`.
+- Pendiente para el cierre de la etapa: las pruebas con usuarios de las 4 tareas del doc 04 §13 y la revisión
+  manual con teclado y lector de pantalla.
+
+## Etapa 10 — Salida a producción · por planear
+
+Se planea después de presentar el proyecto a Grupo Tersa y de que lo apruebe:
+
+- Cuentas propietarias de Grupo Tersa (Supabase, Netlify, GitHub si aplica) y migración del proyecto.
+- Proyecto de producción con las migraciones, la Edge Function y la configuración (plantillas de correo,
+  URL permitidas, longitud mínima de contraseña, protección de contraseñas filtradas).
+- SMTP definido por Sistemas; dominio; `VITE_URL_PUBLICA` para los QR.
+- Plan de respaldos según el plan de Supabase.
+- Resolución de las 109 incidencias de la migración con la empresa y **migración final** con el Excel
+  congelado.
+- Capacitación con el manual (`docs/05`), operación en paralelo con el Excel 1–2 semanas y retiro del Excel.
+
 ---
 
 ## Riesgos
