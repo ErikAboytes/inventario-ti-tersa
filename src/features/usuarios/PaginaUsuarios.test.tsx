@@ -75,11 +75,12 @@ describe('P-60 · Usuarios', () => {
     const yo = fila(tabla, 'Admin Uno')
     expect(yo).toHaveTextContent('(tú)')
     expect(yo).toHaveTextContent('19/10/2026 19:24')
-    // Nadie se desactiva a sí mismo.
-    expect(within(yo).queryByRole('button', { name: 'Desactivar' })).not.toBeInTheDocument()
+    // Nadie se desactiva a sí mismo: su única acción es cambiar el rol, sin menú.
+    expect(within(yo).getByRole('button', { name: 'Cambiar rol' })).toBeInTheDocument()
+    expect(within(yo).queryByRole('button', { name: /Más acciones/ })).not.toBeInTheDocument()
 
     const pendiente = fila(tabla, 'Persona Invitada')
-    expect(pendiente).toHaveTextContent('Invitación pendiente')
+    expect(pendiente).toHaveTextContent('Pendiente')
     expect(pendiente).toHaveTextContent('Aún no entra')
     expect(
       within(pendiente).getByRole('button', { name: 'Reenviar invitación' }),
@@ -122,8 +123,17 @@ describe('P-60 · Usuarios', () => {
     m.administrar.mockRejectedValueOnce(new Error('Debe quedar al menos un Administrador activo.'))
     const tabla = montar()
     await u.click(
-      within(fila(tabla, 'Persona Invitada')).getByRole('button', { name: 'Desactivar' }),
+      within(fila(tabla, 'Persona Invitada')).getByRole('button', {
+        name: 'Más acciones para Persona Invitada',
+      }),
     )
+    const menu = screen.getByRole('menu', { name: 'Más acciones para Persona Invitada' })
+    expect(
+      within(menu)
+        .getAllByRole('menuitem')
+        .map((b) => b.textContent),
+    ).toEqual(['Cambiar rol', 'Desactivar'])
+    await u.click(within(menu).getByRole('menuitem', { name: 'Desactivar' }))
     const dialogo = screen.getByRole('dialog', { name: '¿Desactivar a Persona Invitada?' })
     await u.click(within(dialogo).getByRole('button', { name: 'Desactivar' }))
     expect(m.administrar).toHaveBeenCalledWith({ accion: 'desactivar', id: 'pend' })

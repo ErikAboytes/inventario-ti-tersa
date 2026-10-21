@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Confirmacion } from '@/components/ui/Confirmacion'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
 import { Etiqueta } from '@/components/ui/Etiqueta'
+import { MenuAcciones, type OpcionMenu } from '@/components/ui/MenuAcciones'
 import { useAvisos } from '@/components/ui/avisosContexto'
 import { useAuth } from '@/features/auth/contexto'
 import { fechaHora } from '@/features/equipos/historial'
@@ -15,7 +16,7 @@ import { DialogoUsuario } from './DialogoUsuario'
 
 const ESTADO = {
   activo: { texto: 'Activo', tono: 'positivo' },
-  pendiente: { texto: 'Invitación pendiente', tono: 'aviso' },
+  pendiente: { texto: 'Pendiente', tono: 'aviso' },
   inactivo: { texto: 'Desactivado', tono: 'apagado' },
 } as const
 
@@ -73,54 +74,59 @@ export function PaginaUsuarios() {
     }
   }
 
+  // Una acción principal según el estado y el resto en «Más acciones»: filas de la misma altura.
   const acciones = (u: Usuario) => {
     const propio = u.id === perfil?.id
     const s = situacion(u)
+    const rol = { texto: 'Cambiar rol', alElegir: () => setDialogo({ tipo: 'rol', usuario: u }) }
+    const principal =
+      s === 'pendiente'
+        ? { texto: 'Reenviar invitación', alElegir: () => reenviar(u) }
+        : s === 'inactivo'
+          ? { texto: 'Reactivar', alElegir: () => setDialogo({ tipo: 'reactivar', usuario: u }) }
+          : rol
+    const otras: OpcionMenu[] = [
+      ...(s === 'pendiente' ? [rol] : []),
+      ...(s !== 'inactivo' && !propio
+        ? [
+            {
+              texto: 'Desactivar',
+              peligro: true,
+              alElegir: () => setDialogo({ tipo: 'desactivar', usuario: u }),
+            },
+          ]
+        : []),
+    ]
     return (
-      <div className="flex flex-wrap gap-2">
-        {s !== 'inactivo' ? (
-          <Button variante="secundario" onClick={() => setDialogo({ tipo: 'rol', usuario: u })}>
-            Cambiar rol
-          </Button>
-        ) : null}
-        {s === 'pendiente' ? (
-          <Button
-            variante="secundario"
-            onClick={() => reenviar(u)}
-            disabled={administrar.isPending}
-          >
-            Reenviar invitación
-          </Button>
-        ) : null}
-        {s === 'inactivo' ? (
-          <Button
-            variante="secundario"
-            onClick={() => setDialogo({ tipo: 'reactivar', usuario: u })}
-          >
-            Reactivar
-          </Button>
-        ) : !propio ? (
-          <Button
-            variante="fantasma"
-            onClick={() => setDialogo({ tipo: 'desactivar', usuario: u })}
-          >
-            Desactivar
-          </Button>
-        ) : null}
+      <div className="flex items-center gap-1">
+        <Button
+          variante="secundario"
+          onClick={principal.alElegir}
+          disabled={administrar.isPending}
+          className="whitespace-nowrap"
+        >
+          {principal.texto}
+        </Button>
+        <MenuAcciones etiqueta={`Más acciones para ${u.nombre || u.email}`} opciones={otras} />
       </div>
     )
   }
 
   const nombre = (u: Usuario) => (
-    <span className="flex flex-col">
-      <span className="font-medium">
+    <span className="flex min-w-0 flex-col">
+      <span className="truncate font-medium" title={u.nombre || u.email}>
         {u.nombre || u.email}
         {u.id === perfil?.id ? (
           <span className="font-normal text-texto-secundario"> (tú)</span>
         ) : null}
       </span>
       {/* Sin nombre capturado, el correo ya va arriba: no se repite. */}
-      {u.nombre ? <span className="text-sm break-all text-texto-secundario">{u.email}</span> : null}
+      {/* Una sola línea: el correo completo queda en title y en el texto para el lector de pantalla. */}
+      {u.nombre ? (
+        <span className="truncate text-sm text-texto-secundario" title={u.email}>
+          {u.email}
+        </span>
+      ) : null}
     </span>
   )
   const acceso = (u: Usuario) =>
@@ -183,10 +189,10 @@ export function PaginaUsuarios() {
               <tbody>
                 {usuarios.map((u) => (
                   <tr key={u.id} className="border-b border-borde align-middle last:border-0">
-                    <td className="px-4 py-3">{nombre(u)}</td>
+                    <td className="max-w-80 px-4 py-3">{nombre(u)}</td>
                     <td className={clsx('px-4 py-3', COLUMNAS[1][1])}>{u.puesto || '—'}</td>
                     <td className="px-4 py-3">{ETIQUETA_ROL[u.rol]}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <Etiqueta
                         texto={ESTADO[situacion(u)].texto}
                         tono={ESTADO[situacion(u)].tono}
