@@ -8,7 +8,7 @@ import { useTitulo } from '@/lib/useTitulo'
 import { useAuth } from './contexto'
 import { PantallaAcceso } from './PantallaAcceso'
 
-const MINIMO = 10
+const MINIMO = 8
 
 /**
  * Destino del enlace de recuperación y del de invitación (`?invitacion=1`, Etapa 8): Supabase abre aquí una
