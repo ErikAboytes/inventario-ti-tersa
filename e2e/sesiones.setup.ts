@@ -11,6 +11,12 @@ for (const rol of ['admin', 'lector'] as Rol[]) {
     await page.getByLabel('Contraseña').fill(c!.password)
     await page.getByRole('button', { name: 'Iniciar sesión' }).click()
     await expect(page.getByRole('heading', { name: 'Panel', level: 1 })).toBeVisible()
+    // Una cuenta con otro rol haría pasar o fallar las pruebas por la razón equivocada.
+    const etiqueta = rol === 'admin' ? 'Administrador' : 'Lector'
+    await expect(
+      page.getByRole('banner').getByText(etiqueta, { exact: true }),
+      `La cuenta ${c!.email} debe tener el rol ${etiqueta}`,
+    ).toBeVisible()
     await page.context().storageState({ path: archivoSesion(rol) })
   })
 }
