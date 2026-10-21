@@ -48,3 +48,8 @@ __pycache__/
 
 # Netlify (estado local del enlace)
 .netlify
+
+# Playwright: sesiones de prueba (contienen tokens), reportes y resultados
+e2e/.sesiones/
+e2e/reporte/
+e2e/resultados/
