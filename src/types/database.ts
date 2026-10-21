@@ -1074,6 +1074,21 @@ export type Database = {
         Returns: Json
       }
       siguiente_folio: { Args: { p_tipo: string }; Returns: string }
+      usuarios_admin: {
+        Args: never
+        Returns: {
+          activo: boolean
+          confirmado_en: string
+          creado_en: string
+          email: string
+          id: string
+          invitado_en: string
+          nombre: string
+          puesto: string
+          rol: Database['public']['Enums']['rol_usuario']
+          ultimo_acceso: string
+        }[]
+      }
       usuarios_historial: {
         Args: never
         Returns: {

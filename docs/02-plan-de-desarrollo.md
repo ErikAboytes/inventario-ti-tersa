@@ -394,6 +394,37 @@ la lista con el filtro equivalente.
 **Aceptación:** un Lector no puede invocar la función · un usuario desactivado pierde acceso en su siguiente
 petición · no es posible quedarse sin Administradores.
 
+**Construido (rama `etapa-8-usuarios`):**
+
+- Edge Function `supabase/functions/admin-usuarios` (desplegada en «Tersa»), con las acciones invitar,
+  reenviar invitación, cambiar rol, desactivar y reactivar.
+  - Valida la sesión y el rol en el código (`auth.getUser` + `perfiles`): un Lector o una sesión inválida
+    reciben 403/401. Por eso tiene `verify_jwt = false` en `config.toml`; así funciona con las llaves
+    heredadas y con las nuevas.
+  - Al invitar, crea el usuario con el correo de Supabase y activa su perfil con el rol, nombre y puesto
+    capturados. El enlace lleva a `/restablecer?invitacion=1`, donde crea su contraseña y entra directo.
+  - Al desactivar, primero marca el perfil como inactivo (el RLS deja de responderle en su siguiente
+    petición) y después lo bloquea en Auth para que no pueda renovar la sesión. Reactivar quita el bloqueo.
+  - Un Administrador no puede desactivarse ni quitarse el rol a sí mismo; la BD además protege al último
+    Administrador (`perfiles_ultimo_admin`).
+  - Las reglas viven en `reglas.ts`, sin dependencias de Deno, y se prueban con Vitest.
+- Migración `20261024120000_usuarios_admin.sql`: `usuarios_admin()` (solo Administrador) con los datos de
+  acceso de `auth.users`: invitación, confirmación y último acceso.
+- Prueba SQL `supabase/tests/etapa8_usuarios.sql`:
+  - el Lector no ve la lista ni se cambia el rol;
+  - un perfil desactivado deja de leer equipos;
+  - no se puede quitar el rol ni desactivar al último Administrador;
+  - `anon` rechazado.
+- **P-60** `/admin/usuarios` con estado (Activo, Invitación pendiente, Desactivado), rol y último acceso;
+  acciones según el estado; desactivar pide confirmación (D-02).
+- **D-08**: invitar (correo, nombre, puesto, rol) y cambiar rol, con la descripción de cada rol.
+- Correo de invitación en español: `supabase/templates/invitacion.html`, registrado en `config.toml`. En el
+  proyecto remoto la plantilla se aplica aparte (panel de Supabase → Authentication → Emails, o
+  `supabase config push`).
+- Verificado contra la función desplegada: sin sesión o con token inválido → 401; con la sesión del
+  Administrador, las reglas de «sobre sí mismo» y la acción desconocida responden 400 con su mensaje. No se
+  enviaron invitaciones reales durante las pruebas.
+
 ## Etapa 9 — Endurecimiento y salida a producción · M
 
 - Pruebas e2e (Playwright) de los flujos críticos sobre el preview.

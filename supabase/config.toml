@@ -238,10 +238,10 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# Etapa 8 · Correo de invitación en español (Edge Function admin-usuarios).
+[auth.email.template.invite]
+subject = "Tu acceso al inventario de TI de Grupo Tersa"
+content_path = "./supabase/templates/invitacion.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
@@ -406,3 +406,8 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# Etapa 8 · admin-usuarios valida la sesión y el rol en el código (auth.getUser + perfiles), así funciona
+# igual con llaves JWT heredadas o con las nuevas llaves de firma.
+[functions.admin-usuarios]
+verify_jwt = false
