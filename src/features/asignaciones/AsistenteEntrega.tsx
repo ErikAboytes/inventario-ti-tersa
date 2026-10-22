@@ -48,8 +48,11 @@ import {
   POR_TANDA_ENTREGABLES,
   type EquipoEntrega,
 } from './datos'
-import { guardarFechaCarta, maximoFechaCarta } from './fechaCarta'
-import { hoyTijuana } from './textos'
+import {
+  avisoFechaAsignacion,
+  maximoFechaAsignacion,
+  minimoFechaAsignacion,
+} from './fechaAsignacion'
 
 const PASOS = ['Colaborador', 'Equipos', 'Datos de carta', 'Confirmar']
 type Cambiar = Dispatch<SetStateAction<Borrador>>
@@ -149,7 +152,6 @@ export function AsistenteEntrega() {
     setError(null)
     try {
       const r = await crear.mutateAsync(aDatosEntrega(b))
-      guardarFechaCarta(r.id, b.fechaCarta && b.fechaCarta !== b.fecha ? b.fechaCarta : null)
       descartar()
       // El aviso de éxito con el folio lo muestra P-23 (Documentos).
       navigate(`/asignaciones/${r.id}/documentos?nueva=1`, { replace: true })
@@ -664,32 +666,21 @@ function PasoDatos({ b, setB }: { b: Borrador; setB: Cambiar }) {
       <CamposFirma
         valores={b.firmas}
         alCambiar={(c) => setB((x) => ({ ...x, firmas: { ...x.firmas, ...c } }))}
+        lugarJuntoAFecha
         antes={
-          <>
-            <CampoTexto
-              etiqueta="Fecha de entrega"
-              type="date"
-              required
-              max={hoyTijuana()}
-              value={b.fecha}
-              onChange={(e) => setB((x) => ({ ...x, fecha: e.target.value }))}
-              ayuda="Queda en el historial. Puede ser pasada."
-            />
-            <CampoTexto
-              etiqueta="Fecha en la carta"
-              type="date"
-              min={b.fecha}
-              max={maximoFechaCarta()}
-              value={b.fechaCarta || b.fecha}
-              onChange={(e) =>
-                setB((x) => ({
-                  ...x,
-                  fechaCarta: e.target.value && e.target.value !== x.fecha ? e.target.value : '',
-                }))
-              }
-              ayuda="Puede ser futura. Solo para la carta que imprimas al terminar."
-            />
-          </>
+          <CampoTexto
+            etiqueta="Fecha de asignación"
+            type="date"
+            required
+            min={minimoFechaAsignacion()}
+            max={maximoFechaAsignacion()}
+            value={b.fecha}
+            onChange={(e) => setB((x) => ({ ...x, fecha: e.target.value }))}
+            ayuda={
+              avisoFechaAsignacion(b.fecha) ??
+              'Es la fecha de la carta custodia. Puede ser anterior o posterior a hoy (hasta un año).'
+            }
+          />
         }
       />
       <CampoArea
@@ -715,13 +706,8 @@ function PasoConfirmar({ b, unidad }: { b: Borrador; unidad?: string }) {
           {c.puesto ? <span className="text-texto-secundario"> · {c.puesto}</span> : null}
         </Dato>
         <Dato titulo="Unidad de negocio">{oGuion(c.unidad?.nombre ?? unidad)}</Dato>
-        <Dato titulo="Fecha y lugar">
+        <Dato titulo="Fecha de asignación y lugar">
           {fechaCorta(b.fecha)} · {b.firmas.lugar}
-          {b.fechaCarta && b.fechaCarta !== b.fecha ? (
-            <span className="block text-sm text-texto-secundario">
-              La carta dirá {fechaCorta(b.fechaCarta)}
-            </span>
-          ) : null}
         </Dato>
         <Dato titulo="Firmas">
           Entrega: {b.firmas.entrega_nombre}

@@ -18,6 +18,7 @@ import {
   type CondicionEquipo,
 } from '@/lib/condicion'
 import { llevarA } from '@/lib/enfoque'
+import { minimoFechaDevolucion } from './fechaAsignacion'
 import { mensajeDeError } from '@/lib/errores'
 import { fechaCorta } from '@/lib/formato'
 import { useTitulo } from '@/lib/useTitulo'
@@ -150,7 +151,7 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
       etiqueta="Fecha"
       type="date"
       required
-      min={a.fecha_entrega.slice(0, 10)}
+      min={minimoFechaDevolucion(a.fecha_entrega)}
       max={hoyTijuana()}
       value={f.fecha}
       onChange={(e) => setF((x) => ({ ...x, fecha: e.target.value }))}
@@ -161,7 +162,7 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
     <div className="flex flex-col gap-6">
       <EncabezadoPagina
         titulo={`Registrar devolución · ${a.folio}`}
-        descripcion={`${a.colaborador.nombre_completo} · entregada el ${fechaCorta(a.fecha_entrega)}`}
+        descripcion={`${a.colaborador.nombre_completo} · asignada el ${fechaCorta(a.fecha_entrega)}`}
         migas={[
           { texto: 'Entregas y devoluciones', ruta: '/asignaciones' },
           { texto: a.folio, ruta: `/asignaciones/${a.id}` },

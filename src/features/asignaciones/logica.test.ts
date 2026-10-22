@@ -17,7 +17,13 @@ import {
   validarDevolucion,
   type FormDevolucion,
 } from './devolucion'
-import { errorFechaCarta, maximoFechaCarta } from './fechaCarta'
+import {
+  avisoFechaAsignacion,
+  errorFechaAsignacion,
+  maximoFechaAsignacion,
+  minimoFechaAsignacion,
+  minimoFechaDevolucion,
+} from './fechaAsignacion'
 import { hoyTijuana } from './textos'
 
 const colaborador: ColaboradorEntrega = {
@@ -153,17 +159,24 @@ describe('formulario de devolución', () => {
     f.renglones[1].seleccionado = true
     f.fecha = '2026-01-01'
     expect(validarDevolucion(f, '2026-02-01').generales).toContain(
-      'La fecha no puede ser anterior a la entrega.',
+      'La fecha no puede ser anterior a la asignación.',
     )
   })
 })
 
-describe('fecha de la carta', () => {
-  it('vacía usa la de entrega; puede ser futura hasta un año, nunca antes de la entrega', () => {
-    expect(errorFechaCarta('', '2026-10-01')).toBeNull()
-    expect(errorFechaCarta(maximoFechaCarta(), hoyTijuana())).toBeNull()
-    expect(errorFechaCarta('2026-09-30', '2026-10-01')).toMatch(/anterior a la entrega/)
-    const [a, m, d] = maximoFechaCarta().split('-')
-    expect(errorFechaCarta(`${Number(a) + 1}-${m}-${d}`, hoyTijuana())).toMatch(/un año/)
+describe('fecha de asignación', () => {
+  it('admite hasta un año antes o después, avisa si no es hoy y fija el mínimo de la devolución', () => {
+    const hoy = hoyTijuana()
+    expect(errorFechaAsignacion(hoy)).toBeNull()
+    expect(errorFechaAsignacion(minimoFechaAsignacion())).toBeNull()
+    expect(errorFechaAsignacion(maximoFechaAsignacion())).toBeNull()
+    const [a, m, d] = maximoFechaAsignacion().split('-')
+    expect(errorFechaAsignacion(`${Number(a) + 1}-${m}-${d}`)).toMatch(/debe estar entre/)
+    expect(errorFechaAsignacion('')).toMatch(/Escribe/)
+    expect(avisoFechaAsignacion(hoy)).toBeNull()
+    expect(avisoFechaAsignacion(maximoFechaAsignacion())).toMatch(/fecha futura/)
+    expect(avisoFechaAsignacion(minimoFechaAsignacion())).toMatch(/fecha pasada/)
+    expect(minimoFechaDevolucion('2020-01-01')).toBe('2020-01-01')
+    expect(minimoFechaDevolucion(maximoFechaAsignacion())).toBe(hoy)
   })
 })

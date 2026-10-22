@@ -12,6 +12,7 @@ import { ETIQUETA_CATEGORIA } from '@/features/equipos/esquema'
 import { EtiquetaCondicion } from '@/features/equipos/EstadoFisico'
 import { mensajeDeError } from '@/lib/errores'
 import { fechaCorta, oGuion } from '@/lib/formato'
+import { fechaHora } from '@/features/equipos/historial'
 import { useTitulo } from '@/lib/useTitulo'
 import { useAsignacion, type Renglon } from './datos'
 import { DialogoFirmas } from './DialogoFirmas'
@@ -105,8 +106,11 @@ export function DetalleAsignacion() {
             <Dato titulo="Folio">
               <span className="font-mono">{a.folio}</span>
             </Dato>
-            <Dato titulo="Fecha y lugar">
+            <Dato titulo="Fecha de asignación y lugar">
               {fechaCorta(a.fecha_entrega)} · {a.lugar_expedicion}
+              <span className="block text-sm text-texto-secundario">
+                Registrada el {fechaHora(a.creado_en)}
+              </span>
             </Dato>
             <Dato titulo="Entrega">{firma(a.firma_entrega_nombre, a.firma_entrega_puesto)}</Dato>
             <Dato titulo="Recibe">{firma(a.firma_recibe_nombre, a.firma_recibe_puesto)}</Dato>
@@ -132,6 +136,7 @@ export function DetalleAsignacion() {
       {firmas ? (
         <DialogoFirmas
           tipo="asignacion"
+          fechaInicial={a.fecha_entrega}
           id={a.id}
           alCerrar={() => setFirmas(false)}
           inicial={{
