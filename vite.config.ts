@@ -7,6 +7,11 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    // Playwright escribe trazas .html en e2e/resultados y e2e/reporte; si Vite las vigila, recarga la
+    // página a mitad de cada prueba y las e2e fallan en cascada.
+    watch: { ignored: ['**/e2e/resultados/**', '**/e2e/reporte/**', '**/e2e/.sesiones/**'] },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

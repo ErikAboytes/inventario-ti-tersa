@@ -225,8 +225,8 @@ const CAMPOS_EQUIPO =
   'id, serie, categoria, marca, modelo, estado, apartado_para, motivo_desactivacion, colaborador_nombre, asignacion_folio, empresa_clave, condicion, observaciones_estado'
 
 /**
- * Equipos que coinciden con lo escrito. Devuelve los asignables y, aparte, los que coinciden por serie
- * exacta pero no se pueden entregar, para explicar por qué (doc 04 P-21).
+ * Equipos que coinciden con lo escrito (doc 04 P-21): los entregables por serie, modelo o número de producto
+ * y, aparte, los que coinciden por serie pero no se pueden entregar, para explicar por qué.
  */
 export function useBuscarEquiposEntrega(texto: string) {
   const q = texto.trim()
@@ -235,7 +235,7 @@ export function useBuscarEquiposEntrega(texto: string) {
     enabled: q.length >= 3,
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      const [asignables, exacto] = await Promise.all([
+      const [asignables, noAsignables] = await Promise.all([
         supabase
           .from('v_equipos')
           .select(CAMPOS_EQUIPO)
@@ -243,19 +243,48 @@ export function useBuscarEquiposEntrega(texto: string) {
           .ilike('busqueda', patronBusqueda(normalizar(q)))
           .order('serie')
           .limit(8),
-        supabase.from('v_equipos').select(CAMPOS_EQUIPO).eq('serie', q.toUpperCase()).maybeSingle(),
+        supabase
+          .from('v_equipos')
+          .select(CAMPOS_EQUIPO)
+          .not('estado', 'in', `(${ESTADOS_ASIGNABLES.join(',')})`)
+          .ilike('serie', patronBusqueda(q.toUpperCase()))
+          .order('serie')
+          .limit(5),
       ])
       if (asignables.error) throw asignables.error
-      if (exacto.error) throw exacto.error
-      const noAsignable =
-        exacto.data && !ESTADOS_ASIGNABLES.includes(exacto.data.estado!) ? exacto.data : null
+      if (noAsignables.error) throw noAsignables.error
       return {
         asignables: (asignables.data ?? []) as EquipoEntrega[],
-        noAsignable: noAsignable as EquipoEntrega | null,
+        noAsignables: (noAsignables.data ?? []) as EquipoEntrega[],
       }
     },
   })
 }
+
+export const POR_TANDA_ENTREGABLES = 10
+
+/**
+ * Equipos que se pueden entregar, sin escribir nada (paso 2 de P-21). Stock por omisión; `limite` crece de
+ * 10 en 10 con «Ver más».
+ */
+export function useEquiposEntregables(f: { estado: string; categoria: string; limite: number }) {
+  return useQuery({
+    queryKey: ['entrega', 'entregables', f],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      let c = supabase
+        .from('v_equipos')
+        .select(CAMPOS_EQUIPO, { count: 'exact' })
+        .in('estado', f.estado ? [f.estado as EstadoEquipoBD] : [...ESTADOS_ASIGNABLES])
+      if (f.categoria) c = c.eq('categoria', f.categoria as CategoriaBD)
+      const { data, error, count } = await c.order('serie').limit(f.limite)
+      if (error) throw error
+      return { filas: (data ?? []) as EquipoEntrega[], total: count ?? 0 }
+    },
+  })
+}
+type EstadoEquipoBD = Database['public']['Enums']['estado_equipo']
+type CategoriaBD = Database['public']['Enums']['categoria_equipo']
 
 /** Un equipo por id, con los mismos campos que la búsqueda (para «Entregar» desde la ficha). */
 export async function traerEquipoEntrega(id: string): Promise<EquipoEntrega | null> {

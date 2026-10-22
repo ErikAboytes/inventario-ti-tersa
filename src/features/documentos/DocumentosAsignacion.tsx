@@ -7,6 +7,12 @@ import { Button } from '@/components/ui/Button'
 import { Cargando } from '@/components/Cargando'
 import { useAsignacion } from '@/features/asignaciones/datos'
 import { DialogoFirmas } from '@/features/asignaciones/DialogoFirmas'
+import {
+  errorFechaCarta,
+  guardarFechaCarta,
+  leerFechaCarta,
+  maximoFechaCarta,
+} from '@/features/asignaciones/fechaCarta'
 import { useEsAdmin } from '@/features/auth/contexto'
 import { NoEncontrada } from '@/features/errores/NoEncontrada'
 import { mensajeDeError } from '@/lib/errores'
@@ -29,6 +35,9 @@ export function DocumentosAsignacion() {
   const [parte, setParte] = useState<Parte>('todo')
   const [inicio, setInicio] = useState(1)
   const [firmas, setFirmas] = useState(false)
+  // Solo justo después de registrar (?nueva=1) se puede imprimir con otra fecha; después, la de entrega.
+  const nueva = Boolean(params.get('nueva'))
+  const [fechaCarta, setFechaCarta] = useState(() => (nueva && id ? leerFechaCarta(id) : null))
 
   // Etiquetas de los equipos que siguen entregados; si ya se devolvieron todos, de todos.
   const activos = a?.renglones.filter((r) => !r.devolucion_id) ?? []
@@ -95,7 +104,22 @@ export function DocumentosAsignacion() {
           ) : null}
         </>
       }
-      controles={<SelectorInicio valor={inicio} alCambiar={setInicio} />}
+      controles={
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          {nueva && esAdmin ? (
+            <FechaDeCarta
+              valor={fechaCarta ?? a.fecha_entrega}
+              fechaEntrega={a.fecha_entrega}
+              alCambiar={(f) => {
+                const distinta = f && f !== a.fecha_entrega ? f : null
+                setFechaCarta(distinta)
+                guardarFechaCarta(a.id, distinta)
+              }}
+            />
+          ) : null}
+          <SelectorInicio valor={inicio} alCambiar={setInicio} />
+        </div>
+      }
     >
       {a.es_historica && !a.firma_entrega_nombre ? (
         <p className="max-w-[215.9mm] text-sm text-texto-secundario print:hidden">
@@ -104,7 +128,7 @@ export function DocumentosAsignacion() {
         </p>
       ) : null}
       <div className={clsx(parte === 'etiquetas' && 'print:hidden')}>
-        <CartaCustodia a={a} />
+        <CartaCustodia a={a} fecha={fechaCarta ?? a.fecha_entrega} />
       </div>
       <div className={clsx('salto-pagina', parte === 'carta' && 'print:hidden')}>
         {etiquetas.error ? (
@@ -133,5 +157,33 @@ export function DocumentosAsignacion() {
         />
       ) : null}
     </PaginaDocumento>
+  )
+}
+
+/** Fecha impresa en la carta de una entrega recién registrada (puede ser futura). */
+function FechaDeCarta({
+  valor,
+  fechaEntrega,
+  alCambiar,
+}: {
+  valor: string
+  fechaEntrega: string
+  alCambiar: (fecha: string) => void
+}) {
+  const error = errorFechaCarta(valor, fechaEntrega)
+  return (
+    <label className="flex flex-wrap items-center gap-2 text-sm">
+      <span className="font-medium">Fecha en la carta</span>
+      <input
+        type="date"
+        value={valor}
+        min={fechaEntrega}
+        max={maximoFechaCarta()}
+        aria-invalid={error ? true : undefined}
+        onChange={(e) => alCambiar(e.target.value)}
+        className="min-h-10 rounded-control border border-borde-control bg-superficie px-3"
+      />
+      {error ? <span className="text-no-localizado">{error}</span> : null}
+    </label>
   )
 }
