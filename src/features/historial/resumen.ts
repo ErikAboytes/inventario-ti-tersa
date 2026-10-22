@@ -9,6 +9,7 @@ export function resumenMovimiento(m: FilaHistorial): string {
   const estado = (e: FilaHistorial['estado_nuevo']) => (e ? ETIQUETA_ESTADO[e] : '—')
   if (m.tipo === 'alta') return `Alta en ${estado(m.estado_nuevo)}`
   if (m.tipo === 'importacion') return `Importado del Excel en ${estado(m.estado_nuevo)}`
+  if (m.tipo === 'confirmacion_estado') return `Estado confirmado: ${estado(m.estado_nuevo)}`
   if (m.estado_anterior && m.estado_nuevo && m.estado_anterior !== m.estado_nuevo)
     return `Estado: ${estado(m.estado_anterior)} → ${estado(m.estado_nuevo)}`
   const campos = cambiosLegibles(m).map((c) => c.campo)

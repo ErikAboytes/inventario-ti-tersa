@@ -209,6 +209,10 @@ describe('P-25 · Registrar devolución', () => {
     const { router } = montar('/asignaciones/a1/devolucion')
 
     await u.click(screen.getByLabelText(/CNC322142B/))
+    // El destino empieza en «Elegir…»: sin él no se puede registrar.
+    await u.click(screen.getByRole('button', { name: 'Registrar devolución' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('Falta el destino de: CNC322142B.')
+    await u.selectOptions(screen.getByLabelText(/^Destino/), 'stock')
     const renglon = screen.getByRole('group', { name: 'Condición al devolver' })
     await u.click(within(renglon).getByRole('radio', { name: 'Dañado' }))
     await u.click(screen.getByRole('button', { name: 'Registrar devolución' }))

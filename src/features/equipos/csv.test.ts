@@ -20,7 +20,7 @@ describe('CSV del inventario', () => {
     expect(csv.startsWith('﻿Serie,Categoría,')).toBe(true)
     const [, linea] = csv.split('\r\n')
     expect(linea).toContain('5CD626170N,Laptop,,HP,ProBook 440 G3')
-    expect(linea).toContain('Apartado,Rossy Insunza,,Sin revisar')
+    expect(linea).toContain('Apartado,Rossy Insunza,,Sin revisar,,No')
   })
 
   it('exporta las especificaciones después de la descripción', () => {

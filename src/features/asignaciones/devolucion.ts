@@ -12,7 +12,8 @@ export type RenglonDevolucion = {
   equipoId: string
   serie: string
   seleccionado: boolean
-  destino: ItemDevolucion['destino']
+  /** '' = aún no se elige: el usuario decide a dónde va cada equipo. */
+  destino: ItemDevolucion['destino'] | ''
   /** '' = no se indicó (el equipo conserva su estado físico). */
   condicion: CondicionEquipo | ''
   observaciones: string
@@ -33,35 +34,45 @@ export function renglonesIniciales(activos: Renglon[]): RenglonDevolucion[] {
     equipoId: r.equipo.id,
     serie: r.equipo.serie,
     seleccionado: false,
-    destino: 'stock',
+    destino: '',
     condicion: r.equipo.condicion ?? '',
     observaciones: r.equipo.observaciones_estado ?? '',
   }))
 }
 
-/** Al cambiar entre devolución y cierre por incidencia, los destinos válidos cambian. */
+/** Al cambiar entre devolución y cierre por incidencia, los destinos válidos cambian: hay que volver a elegir. */
 export function conModo(f: FormDevolucion, cierreIncidencia: boolean): FormDevolucion {
-  const destino: ItemDevolucion['destino'] = cierreIncidencia ? 'no_localizado' : 'stock'
-  return { ...f, cierreIncidencia, renglones: f.renglones.map((r) => ({ ...r, destino })) }
+  return {
+    ...f,
+    cierreIncidencia,
+    renglones: f.renglones.map((r) => ({ ...r, destino: '' as const })),
+  }
 }
+
+export const MENSAJE_FALTA_DESTINO = 'Elige el destino.'
 
 export type ErroresDevolucion = {
   generales: string[]
   /** Por equipo: el error va en su renglón, con su serie (doc 04 P-25). */
   observaciones: Record<string, string>
+  destinos: Record<string, string>
   firmas: Partial<Record<keyof Firmas, string>>
   motivo?: string
 }
 
 export function validarDevolucion(f: FormDevolucion, fechaEntrega: string): ErroresDevolucion {
-  const e: ErroresDevolucion = { generales: [], observaciones: {}, firmas: {} }
+  const e: ErroresDevolucion = { generales: [], observaciones: {}, destinos: {}, firmas: {} }
   const elegidos = f.renglones.filter((r) => r.seleccionado)
   if (!elegidos.length) e.generales.push('Marca al menos un equipo.')
   for (const r of elegidos) {
+    if (!r.destino) e.destinos[r.equipoId] = MENSAJE_FALTA_DESTINO
     if (requiereObservaciones(r.condicion) && !r.observaciones.trim())
       e.observaciones[r.equipoId] =
         MENSAJE_FALTAN_OBSERVACIONES[r.condicion as 'con_detalles' | 'danado']
   }
+  const sinDestino = elegidos.filter((r) => e.destinos[r.equipoId])
+  if (sinDestino.length)
+    e.generales.push(`Falta el destino de: ${sinDestino.map((r) => r.serie).join(', ')}.`)
   if (Object.keys(e.observaciones).length)
     e.generales.push(
       `Faltan observaciones en: ${elegidos
@@ -91,7 +102,8 @@ export function aDatosDevolucion(asignacionId: string, f: FormDevolucion): Datos
       .filter((r) => r.seleccionado)
       .map((r) => ({
         equipo: r.equipoId,
-        destino: r.destino,
+        // validarDevolucion ya exigió el destino de cada equipo elegido.
+        destino: r.destino as ItemDevolucion['destino'],
         condicion: r.condicion || null,
         observaciones: r.observaciones.trim() || null,
       })),

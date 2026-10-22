@@ -7,12 +7,15 @@ import { useEffect, useRef, useState } from 'react'
 export function useTextoBusqueda(q: string, alBuscar: (q: string) => void, espera = 300) {
   const [texto, setTexto] = useState(q)
   const [qPrevio, setQPrevio] = useState(q)
+  // Último texto que este campo mandó a la URL: cuando la URL lo refleja no se pisa lo que se siguió
+  // escribiendo mientras tanto.
+  const [enviado, setEnviado] = useState<string | null>(null)
   const buscar = useRef(alBuscar)
 
   // La URL manda: si cambia desde fuera, se refleja en el campo.
   if (q !== qPrevio) {
     setQPrevio(q)
-    setTexto(q)
+    if (q !== enviado) setTexto(q)
   }
 
   useEffect(() => {
@@ -21,7 +24,10 @@ export function useTextoBusqueda(q: string, alBuscar: (q: string) => void, esper
 
   useEffect(() => {
     if (texto === q) return
-    const t = setTimeout(() => buscar.current(texto), espera)
+    const t = setTimeout(() => {
+      setEnviado(texto)
+      buscar.current(texto)
+    }, espera)
     return () => clearTimeout(t)
   }, [texto, q, espera])
 

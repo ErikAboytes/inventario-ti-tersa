@@ -87,7 +87,9 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
   const [confirmando, setConfirmando] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const errores = validarDevolucion(f, a.fecha_entrega)
-  const visibles = intentado ? errores : { generales: [], observaciones: {}, firmas: {} }
+  const visibles = intentado
+    ? errores
+    : { generales: [], observaciones: {}, destinos: {}, firmas: {} }
   const elegidos = f.renglones.filter((r) => r.seleccionado)
 
   const cambiarRenglon = (id: string, cambios: Partial<RenglonDevolucion>) =>
@@ -207,9 +209,10 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
                       <CampoSelect
                         etiqueta="Destino"
                         required
-                        textoVacio="Elige…"
+                        textoVacio="Elegir…"
                         opciones={destinos.map((d) => ({ valor: d, texto: ETIQUETA_DESTINO[d] }))}
                         value={r.destino}
+                        error={visibles.destinos[r.equipoId]}
                         onChange={(e) =>
                           cambiarRenglon(r.equipoId, {
                             destino: e.target.value as ItemDevolucion['destino'],
@@ -303,7 +306,8 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
         <ul className="list-disc pl-5">
           {elegidos.map((r) => (
             <li key={r.equipoId}>
-              <span className="font-mono">{r.serie}</span> → {ETIQUETA_DESTINO[r.destino]}
+              <span className="font-mono">{r.serie}</span> →{' '}
+              {r.destino ? ETIQUETA_DESTINO[r.destino] : '—'}
             </li>
           ))}
         </ul>

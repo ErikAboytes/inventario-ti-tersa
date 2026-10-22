@@ -15,6 +15,7 @@ import { useEquipo, useHistorialEquipo, type FilaEquipo } from './datos'
 import { DialogoCambioEstado } from './DialogoCambioEstado'
 import { detalleEstado, ETIQUETA_CATEGORIA, tieneEspecificaciones } from './esquema'
 import { EtiquetaCondicion } from './EstadoFisico'
+import { AvisoHistorico } from './EstadoHistorico'
 import { cambiosLegibles, ETIQUETA_MOVIMIENTO, fechaHora } from './historial'
 
 /** El QR apunta a /e/<id> (docs/01 §3.2): lleva a la ficha. */
@@ -97,6 +98,7 @@ export function FichaEquipo() {
       <div>
         <StatusBadge estado={e.estado} detalle={detalleEstado(e)} />
       </div>
+      {e.estado_historico ? <AvisoHistorico equipo={equipo} esAdmin={esAdmin} /> : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Tarjeta titulo="Asignación actual" id="asignacion">

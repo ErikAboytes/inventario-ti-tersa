@@ -60,12 +60,19 @@ el filtro que viene del panel usa **Quitar este filtro**. El botón **Actualizar
 
 ## 4. Inventario
 
-- **Filtros:** categoría, estado (puedes elegir varios), empresa, contrato, ubicación, subcategoría y
-  condición. **Limpiar filtros** los quita todos. **Agrupar por empresa** ordena la tabla por razón social.
+- **Filtros:** categoría, estado (puedes elegir varios), empresa, contrato, ubicación, subcategoría,
+  condición y estado histórico. **Limpiar filtros** los quita todos. **Agrupar por empresa** ordena la tabla por razón social.
 - **Exportar CSV:** descarga todos los equipos del resultado filtrado (no solo la página) para abrirlos en
   Excel.
 - **Imprimir etiquetas de varios equipos:** marca las casillas de los equipos (se conservan al cambiar de
   página) y elige **Imprimir etiquetas (N)**.
+
+- **Columna Estado:** la etiqueta de color dice el estado; debajo, en gris, el motivo de la desactivación o
+  para quién está apartado (pasa el mouse para leerlo completo si es largo).
+- **Estado histórico** (ícono de reloj junto al estado): el equipo conserva el estado con el que llegó del
+  Excel y nadie lo ha revisado. El filtro **Estado histórico → Solo históricos** los reúne para corregirlos
+  por lotes. La marca se quita sola al cambiar el estado, entregar o devolver el equipo, o con **Confirmar
+  estado** en la ficha cuando el estado ya es correcto.
 
 ### Ficha del equipo
 Muestra primero a quién está asignado (con el folio de su carta), luego sus datos, especificaciones, estado
@@ -76,6 +83,7 @@ Acciones del Administrador:
 | Acción | Para qué |
 |---|---|
 | **Editar** | Corregir datos, especificaciones o estado físico |
+| **Confirmar estado** | Solo en equipos con estado histórico: el estado del Excel es correcto. Queda en el historial, con una nota opcional |
 | **Cambiar estado** | Stock, Mantenimiento, Apartado (para quién), Pendiente, No localizado o Desactivado (con motivo). «Asignado» solo cambia con una entrega |
 | **Entregar** | Abre la entrega con este equipo ya elegido |
 | **Registrar devolución** | Si el equipo está asignado |
@@ -115,7 +123,7 @@ Al guardar como PDF, el nombre del archivo se propone solo
 Desde la entrega: **Registrar devolución**.
 
 1. Marca los equipos que regresan (puede ser una parte).
-2. Elige el destino (**Stock** o **Mantenimiento**) y la condición. Con «Con detalles» o «Dañado» escribe qué
+2. Elige el destino de cada equipo (**Stock** o **Mantenimiento**; empieza en «Elegir…») y la condición. Con «Con detalles» o «Dañado» escribe qué
    tiene el equipo; el error aparece junto al equipo que lo necesita.
 3. Confirma. Cuando se devuelve el último equipo, la entrega queda cerrada.
 

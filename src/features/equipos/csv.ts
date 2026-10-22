@@ -32,6 +32,7 @@ const COLUMNAS: [string, (e: FilaEquipo) => string | null | undefined][] = [
   ['Motivo de desactivación', (e) => e.motivo_desactivacion],
   ['Condición', (e) => textoCondicion(e.condicion)],
   ['Observaciones del estado', (e) => e.observaciones_estado],
+  ['Estado histórico', (e) => (e.estado_historico ? 'Sí' : 'No')],
   ['Asignado a', (e) => e.colaborador_nombre],
   ['Folio', (e) => e.asignacion_folio],
   ['Fecha de entrega', (e) => (e.asignacion_fecha ? fechaCorta(e.asignacion_fecha) : null)],
