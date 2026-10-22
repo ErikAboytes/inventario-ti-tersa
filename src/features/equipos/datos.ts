@@ -263,7 +263,44 @@ export function useOpcionesSubcategorias() {
   })
 }
 
-/** Marcas, modelos, procesadores y sistemas ya capturados, para autocompletar (doc 04 P-11). */
+/** Marcas activas del catálogo, para el campo «Marca» (doc 04 P-11). */
+export function useMarcas() {
+  return useQuery({
+    queryKey: ['opciones', 'marcas'],
+    staleTime: 5 * 60_000,
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await supabase
+        .from('marcas')
+        .select('nombre')
+        .eq('activa', true)
+        .order('nombre')
+      if (error) throw error
+      return data.map((m) => m.nombre)
+    },
+  })
+}
+
+/** Alta rápida desde el formulario de equipo: «Agregar "X" como marca nueva». */
+export function useCrearMarca() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (nombre: string) => {
+      const { data, error } = await supabase
+        .from('marcas')
+        .insert({ nombre: nombre.trim() })
+        .select('nombre')
+        .single()
+      if (error) throw error
+      return data.nombre
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['opciones', 'marcas'] })
+      queryClient.invalidateQueries({ queryKey: ['catalogo', 'marcas'] })
+    },
+  })
+}
+
+/** Modelos (por marca), procesadores y sistemas ya capturados, para autocompletar (doc 04 P-11). */
 export function useMarcasYModelos() {
   return useQuery({
     queryKey: ['opciones', 'modelos'],
@@ -278,9 +315,12 @@ export function useMarcasYModelos() {
         [...new Set(valores.filter((v): v is string => Boolean(v)))].sort((a, b) =>
           a.localeCompare(b, 'es'),
         )
+      const modelosPorMarca: Record<string, string[]> = {}
+      for (const marca of unicos(data.map((e) => e.marca)))
+        modelosPorMarca[marca] = unicos(data.filter((e) => e.marca === marca).map((e) => e.modelo))
       return {
-        marcas: unicos(data.map((e) => e.marca)),
         modelos: unicos(data.map((e) => e.modelo)),
+        modelosPorMarca,
         cpus: unicos(data.map((e) => e.cpu)),
         sistemas: unicos([
           'Windows 11 Pro',

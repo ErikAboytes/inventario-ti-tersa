@@ -675,6 +675,9 @@ def generar_sql(m: Migracion, asignaciones: list[dict], conteos: dict) -> str:
         + valores([[n, e.serie, e.categoria, e.subcategoria, e.marca, e.modelo, e.numero_producto, e.descripcion, e.operacion,
                     e.ubicacion, e.ubicacion_detalle, e.estado, e.apartado_para, e.motivo_desactivacion, e.condicion,
                     e.observaciones_estado, "\n".join(e.notas), e.nota_importacion] for n, e in enumerate(m.equipos, 1)]) + ";",
+        # La marca de cada equipo debe existir en el catálogo de marcas (equipos_marca_fkey).
+        "insert into public.marcas (nombre) select distinct btrim(marca) from imp_equipos\n"
+        "where btrim(coalesce(marca, '')) <> '' on conflict do nothing;",
         "insert into public.equipos (id, serie, categoria, subcategoria_id, marca, modelo, numero_producto, descripcion,\n"
         "  contrato_id, ubicacion_id, ubicacion_detalle, estado, apartado_para, motivo_desactivacion, condicion,\n"
         "  observaciones_estado, notas)\n"

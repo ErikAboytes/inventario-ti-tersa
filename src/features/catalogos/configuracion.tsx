@@ -6,7 +6,7 @@ import { fechaCorta, oGuion } from '@/lib/formato'
 import type { Orden } from '@/lib/paramsTabla'
 
 export type TablaCatalogo =
-  'empresas' | 'contratos' | 'ubicaciones' | 'unidades_negocio' | 'subcategorias'
+  'empresas' | 'contratos' | 'ubicaciones' | 'unidades_negocio' | 'subcategorias' | 'marcas'
 export type Fila = Record<string, unknown> & { id: string }
 
 export type CampoCatalogo = {
@@ -381,6 +381,41 @@ export const CATALOGOS: ConfigCatalogo[] = [
     campos: [{ nombre: 'nombre', etiqueta: 'Nombre', tipo: 'texto', requerido: true }, activa],
     filtros: [filtroActiva],
     esquema: z.object({ nombre: requerido('Escribe el nombre.').max(120), activa: z.boolean() }),
+    valoresIniciales: { nombre: '', activa: true },
+  },
+  {
+    ruta: 'marcas',
+    titulo: 'Marcas',
+    singular: 'marca',
+    femenino: true,
+    descripcion: 'Marcas de los equipos. Al renombrar una, se actualiza en todos sus equipos.',
+    tabla: 'marcas',
+    select: '*',
+    buscarEn: ['nombre'],
+    textoBusqueda: 'Buscar por nombre',
+    ordenDefecto: { campo: 'nombre', asc: true },
+    columnas: [
+      {
+        clave: 'nombre',
+        encabezado: 'Nombre',
+        ordenarPor: 'nombre',
+        celda: (f) => <span className="font-medium">{texto(f, 'nombre')}</span>,
+      },
+      columnaActiva,
+    ],
+    tarjeta: (f) => ({ titulo: texto(f, 'nombre'), detalle: '', activa: Boolean(f.activa) }),
+    campos: [
+      {
+        nombre: 'nombre',
+        etiqueta: 'Nombre',
+        tipo: 'texto',
+        requerido: true,
+        ayuda: 'Como se escribe la marca: HP, Lenovo, Apple…',
+      },
+      activa,
+    ],
+    filtros: [filtroActiva],
+    esquema: z.object({ nombre: requerido('Escribe el nombre.').max(60), activa: z.boolean() }),
     valoresIniciales: { nombre: '', activa: true },
   },
 ]

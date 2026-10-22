@@ -64,6 +64,7 @@ describe('esquema de colaborador', () => {
     empresa_id: '',
     ubicacion_id: '',
     email: '',
+    telefono: '',
     tipo: 'persona' as const,
   }
 

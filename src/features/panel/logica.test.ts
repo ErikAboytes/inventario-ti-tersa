@@ -113,9 +113,11 @@ describe('historial', () => {
             modelo: ['A', 'B'],
             notas: [null, 'x'],
             cpu: [null, 'i5'],
+            ram_gb: [8, 16],
           },
         }),
       ),
+      // «notas» ya no se muestra.
     ).toBe('Cambió Marca, Modelo, Procesador y 1 más')
   })
 

@@ -2,8 +2,9 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import type { Opcion } from '@/components/ui/Campos'
 import { rango, type EstadoTabla } from '@/lib/paramsTabla'
 import { supabase } from '@/lib/supabase'
-import { normalizar, patronBusqueda, vacioANulo } from '@/lib/texto'
+import { patronBusqueda, vacioANulo } from '@/lib/texto'
 import type { Database } from '@/types/database'
+import { textoBusquedaColaborador } from './esquema'
 
 const SELECT =
   '*, unidad:unidades_negocio(nombre), ubicacion:ubicaciones(nombre), empresa:empresas(clave, razon_social)'
@@ -30,7 +31,8 @@ export function useListaColaboradores(estado: EstadoTabla) {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       let consulta = supabase.from('colaboradores').select(SELECT, { count: 'exact' })
-      if (estado.q) consulta = consulta.ilike('busqueda', patronBusqueda(normalizar(estado.q)))
+      if (estado.q)
+        consulta = consulta.ilike('busqueda', patronBusqueda(textoBusquedaColaborador(estado.q)))
       for (const [param, columna] of Object.entries(FILTROS_COLABORADOR)) {
         const valor = estado.filtros[param]
         if (valor) consulta = consulta.eq(columna, valor)
