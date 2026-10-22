@@ -60,8 +60,12 @@ el filtro que viene del panel usa **Quitar este filtro**. El botón **Actualizar
 
 ## 4. Inventario
 
-- **Filtros:** categoría, estado (puedes elegir varios), empresa, contrato, ubicación, subcategoría,
-  condición y estado histórico. **Limpiar filtros** los quita todos. **Agrupar por empresa** ordena la tabla por razón social.
+- **Filtros:** categoría, estado (puedes elegir varios) y empresa están a la vista; contrato, ubicación,
+  subcategoría, condición, estado histórico y **Agrupar por empresa** (ordena la tabla por razón social)
+  están en **Más filtros**. En el teléfono todos están en el botón **Filtros**, que abre un panel; **Ver N
+  resultados** lo cierra.
+- **Filtros activos:** aparecen como etiquetas azules debajo de la búsqueda; la **×** quita ese filtro y
+  **Limpiar todo** los quita todos (la vista agrupada se conserva).
 - **Exportar CSV:** descarga todos los equipos del resultado filtrado (no solo la página) para abrirlos en
   Excel.
 - **Imprimir etiquetas de varios equipos:** marca las casillas de los equipos (se conservan al cambiar de

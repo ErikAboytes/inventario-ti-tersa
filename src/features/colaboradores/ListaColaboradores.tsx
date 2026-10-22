@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { BarraFiltros, FiltroSelect } from '@/components/ui/BarraFiltros'
+import { BarraFiltros, type DefFiltro } from '@/components/ui/BarraFiltros'
 import { Button } from '@/components/ui/Button'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
 import { Etiqueta, EtiquetaActiva } from '@/components/ui/Etiqueta'
@@ -80,10 +80,13 @@ export function ListaColaboradores() {
   const unidades = useOpcionesUnidades()
   const [nuevo, setNuevo] = useState(false)
 
-  const filtro = (param: string) => ({
-    valor: estado.filtros[param],
-    alCambiar: (v: string | null) => estado.cambiar({ filtros: { [param]: v } }),
-  })
+  const filtros: DefFiltro[] = [
+    { param: 'empresa', etiqueta: 'Empresa', opciones: empresas.data ?? [], principal: true },
+    { param: 'estado', etiqueta: 'Estado', opciones: ESTADOS, principal: true },
+    { param: 'ubicacion', etiqueta: 'Ubicación', opciones: ubicaciones.data ?? [] },
+    { param: 'unidad', etiqueta: 'Unidad de negocio', opciones: unidades.data ?? [] },
+    { param: 'tipo', etiqueta: 'Tipo', opciones: TIPOS_COLABORADOR },
+  ]
 
   return (
     <div className="flex flex-col gap-6">
@@ -103,23 +106,12 @@ export function ListaColaboradores() {
         q={estado.q}
         alBuscar={(q) => estado.cambiar({ q })}
         placeholder="Buscar por nombre, puesto o número de empleado"
-        hayFiltros={estado.hayFiltros}
+        filtros={filtros}
+        valores={estado.filtros}
+        alCambiar={(param, valor) => estado.cambiar({ filtros: { [param]: valor } })}
         alLimpiar={estado.limpiar}
-      >
-        <FiltroSelect etiqueta="Empresa" opciones={empresas.data ?? []} {...filtro('empresa')} />
-        <FiltroSelect
-          etiqueta="Ubicación"
-          opciones={ubicaciones.data ?? []}
-          {...filtro('ubicacion')}
-        />
-        <FiltroSelect
-          etiqueta="Unidad de negocio"
-          opciones={unidades.data ?? []}
-          {...filtro('unidad')}
-        />
-        <FiltroSelect etiqueta="Tipo" opciones={TIPOS_COLABORADOR} {...filtro('tipo')} />
-        <FiltroSelect etiqueta="Estado" opciones={ESTADOS} {...filtro('estado')} />
-      </BarraFiltros>
+        total={lista.data?.total}
+      />
 
       <TablaDatos
         etiqueta="Colaboradores"

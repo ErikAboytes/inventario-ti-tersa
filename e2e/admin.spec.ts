@@ -56,3 +56,21 @@ test('el historial filtra por tipo desde la URL y la lista de usuarios carga', a
   await expect(page.getByRole('heading', { name: 'Usuarios', level: 1 })).toBeVisible()
   await expect(page.getByText('(tú)').first()).toBeVisible()
 })
+
+test('en tablet y escritorio los filtros caben en una sola fila', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'En el teléfono los filtros van en un panel')
+  for (const ancho of [768, 1024]) {
+    await page.setViewportSize({ width: ancho, height: 900 })
+    for (const ruta of [
+      '/equipos?estado=stock,pendiente&categoria=laptop',
+      '/colaboradores',
+      '/asignaciones?estado=activa&origen=historica',
+      '/historial?desde=2026-10-01&hasta=2026-10-21',
+    ]) {
+      await page.goto(ruta)
+      const fila = page.locator('main [role=search] > div').first()
+      await expect(fila).toBeVisible()
+      expect((await fila.boundingBox())!.height, `${ruta} a ${ancho} px`).toBeLessThanOrEqual(48)
+    }
+  }
+})

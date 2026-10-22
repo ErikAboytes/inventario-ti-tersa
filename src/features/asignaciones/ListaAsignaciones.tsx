@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
-import { BarraFiltros, FiltroSelect } from '@/components/ui/BarraFiltros'
+import { BarraFiltros, type DefFiltro } from '@/components/ui/BarraFiltros'
 import { Button } from '@/components/ui/Button'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
 import { Etiqueta } from '@/components/ui/Etiqueta'
@@ -76,10 +76,10 @@ export function ListaAsignaciones() {
   const estado = useEstadoTabla(ORDEN)
   const lista = useListaAsignaciones(estado)
 
-  const filtro = (param: string) => ({
-    valor: estado.filtros[param],
-    alCambiar: (v: string | null) => estado.cambiar({ filtros: { [param]: v } }),
-  })
+  const filtros: DefFiltro[] = [
+    { param: 'estado', etiqueta: 'Estado', opciones: ESTADOS, principal: true },
+    { param: 'origen', etiqueta: 'Origen', opciones: ORIGENES, principal: true },
+  ]
 
   return (
     <div className="flex flex-col gap-6">
@@ -99,12 +99,12 @@ export function ListaAsignaciones() {
         q={estado.q}
         alBuscar={(q) => estado.cambiar({ q })}
         placeholder="Buscar por folio, colaborador o serie"
-        hayFiltros={estado.hayFiltros}
+        filtros={filtros}
+        valores={estado.filtros}
+        alCambiar={(param, valor) => estado.cambiar({ filtros: { [param]: valor } })}
         alLimpiar={estado.limpiar}
-      >
-        <FiltroSelect etiqueta="Estado" opciones={ESTADOS} {...filtro('estado')} />
-        <FiltroSelect etiqueta="Origen" opciones={ORIGENES} {...filtro('origen')} />
-      </BarraFiltros>
+        total={lista.data?.total}
+      />
 
       <TablaDatos
         etiqueta="Entregas"
