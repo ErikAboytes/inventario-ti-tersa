@@ -19,6 +19,7 @@ export const FILTROS_EQUIPO = {
   ubicacion: 'ubicacion_id',
   subcategoria: 'subcategoria_id',
   condicion: 'condicion',
+  historico: 'estado_historico',
 } as const
 
 /** Valor de filtro para los equipos sin condición registrada. */
@@ -55,6 +56,7 @@ function consultaFiltrada(estado: EstadoTabla, agrupar: boolean) {
     if (param === 'estado') c = c.in('estado', valor.split(',') as EstadoEquipoBD[])
     else if (param === 'condicion' && valor === SIN_REVISAR) c = c.is('condicion', null)
     else if (param === 'empresa' && valor === SIN_EMPRESA) c = c.is('empresa_id', null)
+    else if (param === 'historico') c = c.eq('estado_historico', valor === 'si')
     else c = c.eq(columna, valor)
   }
   switch (estado.filtros.atencion as FiltroAtencion | undefined) {
@@ -200,6 +202,21 @@ export function useCambiarEstado(id: string) {
         p_apartado_para: c.apartado_para ?? undefined,
         p_motivo: c.motivo ?? undefined,
         p_nota: c.nota ?? undefined,
+      })
+      if (error) throw error
+    },
+    onSuccess: () => invalidar(id),
+  })
+}
+
+/** El estado importado del Excel ya es correcto: quita la marca de histórico (queda en el historial). */
+export function useConfirmarEstado(id: string) {
+  const invalidar = useInvalidarEquipos()
+  return useMutation({
+    mutationFn: async (nota: string) => {
+      const { error } = await supabase.rpc('confirmar_estado', {
+        p_equipo: id,
+        p_nota: nota.trim() || undefined,
       })
       if (error) throw error
     },

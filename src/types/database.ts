@@ -446,6 +446,7 @@ export type Database = {
           descripcion: string | null
           empresa_id: string | null
           estado: Database['public']['Enums']['estado_equipo']
+          estado_historico: boolean
           gpu: string | null
           id: string
           marca: string
@@ -475,6 +476,7 @@ export type Database = {
           descripcion?: string | null
           empresa_id?: string | null
           estado?: Database['public']['Enums']['estado_equipo']
+          estado_historico?: boolean
           gpu?: string | null
           id?: string
           marca: string
@@ -504,6 +506,7 @@ export type Database = {
           descripcion?: string | null
           empresa_id?: string | null
           estado?: Database['public']['Enums']['estado_equipo']
+          estado_historico?: boolean
           gpu?: string | null
           id?: string
           marca?: string
@@ -904,6 +907,7 @@ export type Database = {
           empresa_razon_social: string | null
           estado: Database['public']['Enums']['estado_equipo'] | null
           estado_desde: string | null
+          estado_historico: boolean | null
           gpu: string | null
           id: string | null
           marca: string | null
@@ -992,6 +996,10 @@ export type Database = {
           p_motivo?: string
           p_nota?: string
         }
+        Returns: undefined
+      }
+      confirmar_estado: {
+        Args: { p_equipo: string; p_nota?: string }
         Returns: undefined
       }
       crear_asignacion: {
@@ -1118,6 +1126,7 @@ export type Database = {
         | 'devolucion'
         | 'cierre_incidencia'
         | 'importacion'
+        | 'confirmacion_estado'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1260,6 +1269,7 @@ export const Constants = {
         'devolucion',
         'cierre_incidencia',
         'importacion',
+        'confirmacion_estado',
       ],
     },
   },

@@ -100,29 +100,41 @@ export function Panel() {
       ) : (
         <>
           <CifrasClave m={m} />
-          {esAdmin ? (
-            <>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <RequiereAtencion m={m} />
-                <Distribucion m={m} />
-              </div>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <AvanceLocalizacion m={m} />
-                <ActividadReciente m={m} />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <Distribucion m={m} />
-                <AvanceLocalizacion m={m} />
-              </div>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <RequiereAtencion m={m} />
-                <ActividadReciente m={m} />
-              </div>
-            </>
-          )}
+          {/* En el celular el orden es el del DOM (lo urgente primero); en escritorio se emparejan bloques de
+              alto parecido para que ninguno se estire: Distribución con Actividad, Avance con Atención. */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {esAdmin ? (
+              <>
+                <div className="lg:order-4">
+                  <RequiereAtencion m={m} />
+                </div>
+                <div className="lg:order-2">
+                  <Distribucion m={m} />
+                </div>
+                <div className="lg:order-3">
+                  <AvanceLocalizacion m={m} />
+                </div>
+                <div className="lg:order-1">
+                  <ActividadReciente m={m} />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="lg:order-1">
+                  <Distribucion m={m} />
+                </div>
+                <div className="lg:order-3">
+                  <AvanceLocalizacion m={m} />
+                </div>
+                <div className="lg:order-4">
+                  <RequiereAtencion m={m} />
+                </div>
+                <div className="lg:order-2">
+                  <ActividadReciente m={m} />
+                </div>
+              </>
+            )}
+          </div>
         </>
       )}
     </div>
@@ -253,7 +265,7 @@ function Bloque({
   return (
     <section
       aria-labelledby={id}
-      className="flex flex-col gap-4 rounded-tarjeta border border-borde bg-superficie p-6"
+      className="flex h-full flex-col gap-4 rounded-tarjeta border border-borde bg-superficie p-6"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>

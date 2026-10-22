@@ -472,6 +472,21 @@ capacitados.
 - Pendiente para el cierre de la etapa: las pruebas con usuarios de las 4 tareas del doc 04 §13 y la revisión
   manual con teclado y lector de pantalla.
 
+## Ajustes posteriores a la Etapa 9
+
+Diez cambios pedidos tras la revisión de la Etapa 9, en tres PRs:
+
+1. **Interfaz** (este PR): panel sin bloques estirados («Actividad reciente» junto a «Distribución»,
+   «Requiere atención» junto a «Avance»; en el celular lo urgente sigue primero), efecto visible al pasar el
+   mouse en el menú, destino de la devolución empieza en «Elegir…», columna Estado compacta (motivo en una
+   segunda línea) e indicador **«Histórico»**: `equipos.estado_historico` lo enciende solo la importación y lo
+   apagan un cambio de estado o `confirmar_estado()` (movimiento `confirmacion_estado`). Filtro, CSV y aviso
+   en la ficha.
+2. **Entregas:** fecha de la carta (puede ser futura, solo para la impresión inicial) y lista de equipos
+   entregables en el paso 2, con los no entregables y su razón al buscar.
+3. **Catálogos y datos:** catálogo de marcas, sin «Notas» en el formulario de equipo, edición de nombre y
+   puesto de usuarios y teléfono de colaboradores.
+
 ## Etapa 10 — Salida a producción · por planear
 
 Se planea después de presentar el proyecto a Grupo Tersa y de que lo apruebe:

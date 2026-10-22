@@ -111,11 +111,22 @@ describe('formulario de devolución', () => {
     expect(e.generales).toContain('Faltan observaciones en: S2.')
   })
 
-  it('el cierre por incidencia exige motivo, cambia los destinos y no pide firmas', () => {
+  it('el destino empieza sin elegir y se exige en cada equipo marcado', () => {
+    const f = base()
+    expect(f.renglones.map((r) => r.destino)).toEqual(['', ''])
+    f.renglones[0].seleccionado = true
+    const e = validarDevolucion(f, '2026-01-01')
+    expect(e.destinos).toEqual({ e1: 'Elige el destino.' })
+    expect(e.generales).toContain('Falta el destino de: S1.')
+  })
+
+  it('el cierre por incidencia exige motivo, vuelve a pedir el destino y no pide firmas', () => {
     let f = { ...base(), firmas: { ...base().firmas, recibe_nombre: '' } }
+    f.renglones[0] = { ...f.renglones[0], destino: 'stock' }
     f = conModo(f, true)
     f.renglones[0].seleccionado = true
-    expect(f.renglones[0].destino).toBe('no_localizado')
+    expect(f.renglones[0].destino).toBe('')
+    f.renglones[0].destino = 'no_localizado'
     const e = validarDevolucion(f, '2026-01-01')
     expect(e.motivo).toBeTruthy()
     expect(e.firmas).toEqual({})

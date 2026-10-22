@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router'
 import { BarraFiltros, FiltroMultiple, FiltroSelect } from '@/components/ui/BarraFiltros'
 import { Button } from '@/components/ui/Button'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
-import { StatusBadge } from '@/components/ui/StatusBadge'
 import { TablaDatos, type Columna } from '@/components/ui/TablaDatos'
 import { useAvisos } from '@/components/ui/avisosContexto'
 import { useEsAdmin } from '@/features/auth/contexto'
@@ -27,13 +26,20 @@ import {
   useOpcionesSubcategorias,
   type FilaEquipo,
 } from './datos'
-import { detalleEstado, ETIQUETA_CATEGORIA, OPCIONES_CATEGORIA, OPCIONES_ESTADO } from './esquema'
+import { EstadoCelda } from './EstadoHistorico'
+import { ETIQUETA_CATEGORIA, OPCIONES_CATEGORIA, OPCIONES_ESTADO } from './esquema'
 
 const ORDEN: Orden = { campo: 'serie', asc: true }
 const formato = new Intl.NumberFormat('es-MX')
 const OPCIONES_CONDICION = [
   { valor: SIN_REVISAR, texto: 'Sin revisar' },
   ...CONDICIONES.map((c) => ({ valor: c, texto: ETIQUETA_CONDICION[c] })),
+]
+
+/** Filtro «Estado histórico»: si = conserva el estado del Excel; no = ya se revisó o cambió. */
+const OPCIONES_HISTORICO = [
+  { valor: 'si', texto: 'Solo históricos' },
+  { valor: 'no', texto: 'Ya actualizados' },
 ]
 
 const enlace = (e: FilaEquipo) => `/equipos/${e.id}`
@@ -86,7 +92,7 @@ const columnas: Columna<FilaEquipo>[] = [
     clave: 'estado',
     encabezado: 'Estado',
     ordenarPor: 'estado',
-    celda: (e) => (e.estado ? <StatusBadge estado={e.estado} detalle={detalleEstado(e)} /> : '—'),
+    celda: (e) => <EstadoCelda e={e} />,
   },
   {
     clave: 'asignado',
@@ -240,6 +246,11 @@ export function ListaEquipos() {
           {...filtro('subcategoria')}
         />
         <FiltroSelect etiqueta="Condición" opciones={OPCIONES_CONDICION} {...filtro('condicion')} />
+        <FiltroSelect
+          etiqueta="Estado histórico"
+          opciones={OPCIONES_HISTORICO}
+          {...filtro('historico')}
+        />
         <label className="flex min-h-10 items-center gap-2 self-end text-sm font-medium">
           <input
             type="checkbox"
@@ -299,11 +310,7 @@ export function ListaEquipos() {
               {[e.marca, e.modelo].filter(Boolean).join(' ')}
               {e.empresa_clave ? ` · ${e.empresa_clave}` : ''}
             </span>
-            {e.estado ? (
-              <span>
-                <StatusBadge estado={e.estado} detalle={detalleEstado(e)} />
-              </span>
-            ) : null}
+            <EstadoCelda e={e} />
             <span className="text-sm text-texto-secundario">
               {e.colaborador_nombre ?? e.ubicacion ?? 'Sin ubicación'}
             </span>

@@ -131,7 +131,7 @@ function ListaMenu({ menu, alElegir }: { menu: ElementoMenu[]; alElegir?: () => 
                 'flex min-h-11 items-center gap-3 rounded-control border-l-[3px] px-3 py-2 transition-colors duration-150',
                 isActive
                   ? 'border-marca-amarillo bg-marca-azul-50 font-medium text-marca-azul'
-                  : 'border-transparent text-tinta hover:bg-fondo',
+                  : 'border-transparent text-tinta hover:bg-marca-azul-50/60 hover:text-marca-azul',
               )
             }
           >
