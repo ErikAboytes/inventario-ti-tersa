@@ -13,6 +13,8 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'e2e/reporte' }]],
   outputDir: 'e2e/resultados',
+  // La app consulta Supabase en la nube: picos de red de 3–4 s rebasan los 5 s por omisión.
+  expect: { timeout: 10_000 },
   use: {
     baseURL: base,
     locale: 'es-MX',

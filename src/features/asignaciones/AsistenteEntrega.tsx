@@ -12,7 +12,7 @@ import { useOpcionesUnidades } from '@/features/colaboradores/datos'
 import { FormularioColaborador } from '@/features/colaboradores/FormularioColaborador'
 import { DialogoEscaner } from '@/features/busqueda/DialogoEscaner'
 import { destinoBusqueda } from '@/features/busqueda/destino'
-import { detalleEstado, ETIQUETA_CATEGORIA } from '@/features/equipos/esquema'
+import { detalleEstado, ETIQUETA_CATEGORIA, OPCIONES_CATEGORIA } from '@/features/equipos/esquema'
 import { mensajeDeError } from '@/lib/errores'
 import { hayCamara } from '@/lib/escaner'
 import { ESTADOS_ASIGNABLES, ETIQUETA_ESTADO } from '@/lib/estados'
@@ -36,8 +36,11 @@ import {
   useBuscarEquiposEntrega,
   useCrearAsignacion,
   useEquiposDeColaborador,
+  useEquiposEntregables,
+  POR_TANDA_ENTREGABLES,
   type EquipoEntrega,
 } from './datos'
+import { guardarFechaCarta, maximoFechaCarta } from './fechaCarta'
 import { hoyTijuana } from './textos'
 
 const PASOS = ['Colaborador', 'Equipos', 'Datos de carta', 'Confirmar']
@@ -120,6 +123,7 @@ export function AsistenteEntrega() {
     setError(null)
     try {
       const r = await crear.mutateAsync(aDatosEntrega(b))
+      guardarFechaCarta(r.id, b.fechaCarta && b.fechaCarta !== b.fecha ? b.fechaCarta : null)
       descartar()
       // El aviso de éxito con el folio lo muestra P-23 (Documentos).
       navigate(`/asignaciones/${r.id}/documentos?nueva=1`, { replace: true })
@@ -345,7 +349,9 @@ function PasoEquipos({ b, setB }: { b: Borrador; setB: Cambiar }) {
   const buscado = useDeferredValue(texto)
   const resultados = useBuscarEquiposEntrega(buscado)
   const agregados = new Set(b.equipos.map((e) => e.id))
-  const asignables = resultados.data?.asignables ?? []
+  const buscando = buscado.trim().length >= 3
+  const asignables = buscando ? (resultados.data?.asignables ?? []) : []
+  const noAsignables = buscando ? (resultados.data?.noAsignables ?? []) : []
   const [escaneando, setEscaneando] = useState(false)
   // Resultado de un QR escaneado que no se pudo agregar (el de serie lo da la búsqueda).
   const [avisoQr, setAvisoQr] = useState<string | null>(null)
@@ -415,35 +421,24 @@ function PasoEquipos({ b, setB }: { b: Borrador; setB: Cambiar }) {
             {avisoQr}
           </p>
         ) : null}
-        {resultados.data?.noAsignable ? (
-          <p
-            role="status"
-            className="rounded-control border border-mantenimiento bg-mantenimiento-fondo px-3 py-2 text-sm text-mantenimiento"
-          >
-            <span className="font-mono font-medium">{resultados.data.noAsignable.serie}</span> no se
-            puede entregar. {motivoNoAsignable(resultados.data.noAsignable)}
-          </p>
-        ) : null}
-        {buscado.trim().length >= 3 && asignables.length ? (
-          <ul aria-label="Equipos encontrados" className="flex flex-col divide-y divide-borde">
-            {asignables.map((e) => (
-              <li key={e.id} className="flex flex-wrap items-center justify-between gap-3 py-2">
-                <FilaEquipo e={e} />
-                <Button
-                  variante="secundario"
-                  disabled={agregados.has(e.id)}
-                  onClick={() => agregar(e)}
-                  aria-label={`Agregar ${e.serie}`}
-                >
-                  {agregados.has(e.id) ? 'Agregado' : 'Agregar'}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        ) : buscado.trim().length >= 3 &&
-          !resultados.isFetching &&
-          !resultados.data?.noAsignable ? (
-          <p className="text-sm text-texto-secundario">No hay equipos entregables con ese texto.</p>
+        {buscando ? (
+          asignables.length || noAsignables.length ? (
+            <ul aria-label="Equipos encontrados" className="flex flex-col divide-y divide-borde">
+              {asignables.map((e) => (
+                <FilaAgregar key={e.id} e={e} agregado={agregados.has(e.id)} alAgregar={agregar} />
+              ))}
+              {noAsignables.map((e) => (
+                <li key={e.id} className="flex flex-col gap-1 py-2">
+                  <FilaEquipo e={e} />
+                  <p className="text-sm text-texto-secundario">
+                    No se puede entregar. {motivoNoAsignable(e)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : !resultados.isFetching ? (
+            <p className="text-sm text-texto-secundario">No hay equipos con ese texto.</p>
+          ) : null
         ) : null}
       </div>
 
@@ -484,7 +479,118 @@ function PasoEquipos({ b, setB }: { b: Borrador; setB: Cambiar }) {
           <p className="text-sm text-texto-secundario">Aún no agregas equipos.</p>
         )}
       </div>
+
+      {!buscando ? <Disponibles agregados={agregados} alAgregar={agregar} /> : null}
     </div>
+  )
+}
+
+const OPCIONES_DISPONIBLES = ESTADOS_ASIGNABLES.map((e) => ({
+  valor: e,
+  texto: ETIQUETA_ESTADO[e],
+}))
+
+/** Equipos que se pueden entregar sin escribir nada: Stock por omisión, de 10 en 10. */
+function Disponibles({
+  agregados,
+  alAgregar,
+}: {
+  agregados: Set<string | null>
+  alAgregar: (e: EquipoEntrega) => void
+}) {
+  const [estado, setEstado] = useState('stock')
+  const [categoria, setCategoria] = useState('')
+  const [limite, setLimite] = useState(POR_TANDA_ENTREGABLES)
+  const lista = useEquiposEntregables({ estado, categoria, limite })
+  const filas = lista.data?.filas ?? []
+  const total = lista.data?.total ?? 0
+
+  return (
+    <section aria-labelledby="titulo-disponibles" className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h3 id="titulo-disponibles" className="font-semibold">
+            Disponibles para entregar
+          </h3>
+          <p className="text-sm text-texto-secundario" aria-live="polite">
+            {lista.isPending
+              ? 'Cargando…'
+              : `${new Intl.NumberFormat('es-MX').format(total)} ${total === 1 ? 'equipo' : 'equipos'}`}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <CampoSelect
+            etiqueta="Estado"
+            textoVacio="Todos los entregables"
+            opciones={OPCIONES_DISPONIBLES}
+            value={estado}
+            onChange={(e) => {
+              setEstado(e.target.value)
+              setLimite(POR_TANDA_ENTREGABLES)
+            }}
+          />
+          <CampoSelect
+            etiqueta="Categoría"
+            textoVacio="Todas"
+            opciones={OPCIONES_CATEGORIA}
+            value={categoria}
+            onChange={(e) => {
+              setCategoria(e.target.value)
+              setLimite(POR_TANDA_ENTREGABLES)
+            }}
+          />
+        </div>
+      </div>
+      {lista.error ? (
+        <p role="alert" className="text-sm text-no-localizado">
+          {mensajeDeError(lista.error)}
+        </p>
+      ) : filas.length ? (
+        <ul aria-label="Disponibles para entregar" className="flex flex-col divide-y divide-borde">
+          {filas.map((e) => (
+            <FilaAgregar key={e.id} e={e} agregado={agregados.has(e.id)} alAgregar={alAgregar} />
+          ))}
+        </ul>
+      ) : !lista.isPending ? (
+        <p className="text-sm text-texto-secundario">
+          No hay equipos disponibles con estos filtros.
+        </p>
+      ) : null}
+      {filas.length < total ? (
+        <Button
+          variante="secundario"
+          className="self-start"
+          disabled={lista.isFetching}
+          onClick={() => setLimite((l) => l + POR_TANDA_ENTREGABLES)}
+        >
+          {lista.isFetching ? 'Cargando…' : `Ver más (${total - filas.length} restantes)`}
+        </Button>
+      ) : null}
+    </section>
+  )
+}
+
+function FilaAgregar({
+  e,
+  agregado,
+  alAgregar,
+}: {
+  e: EquipoEntrega
+  agregado: boolean
+  alAgregar: (e: EquipoEntrega) => void
+}) {
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-3 py-2">
+      <FilaEquipo e={e} />
+      <Button
+        variante="secundario"
+        disabled={agregado}
+        onClick={() => alAgregar(e)}
+        aria-label={`Agregar ${e.serie}`}
+      >
+        {agregado ? 'Agregado' : 'Agregar'}
+      </Button>
+    </li>
   )
 }
 
@@ -513,7 +619,22 @@ function PasoDatos({ b, setB }: { b: Borrador; setB: Cambiar }) {
         max={hoyTijuana()}
         value={b.fecha}
         onChange={(e) => setB((x) => ({ ...x, fecha: e.target.value }))}
-        ayuda="Puede ser una fecha pasada para registrar una entrega que ya se hizo."
+        ayuda="La que queda en el historial. Puede ser pasada para registrar una entrega que ya se hizo."
+        className="max-w-xs"
+      />
+      <CampoTexto
+        etiqueta="Fecha en la carta"
+        type="date"
+        min={b.fecha}
+        max={maximoFechaCarta()}
+        value={b.fechaCarta || b.fecha}
+        onChange={(e) =>
+          setB((x) => ({
+            ...x,
+            fechaCarta: e.target.value && e.target.value !== x.fecha ? e.target.value : '',
+          }))
+        }
+        ayuda="Puede ser futura (p. ej. el día en que se firmará). Solo cambia la carta que imprimas al terminar; las reimpresiones posteriores usan la fecha de entrega."
         className="max-w-xs"
       />
       <CamposFirma
@@ -545,6 +666,11 @@ function PasoConfirmar({ b, unidad }: { b: Borrador; unidad?: string }) {
         <Dato titulo="Unidad de negocio">{oGuion(c.unidad?.nombre ?? unidad)}</Dato>
         <Dato titulo="Fecha y lugar">
           {fechaCorta(b.fecha)} · {b.firmas.lugar}
+          {b.fechaCarta && b.fechaCarta !== b.fecha ? (
+            <span className="block text-sm text-texto-secundario">
+              La carta dirá {fechaCorta(b.fechaCarta)}
+            </span>
+          ) : null}
         </Dato>
         <Dato titulo="Firmas">
           Entrega: {b.firmas.entrega_nombre}

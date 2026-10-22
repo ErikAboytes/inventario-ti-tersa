@@ -17,6 +17,7 @@ import {
   validarDevolucion,
   type FormDevolucion,
 } from './devolucion'
+import { errorFechaCarta, maximoFechaCarta } from './fechaCarta'
 import { hoyTijuana } from './textos'
 
 const colaborador: ColaboradorEntrega = {
@@ -154,5 +155,15 @@ describe('formulario de devolución', () => {
     expect(validarDevolucion(f, '2026-02-01').generales).toContain(
       'La fecha no puede ser anterior a la entrega.',
     )
+  })
+})
+
+describe('fecha de la carta', () => {
+  it('vacía usa la de entrega; puede ser futura hasta un año, nunca antes de la entrega', () => {
+    expect(errorFechaCarta('', '2026-10-01')).toBeNull()
+    expect(errorFechaCarta(maximoFechaCarta(), hoyTijuana())).toBeNull()
+    expect(errorFechaCarta('2026-09-30', '2026-10-01')).toMatch(/anterior a la entrega/)
+    const [a, m, d] = maximoFechaCarta().split('-')
+    expect(errorFechaCarta(`${Number(a) + 1}-${m}-${d}`, hoyTijuana())).toMatch(/un año/)
   })
 })

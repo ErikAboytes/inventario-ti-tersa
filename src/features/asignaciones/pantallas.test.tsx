@@ -1,13 +1,16 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AvisosProvider } from '@/components/ui/Avisos'
 import { AuthContext, type EstadoAuth } from '@/features/auth/contexto'
 import { AsistenteEntrega } from './AsistenteEntrega'
-import { CLAVE_BORRADOR } from './borrador'
+import { borradorVacio, CLAVE_BORRADOR } from './borrador'
+import { leerFechaCarta, maximoFechaCarta } from './fechaCarta'
+import { hoyTijuana } from './textos'
+import { fechaCorta } from '@/lib/formato'
 import { PaginaRegistrarDevolucion } from './RegistrarDevolucion'
 
 // Pantallas de la Etapa 5 con la capa de datos simulada (sin Supabase ni sesión real).
@@ -42,6 +45,17 @@ const EQUIPOS = [
   },
 ]
 
+const ASIGNADO = {
+  id: 'e3',
+  serie: '8CC01416PH',
+  categoria: 'laptop',
+  marca: 'HP',
+  modelo: 'EliteBook',
+  estado: 'asignado',
+  colaborador_nombre: 'Ana Ruiz',
+  asignacion_folio: 'CC-26-0004',
+}
+
 vi.mock('./datos', () => ({
   useBuscarColaboradores: (t: string) => ({
     data: t.length >= 2 ? [COLABORADOR] : [],
@@ -49,8 +63,20 @@ vi.mock('./datos', () => ({
   }),
   useEquiposDeColaborador: () => ({ data: [] }),
   useBuscarEquiposEntrega: (t: string) => ({
-    data: t.length >= 3 ? { asignables: EQUIPOS, noAsignable: null } : undefined,
+    data:
+      t.length >= 3
+        ? t.toLowerCase().startsWith('8cc')
+          ? { asignables: [], noAsignables: [ASIGNADO] }
+          : { asignables: EQUIPOS, noAsignables: [] }
+        : undefined,
     isFetching: false,
+  }),
+  POR_TANDA_ENTREGABLES: 10,
+  useEquiposEntregables: () => ({
+    data: { filas: [EQUIPOS[0]], total: 1 },
+    isPending: false,
+    isFetching: false,
+    error: null,
   }),
   useCrearAsignacion: () => ({ mutateAsync: m.crear, isPending: false }),
   useRegistrarDevolucion: () => ({ mutateAsync: m.devolver, isPending: false }),
@@ -142,6 +168,18 @@ function montar(ruta: string) {
   return { router, ...r }
 }
 
+const borradorConColaborador = () => ({
+  ...borradorVacio({ nombre: 'Inés González', puesto: 'Analista de Sistemas' }),
+  colaborador: COLABORADOR,
+  firmas: {
+    lugar: 'Tijuana BC',
+    entrega_nombre: 'Inés González',
+    entrega_puesto: 'Analista de Sistemas',
+    recibe_nombre: COLABORADOR.nombre_completo,
+    recibe_puesto: COLABORADOR.puesto,
+  },
+})
+
 beforeEach(() => {
   sessionStorage.clear()
   m.crear.mockReset().mockResolvedValue({ id: 'a9', folio: 'CC-26-0009' })
@@ -195,6 +233,47 @@ describe('P-21 · Asistente de entrega', () => {
     expect(sessionStorage.getItem(CLAVE_BORRADOR)).not.toContain('e1')
     // Al registrar se abren los documentos (P-23) con el aviso de éxito.
     expect(screen.getByRole('heading', { name: 'Documentos' })).toBeInTheDocument()
+  })
+
+  it('en el paso 2 lista los disponibles sin escribir y explica por qué un equipo no se entrega', async () => {
+    const u = userEvent.setup()
+    sessionStorage.setItem(
+      CLAVE_BORRADOR,
+      JSON.stringify({ ...borradorConColaborador(), equipos: [] }),
+    )
+    montar('/asignaciones/nueva?paso=2')
+
+    const disponibles = screen.getByRole('list', { name: 'Disponibles para entregar' })
+    await u.click(within(disponibles).getByRole('button', { name: 'Agregar 5CD1244JFN' }))
+    expect(screen.getByRole('heading', { name: 'Equipos a entregar (1)' })).toBeInTheDocument()
+
+    await u.type(screen.getByLabelText('Agregar equipo'), '8cc0')
+    const encontrados = screen.getByRole('list', { name: 'Equipos encontrados' })
+    expect(encontrados).toHaveTextContent('No se puede entregar. Ya está asignado a Ana Ruiz')
+    expect(within(encontrados).queryByRole('button')).not.toBeInTheDocument()
+    // Mientras se busca, la lista de disponibles se oculta.
+    expect(
+      screen.queryByRole('list', { name: 'Disponibles para entregar' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('la fecha de la carta puede ser futura y solo se guarda para la impresión inicial', async () => {
+    const u = userEvent.setup()
+    sessionStorage.setItem(
+      CLAVE_BORRADOR,
+      JSON.stringify({ ...borradorConColaborador(), equipos: [EQUIPOS[0]] }),
+    )
+    montar('/asignaciones/nueva?paso=3')
+    const futura = maximoFechaCarta()
+    // Un <input type="date"> se llena de una vez, como lo hace el calendario del navegador.
+    fireEvent.change(screen.getByLabelText(/Fecha en la carta/), { target: { value: futura } })
+    await u.click(screen.getByRole('button', { name: 'Continuar' }))
+    expect(screen.getByText(`La carta dirá ${fechaCorta(futura)}`)).toBeInTheDocument()
+
+    await u.click(screen.getByRole('button', { name: 'Registrar entrega' }))
+    // A la BD va la fecha de entrega (la del historial); la de la carta queda en la pestaña.
+    expect(m.crear).toHaveBeenCalledWith(expect.objectContaining({ p_fecha: hoyTijuana() }))
+    expect(leerFechaCarta('a9')).toBe(futura)
   })
 
   it('un ?paso= adelantado regresa al primer paso incompleto', () => {

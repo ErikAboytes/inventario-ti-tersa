@@ -107,15 +107,21 @@ desde la de un colaborador. Son cuatro pasos; si recargas la página no se pierd
 
 1. **Colaborador:** búscalo por nombre o número de empleado. Si no existe, **Nuevo colaborador**. Si le falta
    la unidad de negocio, se pide aquí.
-2. **Equipos:** escribe la serie o **Escanear QR**. Solo aparecen equipos que se pueden entregar. Un equipo
+2. **Equipos:** sin escribir nada aparece la lista **Disponibles para entregar** (Stock por omisión; puedes
+   cambiar el estado o la categoría y **Ver más**). También puedes escribir la serie o **Escanear QR**: si la
+   serie es de un equipo que no se puede entregar (asignado, desactivado…), aparece con la razón. Un equipo
    **Apartado** pide confirmar que se entrega a la persona del apartado.
-3. **Datos de carta:** fecha, lugar y firmas **Entrega** y **Recibe** (vienen prellenadas y se pueden editar).
+3. **Datos de carta:** fecha de entrega (hoy o pasada; es la que queda en el historial), **Fecha en la
+   carta** (opcional, puede ser futura, p. ej. el día en que se firmará), lugar y firmas **Entrega** y
+   **Recibe** (vienen prellenadas y se pueden editar).
 4. **Confirmar:** revisa y elige **Registrar entrega**.
 
 Al terminar se abren los **Documentos de la entrega**:
 - **Imprimir todo:** carta custodia y hoja de etiquetas.
 - **Imprimir carta** / **Imprimir etiquetas** por separado.
 - **Datos de firma** para corregir nombres o puestos antes de reimprimir.
+- **Fecha en la carta**, solo justo después de registrar: ajusta la fecha impresa. Si después vuelves a
+  imprimir la carta desde la entrega, saldrá con la fecha de entrega.
 
 Al guardar como PDF, el nombre del archivo se propone solo
 (`F.TI-006-02 Carta Custodia CC-26-0001 <serie> <nombre>`).

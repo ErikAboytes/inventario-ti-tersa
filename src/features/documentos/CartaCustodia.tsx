@@ -13,7 +13,14 @@ import {
  * después se devuelva alguno) y los datos del colaborador de la instantánea guardada al entregar.
  * El estado físico no se imprime.
  */
-export function CartaCustodia({ a }: { a: DetalleAsignacion }) {
+export function CartaCustodia({
+  a,
+  fecha = a.fecha_entrega,
+}: {
+  a: DetalleAsignacion
+  /** Fecha impresa; por omisión la de entrega (ver asignaciones/fechaCarta.ts). */
+  fecha?: string
+}) {
   const d = a.datos_colaborador
   const equipos = a.renglones.map((r) => r.equipo)
   const varios = equipos.length > 1
@@ -25,7 +32,7 @@ export function CartaCustodia({ a }: { a: DetalleAsignacion }) {
       titulo="Carta Custodia"
       subtitulo="Equipo de Cómputo"
       folio={a.folio}
-      lugarFecha={`${a.lugar_expedicion}, a ${fechaCarta(a.fecha_entrega)}`}
+      lugarFecha={`${a.lugar_expedicion}, a ${fechaCarta(fecha)}`}
       formato={FORMATO_CARTA_CUSTODIA}
     >
       {varios ? (
