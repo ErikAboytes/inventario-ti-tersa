@@ -3,6 +3,7 @@ import type { Opcion } from '@/components/ui/Campos'
 import { rango, type EstadoTabla } from '@/lib/paramsTabla'
 import { supabase } from '@/lib/supabase'
 import { patronBusqueda, vacioANulo } from '@/lib/texto'
+import { hoyTijuana } from '@/features/asignaciones/textos'
 import type { ConfigCatalogo, Fila, TablaCatalogo } from './configuracion'
 
 // Las cinco tablas comparten forma (id, campos de texto, activa); se consultan con un solo cliente sin tipos
@@ -22,7 +23,17 @@ export function useListaCatalogo(config: ConfigCatalogo, estado: EstadoTabla) {
       }
       for (const f of config.filtros) {
         const valor = estado.filtros[f.param]
-        if (valor) consulta = consulta.eq(f.columna, valor)
+        if (!valor) continue
+        // Contratos: «Vigente» con la fecha ya pasada cuenta como vencido (igual que en la lista).
+        if (config.tabla === 'contratos' && f.param === 'estatus' && valor === 'vencido')
+          consulta = consulta.or(
+            `estatus.eq.vencido,and(estatus.eq.vigente,fecha_vencimiento.lt.${hoyTijuana()})`,
+          )
+        else if (config.tabla === 'contratos' && f.param === 'estatus' && valor === 'vigente')
+          consulta = consulta
+            .eq('estatus', 'vigente')
+            .or(`fecha_vencimiento.is.null,fecha_vencimiento.gte.${hoyTijuana()}`)
+        else consulta = consulta.eq(f.columna, valor)
       }
       const [desde, hasta] = rango(estado.pagina, estado.porPagina)
       const { data, error, count } = await consulta

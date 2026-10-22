@@ -76,7 +76,7 @@ const columnas: Columna<FilaEquipo>[] = [
   },
   {
     clave: 'operacion',
-    encabezado: 'Operación',
+    encabezado: 'Contrato',
     ordenarPor: 'contrato_operacion',
     secundaria: true,
     celda: (e) => oGuion(e.contrato_operacion),

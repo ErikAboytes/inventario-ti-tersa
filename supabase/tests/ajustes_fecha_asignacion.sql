@@ -78,5 +78,33 @@ do $$ begin
 exception when insufficient_privilege then null; end $$;
 reset role;
 
+-- Importada del Excel: sin fecha conocida. Capturarla (aunque sea la misma) la vuelve conocida.
+insert into public.asignaciones (id, folio, colaborador_id, fecha_entrega, es_historica, fecha_conocida)
+values ('00000000-0000-4000-8000-00000000fa0c', 'HIST-PRB-FECHA', '00000000-0000-4000-8000-0000000cfa01',
+        privado.hoy(), true, false);
+insert into public.asignacion_equipos (asignacion_id, equipo_id)
+values ('00000000-0000-4000-8000-00000000fa0c', '00000000-0000-4000-8000-0000000efa01');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-00000000fa01","role":"authenticated"}', true);
+set local role authenticated;
+-- Corregir solo firmas, sin fecha: sigue desconocida.
+select public.actualizar_firmas('asignacion', '00000000-0000-4000-8000-00000000fa0c', 'Tijuana BC', 'A', null, 'B', null);
+do $$ begin
+  if (select fecha_conocida from public.v_asignaciones where id = '00000000-0000-4000-8000-00000000fa0c') then
+    raise exception 'FALLA: sin fecha capturada, la importada no debe quedar con fecha conocida';
+  end if;
+end $$;
+select public.actualizar_firmas('asignacion', '00000000-0000-4000-8000-00000000fa0c', 'Tijuana BC', 'A', null, 'B', null,
+  privado.hoy());
+reset role;
+do $$ begin
+  if not (select fecha_conocida from public.asignaciones where id = '00000000-0000-4000-8000-00000000fa0c') then
+    raise exception 'FALLA: capturar la fecha no la volvió conocida';
+  end if;
+  if not exists (select 1 from public.movimientos where asignacion_id = '00000000-0000-4000-8000-00000000fa0c'
+                  and tipo = 'cambio_fecha_asignacion' and nota like 'Fecha de asignación: desconocida → %') then
+    raise exception 'FALLA: no quedó en el historial la captura de la fecha';
+  end if;
+end $$;
+
 select 'OK' as resultado;
 rollback;

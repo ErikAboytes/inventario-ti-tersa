@@ -6,7 +6,7 @@ import { Dialogo } from '@/components/ui/Dialogo'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useAvisos } from '@/components/ui/avisosContexto'
 import { campoDeError, mensajeDeError } from '@/lib/errores'
-import { ETIQUETA_ESTADO } from '@/lib/estados'
+import { DESCRIPCION_ESTADO, ETIQUETA_ESTADO } from '@/lib/estados'
 import { resolverZod } from '@/lib/resolverZod'
 import { useCambiarEstado, type EstadoEquipoBD, type FilaEquipo } from './datos'
 import { detalleEstado, esquemaCambioEstado, OPCIONES_ESTADO_MANUAL } from './esquema'
@@ -100,7 +100,11 @@ export function DialogoCambioEstado({
           etiqueta="Nuevo estado"
           required
           opciones={opciones}
-          ayuda="«Asignado» solo cambia al registrar una entrega o devolución."
+          ayuda={
+            estado
+              ? DESCRIPCION_ESTADO[estado as EstadoEquipoBD]
+              : 'Para dejarlo «Asignado» usa «Entregar»; para quitarlo, registra la devolución.'
+          }
           error={e.estado?.message}
           {...form.register('estado')}
         />
@@ -108,7 +112,7 @@ export function DialogoCambioEstado({
           <CampoTexto
             etiqueta="Apartado para"
             required
-            ayuda="Para quién o para qué está apartado."
+            ayuda="Persona o área para la que se reserva."
             error={e.apartado_para?.message}
             {...form.register('apartado_para')}
           />
@@ -117,14 +121,14 @@ export function DialogoCambioEstado({
           <CampoTexto
             etiqueta="Motivo de la desactivación"
             required
-            ayuda="Venta, venta a CGE, donativo, daño irreparable, fin de contrato…"
+            ayuda="Por qué se da de baja: venta, donativo, daño sin reparación, fin de contrato…"
             error={e.motivo?.message}
             {...form.register('motivo')}
           />
         ) : null}
         <CampoArea
           etiqueta="Nota"
-          ayuda="Opcional. Queda en el historial del equipo."
+          ayuda="Opcional. Se guarda en el historial del equipo."
           error={e.nota?.message}
           {...form.register('nota')}
         />

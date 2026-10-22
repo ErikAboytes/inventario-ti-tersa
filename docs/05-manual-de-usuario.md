@@ -89,7 +89,7 @@ Acciones del Administrador:
 |---|---|
 | **Editar** | Corregir datos, especificaciones o estado físico |
 | **Confirmar estado** | Solo en equipos con estado histórico: el estado del Excel es correcto. Queda en el historial, con una nota opcional |
-| **Cambiar estado** | Stock, Mantenimiento, Apartado (para quién), Pendiente, No localizado o Desactivado (con motivo). «Asignado» solo cambia con una entrega |
+| **Cambiar estado** | Stock, Mantenimiento, Apartado (para quién), Pendiente, No localizado o Desactivado (con motivo). Al elegir uno, se explica qué significa. «Asignado» solo cambia con una entrega |
 | **Entregar** | Abre la entrega con este equipo ya elegido |
 | **Registrar devolución** | Si el equipo está asignado |
 | **Imprimir etiqueta** | Hoja con la etiqueta QR del equipo (también para el Lector) |
@@ -117,7 +117,7 @@ inicio del paso siguiente (y, si falta algo, al aviso que dice qué).
    serie es de un equipo que no se puede entregar (asignado, desactivado…), aparece con la razón. Un equipo
    **Apartado** pide confirmar que se entrega a la persona del apartado.
 3. **Datos de carta:** **Fecha de asignación** (hoy por omisión; puede ser hasta un año antes o después, p.
-   ej. el día en que se firmará), lugar y firmas **Entrega** y **Recibe** (vienen prellenadas y se pueden
+   ej. el día en que se firmará), lugar y firmas **Entrega (Sistemas)** y **Recibe (colaborador)** (vienen prellenadas y se pueden
    editar). Es la fecha que lleva la carta, también al reimprimirla. El historial guarda aparte cuándo se
    registró; el detalle de la entrega muestra las dos («Registrada el …»).
 4. **Confirmar:** revisa y elige **Registrar entrega**.
@@ -137,6 +137,9 @@ Al guardar como PDF, el nombre del archivo se propone solo
 
 Desde la entrega: **Registrar devolución**.
 
+En **¿Qué se registra?** elige **Regresa a Sistemas** (devolución normal) o **Se perdió o se dio de baja**.
+En la devolución, los campos de firma dicen quién es quién: entrega el colaborador y recibe Sistemas.
+
 1. Marca los equipos que regresan (puede ser una parte).
 2. Elige el destino de cada equipo (**Stock** o **Mantenimiento**; empieza en «Elegir…») y la condición. Con «Con detalles» o «Dañado» escribe qué
    tiene el equipo; el error aparece junto al equipo que lo necesita.
@@ -145,8 +148,11 @@ Desde la entrega: **Registrar devolución**.
 **Carta de devolución:** no se genera sola. En el detalle de la devolución usa **Generar carta de
 devolución**.
 
-**Cierre por incidencia** (extravío o baja): en la misma pantalla elige «Cierre por incidencia», escribe el
-motivo y el destino (No localizado o Desactivado). No genera carta y usa folio `CI-…`.
+**Pérdida o baja** (extravío, robo o baja): en la misma pantalla elige «Se perdió o se dio de baja», escribe
+qué pasó y el destino (No localizado o Desactivado). No genera carta y usa folio `CI-…`.
+
+**Entregas «Del Excel»:** las importadas del Excel no tienen fecha ni firmas reales. Aparecen como «Sin fecha
+(Excel)»; captúralas en **Datos de firma** antes de imprimir su carta (si no, la fecha sale en blanco).
 
 ---
 
@@ -172,7 +178,7 @@ movimiento para ver qué cambió campo por campo. **Exportar CSV** descarga el r
 - **Colaboradores:** alta y edición, búsqueda sin acentos o por teléfono. El **teléfono** es opcional
   (10 dígitos, con extensión si hace falta) y no aparece en la carta. La ficha muestra los equipos que tiene ahora y sus
   entregas. Un colaborador dado de baja ya no recibe entregas; sus equipos aparecen en «Requiere atención».
-- **Catálogos:** empresas, contratos (operaciones), ubicaciones, unidades de negocio, subcategorías y
+- **Catálogos:** empresas, contratos (un contrato «Vigente» con la fecha vencida se muestra como «Vencido»), ubicaciones, unidades de negocio, subcategorías y
   marcas. Renombrar una marca la cambia en todos sus equipos; una marca en uso no se borra, se desactiva.
 
 ---

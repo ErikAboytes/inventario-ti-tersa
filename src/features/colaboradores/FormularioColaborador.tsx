@@ -106,7 +106,7 @@ export function FormularioColaborador({
         <CampoSelect
           etiqueta="Unidad de negocio"
           opciones={unidades.data ?? []}
-          ayuda="Aparece en la carta custodia."
+          ayuda="Se imprime en la carta custodia."
           {...form.register('unidad_negocio_id')}
         />
         <CampoSelect
@@ -146,7 +146,7 @@ export function FormularioColaborador({
           etiqueta="Tipo"
           opciones={TIPOS_COLABORADOR}
           textoVacio="Selecciona…"
-          ayuda="«Genérico» es para puestos o vacantes que vienen del Excel, no personas."
+          ayuda="«Genérico» es para un puesto o vacante sin persona fija (p. ej. Ventas 02 · Tersa Plaza)."
           {...form.register('tipo')}
         />
       </form>

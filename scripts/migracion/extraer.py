@@ -713,9 +713,9 @@ def generar_sql(m: Migracion, asignaciones: list[dict], conteos: dict) -> str:
             "  colaborador text, datos jsonb, cerrada boolean) on commit drop;",
             "insert into imp_asignaciones (folio, colaborador, datos, cerrada) values\n  " + valores(filas_asig) + ";",
             "insert into public.asignaciones (id, folio, colaborador_id, fecha_entrega, datos_colaborador, observaciones,\n"
-            "  es_historica, cerrada_en)\n"
+            "  es_historica, fecha_conocida, cerrada_en)\n"
             f"select a.id, a.folio, c.id, {sql(HOY)}::date, a.datos,\n"
-            "  'Asignación importada del Excel; la fecha real de entrega se desconoce.', true,\n"
+            "  'Asignación importada del Excel; la fecha real de entrega se desconoce.', true, false,\n"
             "  case when a.cerrada then now() end\n"
             "from imp_asignaciones a join imp_colaboradores c on c.clave = a.colaborador;",
             "create temp table imp_renglones (folio text, n int, destino text) on commit drop;",

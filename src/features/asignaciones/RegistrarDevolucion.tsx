@@ -43,8 +43,8 @@ import { ETIQUETA_DESTINO, hoyTijuana, LUGAR_PREDETERMINADO } from './textos'
 const DESTINOS_DEVOLUCION: ItemDevolucion['destino'][] = ['stock', 'mantenimiento']
 const DESTINOS_INCIDENCIA: ItemDevolucion['destino'][] = ['no_localizado', 'desactivado']
 const MODOS = [
-  { valor: 'devolucion', texto: 'Devolución' },
-  { valor: 'incidencia', texto: 'Cierre por incidencia' },
+  { valor: 'devolucion', texto: 'Regresa a Sistemas' },
+  { valor: 'incidencia', texto: 'Se perdió o se dio de baja' },
 ]
 
 /** P-25 (`/asignaciones/:id/devolucion`). */
@@ -120,7 +120,7 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
       avisar({
         tipo: 'exito',
         texto: f.cierreIncidencia
-          ? `Cierre por incidencia ${r.folio} registrado.`
+          ? `Pérdida o baja ${r.folio} registrada.`
           : `Devolución ${r.folio} registrada.`,
       })
       navigate(`/devoluciones/${r.id}`, { replace: true })
@@ -198,8 +198,8 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
               onChange={(e) => setF((x) => conModo(x, e.target.value === 'incidencia'))}
               ayuda={
                 f.cierreIncidencia
-                  ? 'Extravío, robo o baja de un equipo que estaba asignado. No genera carta.'
-                  : 'El equipo regresa a Sistemas. Se puede generar la carta de devolución después.'
+                  ? 'El equipo se extravió, lo robaron o se dio de baja. No genera carta.'
+                  : 'El colaborador regresa el equipo. La carta de devolución se genera después, desde la devolución.'
               }
             />
             {f.cierreIncidencia ? (
@@ -209,7 +209,7 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
                 value={f.motivo}
                 error={visibles.motivo}
                 onChange={(e) => setF((x) => ({ ...x, motivo: e.target.value }))}
-                ayuda="Se guarda en el historial del equipo y, si se desactiva, como motivo de la desactivación."
+                ayuda="Qué pasó: extravío, robo, daño… Queda en el historial del equipo."
               />
             ) : null}
           </div>
@@ -266,7 +266,7 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
                         ayuda={
                           requiereObservaciones(r.condicion)
                             ? `Obligatorias con «Con detalles» o «Dañado». Por ejemplo: «${EJEMPLO_OBSERVACIONES}»`
-                            : 'Vienen del estado físico actual del equipo; al guardar lo actualizan.'
+                            : 'Ya traen lo que se sabía del equipo; corrígelo si regresa distinto.'
                         }
                       />
                     </div>
@@ -288,6 +288,7 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
                 alCambiar={(c) => setF((x) => ({ ...x, firmas: { ...x.firmas, ...c } }))}
                 antes={fecha}
                 lugarJuntoAFecha
+                devolucion
               />
             )}
             <CampoArea
@@ -304,7 +305,7 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
             Cancelar
           </Button>
           <Button type="submit">
-            {f.cierreIncidencia ? 'Registrar cierre por incidencia' : 'Registrar devolución'}
+            {f.cierreIncidencia ? 'Registrar pérdida o baja' : 'Registrar devolución'}
           </Button>
         </div>
       </form>
@@ -312,9 +313,7 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
       <Confirmacion
         abierto={confirmando}
         alCambiar={setConfirmando}
-        titulo={
-          f.cierreIncidencia ? '¿Registrar el cierre por incidencia?' : '¿Registrar la devolución?'
-        }
+        titulo={f.cierreIncidencia ? '¿Registrar la pérdida o baja?' : '¿Registrar la devolución?'}
         textoConfirmar={f.cierreIncidencia ? 'Registrar cierre' : 'Registrar devolución'}
         peligro={f.cierreIncidencia}
         alConfirmar={enviar}

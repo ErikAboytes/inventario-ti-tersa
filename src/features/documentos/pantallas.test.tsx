@@ -30,6 +30,7 @@ const asignacion = (renglones: Renglon[]) =>
     id: 'a1',
     folio: 'CC-26-0001',
     fecha_entrega: '2026-07-09',
+    fecha_conocida: true,
     lugar_expedicion: 'Tijuana BC',
     firma_entrega_nombre: 'Inés González',
     firma_entrega_puesto: 'Analista de Sistemas',
@@ -61,6 +62,13 @@ describe('Carta custodia', () => {
     expect(carta.querySelectorAll('ol')[0].children).toHaveLength(CLAUSULAS_CUSTODIA.length)
     expect(carta).toHaveTextContent('Inés González')
     expect(carta).toHaveTextContent('F.TI-006-02')
+  })
+
+  it('una entrega importada sin fecha real deja la fecha en blanco', () => {
+    render(
+      <CartaCustodia a={{ ...asignacion([renglon('e1', '5CD626170N')]), fecha_conocida: false }} />,
+    )
+    expect(screen.getByRole('article')).toHaveTextContent('Tijuana BC, a ___ de ___ del ____')
   })
 
   it('con varios equipos usa una tabla con un renglón por equipo', () => {

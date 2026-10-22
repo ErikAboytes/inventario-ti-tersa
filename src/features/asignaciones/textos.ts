@@ -14,3 +14,14 @@ export const hoyTijuana = () =>
   new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Tijuana' })
 
 export const LUGAR_PREDETERMINADO = 'Tijuana BC'
+
+/** «1 activo», «3 activos». */
+export const plural = (n: number, singular: string, varios: string) =>
+  `${n} ${n === 1 ? singular : varios}`
+
+/** «1 activo · 2 devueltos» de una entrega. */
+export const resumenEquipos = (activos: number | null, devueltos: number | null) =>
+  `${plural(activos ?? 0, 'activo', 'activos')}${devueltos ? ` · ${plural(devueltos, 'devuelto', 'devueltos')}` : ''}`
+
+/** Las entregas importadas del Excel no tienen fecha real (fecha_conocida = false). */
+export const TEXTO_FECHA_DESCONOCIDA = 'Sin fecha (Excel)'

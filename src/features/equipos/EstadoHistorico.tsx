@@ -105,7 +105,7 @@ function DialogoConfirmar({
       abierto
       alCambiar={(a) => !a && alCerrar()}
       titulo="Confirmar estado"
-      descripcion={`${equipo.serie ?? ''} sigue en «${ETIQUETA_ESTADO[equipo.estado]}». Quedará en el historial como revisado.`}
+      descripcion={`Confirma que ${equipo.serie ?? 'el equipo'} realmente está en «${ETIQUETA_ESTADO[equipo.estado]}». Quedará anotado en su historial.`}
       pie={
         <>
           <Button variante="secundario" onClick={alCerrar}>

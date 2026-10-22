@@ -21,6 +21,17 @@ export const ETIQUETA_ESTADO: Record<EstadoEquipo, string> = {
   desactivado: 'Desactivado',
 }
 
+/** Qué significa cada estado, en una línea, para elegirlo sin dudas (Cambiar estado, alta de equipo). */
+export const DESCRIPCION_ESTADO: Record<EstadoEquipo, string> = {
+  stock: 'Disponible en el almacén para entregarse.',
+  asignado: 'Lo tiene un colaborador, con carta custodia.',
+  mantenimiento: 'En reparación o revisión técnica.',
+  apartado: 'Reservado para una persona o área; aún no se entrega.',
+  pendiente: 'Falta confirmar dónde está o en qué condición.',
+  no_localizado: 'No se encontró al revisar el inventario.',
+  desactivado: 'Dado de baja (vendido, donado, sin reparación). Ya no se entrega.',
+}
+
 // Estados desde los que se puede entregar un equipo (§4.1). «apartado» requiere confirmación.
 export const ESTADOS_ASIGNABLES: readonly EstadoEquipo[] = [
   'stock',

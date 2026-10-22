@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { Opcion } from '@/components/ui/Campos'
-import { EtiquetaActiva } from '@/components/ui/Etiqueta'
+import { Etiqueta, EtiquetaActiva } from '@/components/ui/Etiqueta'
+import { hoyTijuana } from '@/features/asignaciones/textos'
 import type { Columna } from '@/components/ui/TablaDatos'
 import { fechaCorta, oGuion } from '@/lib/formato'
 import type { Orden } from '@/lib/paramsTabla'
@@ -58,7 +59,7 @@ const activa = {
   nombre: 'activa',
   etiqueta: 'Activa',
   tipo: 'casilla',
-  ayuda: 'Si la desactivas, deja de ofrecerse al capturar.',
+  ayuda: 'Si la desactivas, ya no aparece para elegir; lo ya registrado no cambia.',
 } as const
 const columnaActiva: Columna<Fila> = {
   clave: 'activa',
@@ -93,6 +94,12 @@ export const ESTATUS_CONTRATO: Opcion[] = [
 const textoDe = (opciones: Opcion[], valor: unknown) =>
   opciones.find((o) => o.valor === valor)?.texto ?? '—'
 
+/** Contrato marcado «Vigente» cuya fecha de vencimiento ya pasó. */
+const vencidoPorFecha = (f: Fila) =>
+  f.estatus === 'vigente' &&
+  typeof f.fecha_vencimiento === 'string' &&
+  f.fecha_vencimiento < hoyTijuana()
+
 const RFC = /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/
 
 export const CATALOGOS: ConfigCatalogo[] = [
@@ -101,7 +108,7 @@ export const CATALOGOS: ConfigCatalogo[] = [
     titulo: 'Empresas',
     singular: 'empresa',
     femenino: true,
-    descripcion: 'Razones sociales propietarias de los equipos.',
+    descripcion: 'Empresas del grupo a las que pertenecen los equipos.',
     tabla: 'empresas',
     select: '*',
     buscarEn: ['clave', 'razon_social', 'rfc'],
@@ -135,7 +142,7 @@ export const CATALOGOS: ConfigCatalogo[] = [
         tipo: 'texto',
         requerido: true,
         mayusculas: true,
-        ayuda: 'Como aparece en el Excel: TRO, TAU, CRVH…',
+        ayuda: 'Abreviatura corta: TRO, TAU, CRVH…',
       },
       { nombre: 'razon_social', etiqueta: 'Razón social', tipo: 'texto', requerido: true },
       { nombre: 'rfc', etiqueta: 'RFC', tipo: 'texto', mono: true, mayusculas: true },
@@ -161,16 +168,16 @@ export const CATALOGOS: ConfigCatalogo[] = [
     titulo: 'Contratos',
     singular: 'contrato',
     femenino: false,
-    descripcion: 'Operaciones de arrendamiento o compra por empresa.',
+    descripcion: 'Contratos de renta o compra de equipos, por empresa.',
     tabla: 'contratos',
     select: '*, empresa:empresas(clave)',
     buscarEn: ['operacion', 'numero_contrato', 'descripcion'],
-    textoBusqueda: 'Buscar por operación, número o descripción',
+    textoBusqueda: 'Buscar por código, número de contrato o descripción',
     ordenDefecto: { campo: 'operacion', asc: true },
     columnas: [
       {
         clave: 'operacion',
-        encabezado: 'Operación',
+        encabezado: 'Código',
         ordenarPor: 'operacion',
         celda: (f) => <span className="font-medium">{texto(f, 'operacion')}</span>,
       },
@@ -196,7 +203,17 @@ export const CATALOGOS: ConfigCatalogo[] = [
         clave: 'estatus',
         encabezado: 'Estatus',
         ordenarPor: 'estatus',
-        celda: (f) => textoDe(ESTATUS_CONTRATO, f.estatus),
+        // El estatus se captura a mano: un «Vigente» con la fecha ya pasada se muestra como vencido.
+        celda: (f) =>
+          vencidoPorFecha(f) ? (
+            <span
+              title={`Marcado «Vigente», pero venció el ${fechaCorta(f.fecha_vencimiento as string)}`}
+            >
+              <Etiqueta texto="Vencido" tono="alerta" />
+            </span>
+          ) : (
+            textoDe(ESTATUS_CONTRATO, f.estatus)
+          ),
       },
     ],
     tarjeta: (f) => ({
@@ -206,11 +223,11 @@ export const CATALOGOS: ConfigCatalogo[] = [
     campos: [
       {
         nombre: 'operacion',
-        etiqueta: 'Operación',
+        etiqueta: 'Código del contrato',
         tipo: 'texto',
         requerido: true,
         mayusculas: true,
-        ayuda: 'Código interno, p. ej. TERSA001.',
+        ayuda: 'Con este código se identifica en el inventario, p. ej. TERSA001.',
       },
       {
         nombre: 'empresa_id',
@@ -336,7 +353,8 @@ export const CATALOGOS: ConfigCatalogo[] = [
     titulo: 'Unidades de negocio',
     singular: 'unidad de negocio',
     femenino: true,
-    descripcion: 'Aparecen en la carta custodia (Llantas, Renault…).',
+    descripcion:
+      'Área o negocio del colaborador (Llantas, Renault…). Se imprime en la carta custodia.',
     tabla: 'unidades_negocio',
     select: '*',
     buscarEn: ['nombre'],
@@ -362,7 +380,7 @@ export const CATALOGOS: ConfigCatalogo[] = [
     titulo: 'Subcategorías',
     singular: 'subcategoría',
     femenino: true,
-    descripcion: 'Clasifican los equipos de categoría «Otro» (iPad/Tablet…).',
+    descripcion: 'Tipos de equipo para la categoría «Otro» (iPad/Tablet…).',
     tabla: 'subcategorias',
     select: '*',
     buscarEn: ['nombre'],

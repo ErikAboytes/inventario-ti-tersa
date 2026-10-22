@@ -42,12 +42,13 @@ export function DetalleAsignacion() {
   const activos = a.renglones.filter((r) => !r.devolucion_id)
   const devueltos = a.renglones.filter((r) => r.devolucion_id)
   const d = a.datos_colaborador
+  const fecha = a.fecha_conocida ? fechaCorta(a.fecha_entrega) : 'Desconocida (importada del Excel)'
 
   return (
     <div className="flex flex-col gap-6">
       <EncabezadoPagina
         titulo={`Entrega ${a.folio}`}
-        descripcion={`${a.colaborador.nombre_completo} · ${fechaCorta(a.fecha_entrega)}`}
+        descripcion={`${a.colaborador.nombre_completo} · ${fecha}`}
         migas={[{ texto: 'Entregas y devoluciones', ruta: '/asignaciones' }, { texto: a.folio }]}
         acciones={
           <>
@@ -56,12 +57,6 @@ export function DetalleAsignacion() {
               onClick={() => navigate(`/asignaciones/${a.id}/documentos`)}
             >
               <Printer aria-hidden="true" className="size-4" /> Carta y etiquetas
-            </Button>
-            <Button
-              variante="secundario"
-              onClick={() => navigate(`/asignaciones/${a.id}/imprimir`)}
-            >
-              Comprobante
             </Button>
             {esAdmin ? (
               <Button variante="secundario" onClick={() => setFirmas(true)}>
@@ -80,8 +75,8 @@ export function DetalleAsignacion() {
       <EtiquetaAsignacion a={{ activa: !a.cerrada_en, es_historica: a.es_historica }} />
       {a.es_historica ? (
         <p className="max-w-3xl text-sm text-texto-secundario">
-          Entrega importada del Excel: la fecha real se desconoce y no tiene datos de firma. Si se
-          reimprime la carta, captúralos en «Datos de firma».
+          Entrega importada del Excel: no tiene fecha ni firmas reales. Antes de imprimir la carta,
+          captúralas en «Datos de firma».
         </p>
       ) : null}
 
@@ -107,7 +102,7 @@ export function DetalleAsignacion() {
               <span className="font-mono">{a.folio}</span>
             </Dato>
             <Dato titulo="Fecha de asignación y lugar">
-              {fechaCorta(a.fecha_entrega)} · {a.lugar_expedicion}
+              {fecha} · {a.lugar_expedicion}
               <span className="block text-sm text-texto-secundario">
                 Registrada el {fechaHora(a.creado_en)}
               </span>
@@ -136,7 +131,7 @@ export function DetalleAsignacion() {
       {firmas ? (
         <DialogoFirmas
           tipo="asignacion"
-          fechaInicial={a.fecha_entrega}
+          fechaInicial={a.fecha_conocida ? a.fecha_entrega : ''}
           id={a.id}
           alCerrar={() => setFirmas(false)}
           inicial={{

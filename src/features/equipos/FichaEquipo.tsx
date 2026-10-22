@@ -186,7 +186,7 @@ export function FichaEquipo() {
           <Dato titulo="Empresa">
             {e.empresa_clave ? `${e.empresa_clave} · ${e.empresa_razon_social}` : '—'}
           </Dato>
-          <Dato titulo="Contrato / operación">
+          <Dato titulo="Contrato">
             {e.contrato_operacion
               ? `${e.contrato_operacion}${e.contrato_vencimiento ? ` · vence ${fechaCorta(e.contrato_vencimiento)}` : ''}`
               : 'Fuera de contrato'}

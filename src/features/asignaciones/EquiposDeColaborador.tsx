@@ -4,6 +4,7 @@ import { ETIQUETA_CATEGORIA } from '@/features/equipos/esquema'
 import { mensajeDeError } from '@/lib/errores'
 import { fechaCorta } from '@/lib/formato'
 import { useAsignacionesDeColaborador, useEquiposDeColaborador } from './datos'
+import { resumenEquipos, TEXTO_FECHA_DESCONOCIDA } from './textos'
 import { EtiquetaAsignacion } from './ListaAsignaciones'
 
 /** P-41: equipos que el colaborador tiene hoy y sus entregas (activas y cerradas). */
@@ -63,8 +64,10 @@ export function EquiposDeColaborador({ colaboradorId }: { colaboradorId: string 
                     {a.folio}
                   </Link>
                   <span className="text-sm text-texto-secundario">
-                    {fechaCorta(a.fecha_entrega)} · {a.equipos_activos} activos
-                    {a.equipos_devueltos ? ` · ${a.equipos_devueltos} devueltos` : ''}
+                    {a.fecha_conocida === false
+                      ? TEXTO_FECHA_DESCONOCIDA
+                      : fechaCorta(a.fecha_entrega)}{' '}
+                    · {resumenEquipos(a.equipos_activos, a.equipos_devueltos)}
                   </span>
                 </span>
                 <EtiquetaAsignacion a={a} />

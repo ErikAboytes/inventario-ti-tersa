@@ -214,8 +214,10 @@ describe('P-21 · Asistente de entrega', () => {
     await u.click(screen.getByRole('button', { name: 'Continuar' }))
 
     // Paso 3: firmas prellenadas con el usuario en sesión y el colaborador.
-    expect(screen.getByLabelText(/Entrega · nombre/)).toHaveValue('Inés González')
-    expect(screen.getByLabelText(/Recibe · nombre/)).toHaveValue('José Carlos López Medina')
+    expect(screen.getByLabelText(/Entrega \(Sistemas\) · nombre/)).toHaveValue('Inés González')
+    expect(screen.getByLabelText(/Recibe \(colaborador\) · nombre/)).toHaveValue(
+      'José Carlos López Medina',
+    )
 
     // Recargar no pierde lo capturado.
     unmount()

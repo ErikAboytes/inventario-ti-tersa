@@ -12,7 +12,7 @@ export const ETIQUETA_MOVIMIENTO: Record<TipoMovimiento, string> = {
   cambio_estado: 'Cambio de estado',
   asignacion: 'Entrega',
   devolucion: 'Devolución',
-  cierre_incidencia: 'Cierre por incidencia',
+  cierre_incidencia: 'Pérdida o baja',
   importacion: 'Importación',
   confirmacion_estado: 'Confirmación de estado',
   cambio_fecha_asignacion: 'Cambio de fecha de asignación',

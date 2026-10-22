@@ -20,7 +20,7 @@ const COLUMNAS: [string, (e: FilaEquipo) => string | null | undefined][] = [
   ['Sistema operativo', (e) => e.sistema_operativo],
   ['Empresa', (e) => e.empresa_clave],
   ['Razón social', (e) => e.empresa_razon_social],
-  ['Operación', (e) => e.contrato_operacion],
+  ['Contrato', (e) => e.contrato_operacion],
   [
     'Vencimiento del contrato',
     (e) => (e.contrato_vencimiento ? fechaCorta(e.contrato_vencimiento) : null),

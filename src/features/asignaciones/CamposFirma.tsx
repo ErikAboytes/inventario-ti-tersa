@@ -15,13 +15,18 @@ export function CamposFirma({
   errores,
   antes,
   lugarJuntoAFecha = false,
+  devolucion = false,
 }: {
   valores: Firmas
   alCambiar: (cambios: Partial<Firmas>) => void
   errores?: Partial<Record<keyof Firmas, string>>
   antes?: ReactNode
   lugarJuntoAFecha?: boolean
+  /** En la devolución entrega el colaborador y recibe Sistemas. */
+  devolucion?: boolean
 }) {
+  const entrega = devolucion ? 'colaborador' : 'Sistemas'
+  const recibe = devolucion ? 'Sistemas' : 'colaborador'
   const campo = (clave: keyof Firmas, etiqueta: string, requerido = false, className?: string) => (
     <CampoTexto
       etiqueta={etiqueta}
@@ -36,10 +41,10 @@ export function CamposFirma({
     <div className="grid gap-5 sm:grid-cols-2">
       {antes}
       {campo('lugar', 'Lugar de expedición', true, clsx(!lugarJuntoAFecha && 'sm:col-span-2'))}
-      {campo('entrega_nombre', 'Entrega · nombre', true)}
-      {campo('entrega_puesto', 'Entrega · puesto')}
-      {campo('recibe_nombre', 'Recibe · nombre', true)}
-      {campo('recibe_puesto', 'Recibe · puesto')}
+      {campo('entrega_nombre', `Entrega (${entrega}) · nombre`, true)}
+      {campo('entrega_puesto', `Entrega (${entrega}) · puesto`)}
+      {campo('recibe_nombre', `Recibe (${recibe}) · nombre`, true)}
+      {campo('recibe_puesto', `Recibe (${recibe}) · puesto`)}
     </div>
   )
 }

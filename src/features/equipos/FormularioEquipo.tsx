@@ -13,6 +13,7 @@ import { useOpcionesEmpresas } from '@/features/catalogos/datos'
 import { useOpcionesUbicaciones } from '@/features/colaboradores/datos'
 import { NoEncontrada } from '@/features/errores/NoEncontrada'
 import { campoDeError, mensajeDeError } from '@/lib/errores'
+import { DESCRIPCION_ESTADO } from '@/lib/estados'
 import { resolverZod } from '@/lib/resolverZod'
 import { useTitulo } from '@/lib/useTitulo'
 import {
@@ -220,7 +221,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
               etiqueta="Subcategoría"
               required
               opciones={subcategorias.data ?? []}
-              ayuda="Por ejemplo: iPad/Tablet. Se administran en Catálogos."
+              ayuda="Tipo de equipo, p. ej. iPad/Tablet. Se agregan en Catálogos."
               error={e.subcategoria_id?.message}
               className="sm:col-span-2"
               {...form.register('subcategoria_id')}
@@ -241,7 +242,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
             {alta ? (
               <CampoCasilla
                 etiqueta="No tiene serie visible"
-                ayuda="El sistema le asigna un identificador interno SINSERIE-0001…"
+                ayuda="Si no tiene número de serie o no se puede leer. El sistema le pone uno provisional (SINSERIE-0001…)."
                 {...form.register('sin_serie', {
                   onChange: () => form.clearErrors('serie'),
                 })}
@@ -252,7 +253,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
             etiqueta="Número de producto"
             mono
             autoComplete="off"
-            ayuda="Opcional (p. ej. W6B92LT#ABM). Aparece en la carta."
+            ayuda="Código del modelo en la etiqueta del fabricante, junto a la serie (p. ej. W6B92LT#ABM). Opcional; sale en la carta."
             error={e.numero_producto?.message}
             {...form.register('numero_producto')}
           />
@@ -319,7 +320,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
             <CampoTexto
               etiqueta="Tarjeta gráfica (GPU)"
               autoComplete="off"
-              ayuda="Vacío si usa la gráfica integrada."
+              ayuda="Déjalo vacío si no tiene tarjeta de video aparte."
               error={e.gpu?.message}
               {...form.register('gpu')}
             />
@@ -338,10 +339,10 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
 
         <Seccion titulo="Propiedad">
           <CampoSelect
-            etiqueta="Contrato / operación"
+            etiqueta="Contrato"
             opciones={contratos.data ?? []}
             textoVacio="Fuera de contrato"
-            ayuda="Al elegirlo, la empresa se toma del contrato."
+            ayuda="Contrato de renta o compra del equipo. La empresa se llena sola."
             {...form.register('contrato_id')}
           />
           {contrato ? (
@@ -355,7 +356,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
             <CampoSelect
               etiqueta="Empresa"
               opciones={empresas.data ?? []}
-              ayuda="Solo para equipos fuera de contrato."
+              ayuda="Elígela solo si el equipo no tiene contrato."
               {...form.register('empresa_id')}
             />
           )}
@@ -369,7 +370,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
           />
           <CampoTexto
             etiqueta="Detalle"
-            ayuda="Caja, cajón, mueble…"
+            ayuda="Dónde está dentro de la ubicación: caja, cajón, mueble…"
             error={e.ubicacion_detalle?.message}
             {...form.register('ubicacion_detalle')}
           />
@@ -390,7 +391,11 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
                   etiqueta="Estado inicial"
                   required
                   opciones={OPCIONES_ESTADO_MANUAL}
-                  ayuda="«Asignado» se pone al registrar una entrega."
+                  ayuda={
+                    estado
+                      ? DESCRIPCION_ESTADO[estado as keyof typeof DESCRIPCION_ESTADO]
+                      : 'Para dejarlo «Asignado», regístralo y luego haz una entrega.'
+                  }
                   {...form.register('estado')}
                 />
               ) : undefined
@@ -400,7 +405,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
                 <CampoTexto
                   etiqueta="Apartado para"
                   required
-                  ayuda="Para quién o para qué está apartado."
+                  ayuda="Persona o área para la que se reserva."
                   error={e.apartado_para?.message}
                   {...form.register('apartado_para')}
                 />
@@ -408,7 +413,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
                 <CampoTexto
                   etiqueta="Motivo de la desactivación"
                   required
-                  ayuda="Venta, venta a CGE, donativo, daño irreparable, fin de contrato…"
+                  ayuda="Por qué se da de baja: venta, donativo, daño sin reparación, fin de contrato…"
                   error={e.motivo_desactivacion?.message}
                   {...form.register('motivo_desactivacion')}
                 />
