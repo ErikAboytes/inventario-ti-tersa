@@ -8,8 +8,7 @@ import { AvisosProvider } from '@/components/ui/Avisos'
 import { AuthContext, type EstadoAuth } from '@/features/auth/contexto'
 import { AsistenteEntrega } from './AsistenteEntrega'
 import { borradorVacio, CLAVE_BORRADOR } from './borrador'
-import { leerFechaCarta, maximoFechaCarta } from './fechaCarta'
-import { hoyTijuana } from './textos'
+import { maximoFechaAsignacion } from './fechaAsignacion'
 import { fechaCorta } from '@/lib/formato'
 import { PaginaRegistrarDevolucion } from './RegistrarDevolucion'
 
@@ -260,23 +259,24 @@ describe('P-21 · Asistente de entrega', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('la fecha de la carta puede ser futura y solo se guarda para la impresión inicial', async () => {
+  it('una sola fecha de asignación: puede ser futura, avisa y se envía a la BD', async () => {
     const u = userEvent.setup()
     sessionStorage.setItem(
       CLAVE_BORRADOR,
       JSON.stringify({ ...borradorConColaborador(), equipos: [EQUIPOS[0]] }),
     )
     montar('/asignaciones/nueva?paso=3')
-    const futura = maximoFechaCarta()
+    expect(screen.queryByLabelText(/Fecha en la carta/)).not.toBeInTheDocument()
+    const futura = maximoFechaAsignacion()
     // Un <input type="date"> se llena de una vez, como lo hace el calendario del navegador.
-    fireEvent.change(screen.getByLabelText(/Fecha en la carta/), { target: { value: futura } })
+    fireEvent.change(screen.getByLabelText(/Fecha de asignación/), { target: { value: futura } })
+    expect(screen.getByLabelText(/Fecha de asignación/)).toHaveAccessibleDescription(
+      `La carta saldrá con fecha futura (${fechaCorta(futura)}).`,
+    )
     await u.click(screen.getByRole('button', { name: 'Continuar' }))
-    expect(screen.getByText(`La carta dirá ${fechaCorta(futura)}`)).toBeInTheDocument()
-
     await u.click(screen.getByRole('button', { name: 'Registrar entrega' }))
-    // A la BD va la fecha de entrega (la del historial); la de la carta queda en la pestaña.
-    expect(m.crear).toHaveBeenCalledWith(expect.objectContaining({ p_fecha: hoyTijuana() }))
-    expect(leerFechaCarta('a9')).toBe(futura)
+    // La carta y la asignación usan esa fecha; el historial guarda aparte cuándo se registró.
+    expect(m.crear).toHaveBeenCalledWith(expect.objectContaining({ p_fecha: futura }))
   })
 
   it('al cambiar de paso la vista sube a su título y, con faltantes, al aviso', async () => {

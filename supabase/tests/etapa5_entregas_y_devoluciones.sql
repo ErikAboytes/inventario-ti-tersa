@@ -50,8 +50,8 @@ do $$ begin
 exception when check_violation then null; end $$;
 do $$ begin
   perform public.crear_asignacion('00000000-0000-4000-8000-0000000c0501', array['00000000-0000-4000-8000-0000000e0501']::uuid[],
-                                  current_date + 30);
-  raise exception 'FALLA: entrega con fecha futura';
+                                  current_date + 400);
+  raise exception 'FALLA: entrega con fecha a más de un año';
 exception when check_violation then null; end $$;
 do $$ begin
   perform public.crear_asignacion('00000000-0000-4000-8000-0000000c0502', array['00000000-0000-4000-8000-0000000e0501']::uuid[]);

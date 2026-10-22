@@ -15,6 +15,7 @@ export const ETIQUETA_MOVIMIENTO: Record<TipoMovimiento, string> = {
   cierre_incidencia: 'Cierre por incidencia',
   importacion: 'Importación',
   confirmacion_estado: 'Confirmación de estado',
+  cambio_fecha_asignacion: 'Cambio de fecha de asignación',
 }
 
 // Nombre legible de cada columna de equipos en el historial («campo: antes → después»).

@@ -384,10 +384,13 @@ export function useActualizarFirmas() {
       tipo,
       id,
       firmas,
+      fecha,
     }: {
       tipo: 'asignacion' | 'devolucion'
       id: string
       firmas: Firmas
+      /** Solo asignaciones: fecha de asignación (la de la carta). */
+      fecha?: string
     }) => {
       const { error } = await supabase.rpc('actualizar_firmas', {
         p_tipo: tipo,
@@ -397,6 +400,7 @@ export function useActualizarFirmas() {
         p_firma_entrega_puesto: firmas.entrega_puesto,
         p_firma_recibe_nombre: firmas.recibe_nombre,
         p_firma_recibe_puesto: firmas.recibe_puesto,
+        ...(fecha ? { p_fecha: fecha } : {}),
       })
       if (error) throw error
     },

@@ -5,6 +5,7 @@ import {
 } from '@/lib/condicion'
 import type { DatosDevolucion, Firmas, ItemDevolucion, Renglon } from './datos'
 import { erroresFirma } from './firmas'
+import { minimoFechaDevolucion } from './fechaAsignacion'
 import { hoyTijuana } from './textos'
 
 /** Un equipo activo de la asignación en el formulario P-25. */
@@ -82,8 +83,8 @@ export function validarDevolucion(f: FormDevolucion, fechaEntrega: string): Erro
     )
   if (!f.fecha) e.generales.push('Escribe la fecha.')
   else if (f.fecha > hoyTijuana()) e.generales.push('La fecha no puede ser futura.')
-  else if (f.fecha < fechaEntrega.slice(0, 10))
-    e.generales.push('La fecha no puede ser anterior a la entrega.')
+  else if (f.fecha < minimoFechaDevolucion(fechaEntrega))
+    e.generales.push('La fecha no puede ser anterior a la asignación.')
   if (f.cierreIncidencia) {
     if (!f.motivo.trim()) e.motivo = 'Indica el motivo (extravío, robo, baja…).'
   } else {

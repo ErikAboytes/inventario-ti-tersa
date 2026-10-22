@@ -1040,6 +1040,7 @@ export type Database = {
       }
       actualizar_firmas: {
         Args: {
+          p_fecha?: string
           p_firma_entrega_nombre: string
           p_firma_entrega_puesto: string
           p_firma_recibe_nombre: string
@@ -1193,6 +1194,7 @@ export type Database = {
         | 'cierre_incidencia'
         | 'importacion'
         | 'confirmacion_estado'
+        | 'cambio_fecha_asignacion'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1336,6 +1338,7 @@ export const Constants = {
         'cierre_incidencia',
         'importacion',
         'confirmacion_estado',
+        'cambio_fecha_asignacion',
       ],
     },
   },

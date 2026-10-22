@@ -36,7 +36,6 @@ async function conBorrador(page: Page, recibe = 'Colaborador de prueba') {
           ],
           apartadosConfirmados: [],
           fecha,
-          fechaCarta: '',
           firmas: {
             lugar: 'Tijuana BC',
             entrega_nombre: 'Admin',

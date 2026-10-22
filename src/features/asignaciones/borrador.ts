@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ColaboradorEntrega, DatosEntrega, EquipoEntrega, Firmas } from './datos'
-import { errorFechaCarta } from './fechaCarta'
+import { errorFechaAsignacion } from './fechaAsignacion'
 import { hoyTijuana, LUGAR_PREDETERMINADO } from './textos'
 
 /** Lo capturado en el asistente de entrega (P-21). Se guarda en sessionStorage: recargar no lo pierde. */
@@ -10,9 +10,8 @@ export type Borrador = {
   unidadNegocioId: string
   equipos: EquipoEntrega[]
   apartadosConfirmados: string[]
+  /** Fecha de asignación: la de la carta custodia (±1 año). */
   fecha: string
-  /** Fecha impresa en la carta si difiere de la de entrega ('' = la misma). Puede ser futura. */
-  fechaCarta?: string
   firmas: Firmas
   observaciones: string
 }
@@ -26,7 +25,6 @@ export function borradorVacio(firmaEntrega: { nombre: string; puesto: string }):
     equipos: [],
     apartadosConfirmados: [],
     fecha: hoyTijuana(),
-    fechaCarta: '',
     firmas: {
       lugar: LUGAR_PREDETERMINADO,
       entrega_nombre: firmaEntrega.nombre,
@@ -79,10 +77,8 @@ export function faltantes(b: Borrador, paso: number): string[] {
         f.push(`Confirma la entrega del equipo apartado ${e.serie}.`)
   }
   if (paso === 3) {
-    if (!b.fecha) f.push('Escribe la fecha de entrega.')
-    else if (b.fecha > hoyTijuana()) f.push('La fecha de entrega no puede ser futura.')
-    const carta = errorFechaCarta(b.fechaCarta ?? '', b.fecha)
-    if (carta) f.push(carta)
+    const fecha = errorFechaAsignacion(b.fecha)
+    if (fecha) f.push(fecha)
     if (!b.firmas.lugar.trim()) f.push('Escribe el lugar de expedición.')
     if (!b.firmas.entrega_nombre.trim()) f.push('Escribe quién entrega.')
     if (!b.firmas.recibe_nombre.trim()) f.push('Escribe quién recibe.')

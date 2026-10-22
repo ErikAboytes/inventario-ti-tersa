@@ -63,11 +63,6 @@ describe('Carta custodia', () => {
     expect(carta).toHaveTextContent('F.TI-006-02')
   })
 
-  it('puede imprimirse con otra fecha (la de la carta) sin cambiar la de entrega', () => {
-    render(<CartaCustodia a={asignacion([renglon('e1', '5CD626170N')])} fecha="2026-07-13" />)
-    expect(screen.getByRole('article')).toHaveTextContent('Tijuana BC, a 13 de 07 del 2026')
-  })
-
   it('con varios equipos usa una tabla con un renglón por equipo', () => {
     render(
       <CartaCustodia a={asignacion([renglon('e1', '5CD626170N'), renglon('e2', 'CNC322142B')])} />,

@@ -482,8 +482,10 @@ Diez cambios pedidos tras la revisión de la Etapa 9, en tres PRs:
    segunda línea) e indicador **«Histórico»**: `equipos.estado_historico` lo enciende solo la importación y lo
    apagan un cambio de estado o `confirmar_estado()` (movimiento `confirmacion_estado`). Filtro, CSV y aviso
    en la ficha.
-2. **Entregas:** fecha de la carta (puede ser futura, solo para la impresión inicial) y lista de equipos
-   entregables en el paso 2, con los no entregables y su razón al buscar.
+2. **Entregas:** lista de equipos entregables en el paso 2, con los no entregables y su razón al buscar. La
+   fecha se simplificó después a una sola **«Fecha de asignación»** (±1 año, la de la carta, guardada en
+   `asignaciones.fecha_entrega` y corregible en «Datos de firma» con movimiento `cambio_fecha_asignacion`);
+   el historial conserva cuándo se registró.
 3. **Catálogos y datos:** catálogo de marcas, sin «Notas» en el formulario de equipo, edición de nombre y
    puesto de usuarios y teléfono de colaboradores.
 

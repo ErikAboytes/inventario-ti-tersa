@@ -60,7 +60,7 @@ const columnas: Columna<FilaAsignacion>[] = [
   },
   {
     clave: 'fecha',
-    encabezado: 'Fecha de entrega',
+    encabezado: 'Fecha de asignación',
     ordenarPor: 'fecha_entrega',
     celda: (a) => fechaCorta(a.fecha_entrega),
   },

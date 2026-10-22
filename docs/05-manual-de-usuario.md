@@ -116,17 +116,17 @@ inicio del paso siguiente (y, si falta algo, al aviso que dice qué).
    cambiar el estado o la categoría y **Ver más**). También puedes escribir la serie o **Escanear QR**: si la
    serie es de un equipo que no se puede entregar (asignado, desactivado…), aparece con la razón. Un equipo
    **Apartado** pide confirmar que se entrega a la persona del apartado.
-3. **Datos de carta:** fecha de entrega (hoy o pasada; es la que queda en el historial), **Fecha en la
-   carta** (opcional, puede ser futura, p. ej. el día en que se firmará), lugar y firmas **Entrega** y
-   **Recibe** (vienen prellenadas y se pueden editar).
+3. **Datos de carta:** **Fecha de asignación** (hoy por omisión; puede ser hasta un año antes o después, p.
+   ej. el día en que se firmará), lugar y firmas **Entrega** y **Recibe** (vienen prellenadas y se pueden
+   editar). Es la fecha que lleva la carta, también al reimprimirla. El historial guarda aparte cuándo se
+   registró; el detalle de la entrega muestra las dos («Registrada el …»).
 4. **Confirmar:** revisa y elige **Registrar entrega**.
 
 Al terminar se abren los **Documentos de la entrega**:
 - **Imprimir todo:** carta custodia y hoja de etiquetas.
 - **Imprimir carta** / **Imprimir etiquetas** por separado.
-- **Datos de firma** para corregir nombres o puestos antes de reimprimir.
-- **Fecha en la carta**, solo justo después de registrar: ajusta la fecha impresa. Si después vuelves a
-  imprimir la carta desde la entrega, saldrá con la fecha de entrega.
+- **Datos de firma** para corregir la fecha de asignación, nombres o puestos antes de reimprimir. Un cambio de
+  fecha queda en el historial de los equipos («Cambio de fecha de asignación»).
 
 Al guardar como PDF, el nombre del archivo se propone solo
 (`F.TI-006-02 Carta Custodia CC-26-0001 <serie> <nombre>`).
