@@ -63,7 +63,7 @@ export function CamposEstadoFisico({
         ayuda={
           obligatorias
             ? `Obligatorias con «Con detalles» o «Dañado». Por ejemplo: «${EJEMPLO_OBSERVACIONES}»`
-            : 'Opcionales. Solo se consultan en el sistema; no se imprimen en las cartas.'
+            : 'Opcional. Golpes, rayones, piezas faltantes… No sale en las cartas.'
         }
         error={errores?.observaciones}
         maxLength={1000}

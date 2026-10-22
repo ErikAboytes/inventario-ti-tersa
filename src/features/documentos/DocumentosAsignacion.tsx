@@ -97,10 +97,10 @@ export function DocumentosAsignacion() {
       }
       controles={<SelectorInicio valor={inicio} alCambiar={setInicio} />}
     >
-      {a.es_historica && !a.firma_entrega_nombre ? (
+      {!a.fecha_conocida || (a.es_historica && !a.firma_entrega_nombre) ? (
         <p className="max-w-[215.9mm] text-sm text-texto-secundario print:hidden">
-          Entrega importada del Excel: no tiene datos de firma ni fecha real. Captúralos en «Datos
-          de firma» antes de reimprimir la carta.
+          Entrega importada del Excel: no tiene fecha ni firmas reales. Captúralas en «Datos de
+          firma» antes de imprimir la carta; si no, salen en blanco.
         </p>
       ) : null}
       <div className={clsx(parte === 'etiquetas' && 'print:hidden')}>
@@ -121,7 +121,7 @@ export function DocumentosAsignacion() {
       {firmas ? (
         <DialogoFirmas
           tipo="asignacion"
-          fechaInicial={a.fecha_entrega}
+          fechaInicial={a.fecha_conocida ? a.fecha_entrega : ''}
           id={a.id}
           alCerrar={() => setFirmas(false)}
           inicial={{

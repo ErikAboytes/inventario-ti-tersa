@@ -25,7 +25,7 @@ export function CartaCustodia({ a }: { a: DetalleAsignacion }) {
       titulo="Carta Custodia"
       subtitulo="Equipo de Cómputo"
       folio={a.folio}
-      lugarFecha={`${a.lugar_expedicion}, a ${fechaCarta(a.fecha_entrega)}`}
+      lugarFecha={`${a.lugar_expedicion}, a ${fechaCarta(a.fecha_conocida ? a.fecha_entrega : null)}`}
       formato={FORMATO_CARTA_CUSTODIA}
     >
       {varios ? (

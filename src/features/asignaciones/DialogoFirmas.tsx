@@ -28,7 +28,7 @@ export function DialogoFirmas({
   tipo: 'asignacion' | 'devolucion'
   id: string
   inicial: Firmas
-  /** Solo asignaciones. */
+  /** Solo asignaciones. '' = importada del Excel sin fecha real: capturarla es opcional. */
   fechaInicial?: string
   alCerrar: () => void
 }) {
@@ -37,6 +37,8 @@ export function DialogoFirmas({
   const [valores, setValores] = useState(inicial)
   const [fecha, setFecha] = useState(fechaInicial?.slice(0, 10) ?? '')
   const conFecha = tipo === 'asignacion' && fechaInicial !== undefined
+  // Sin fecha conocida, dejarla vacía conserva «desconocida»; si se escribe, se valida.
+  const errorFecha = conFecha && (fecha || fechaInicial) ? errorFechaAsignacion(fecha) : null
   const [intentado, setIntentado] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const errores = intentado ? erroresFirma(valores) : {}
@@ -44,10 +46,14 @@ export function DialogoFirmas({
   async function enviar(e: React.FormEvent) {
     e.preventDefault()
     setIntentado(true)
-    if (Object.keys(erroresFirma(valores)).length || (conFecha && errorFechaAsignacion(fecha)))
-      return
+    if (Object.keys(erroresFirma(valores)).length || errorFecha) return
     try {
-      await guardar.mutateAsync({ tipo, id, firmas: valores, fecha: conFecha ? fecha : undefined })
+      await guardar.mutateAsync({
+        tipo,
+        id,
+        firmas: valores,
+        fecha: conFecha && fecha ? fecha : undefined,
+      })
       avisar({ tipo: 'exito', texto: 'Datos de firma actualizados.' })
       alCerrar()
     } catch (err) {
@@ -91,20 +97,23 @@ export function DialogoFirmas({
           alCambiar={(c) => setValores((v) => ({ ...v, ...c }))}
           errores={errores}
           lugarJuntoAFecha={conFecha}
+          devolucion={tipo === 'devolucion'}
           antes={
             conFecha ? (
               <CampoTexto
                 etiqueta="Fecha de asignación"
                 type="date"
-                required
+                required={Boolean(fechaInicial)}
                 min={minimoFechaAsignacion()}
                 max={maximoFechaAsignacion()}
                 value={fecha}
                 onChange={(e) => setFecha(e.target.value)}
-                error={intentado ? (errorFechaAsignacion(fecha) ?? undefined) : undefined}
+                error={intentado ? (errorFecha ?? undefined) : undefined}
                 ayuda={
                   avisoFechaAsignacion(fecha) ??
-                  'La fecha de la carta. El cambio queda en el historial.'
+                  (fechaInicial
+                    ? 'La fecha que sale en la carta. El cambio queda en el historial.'
+                    : 'Esta entrega viene del Excel sin fecha. Escríbela si la conoces.')
                 }
               />
             ) : undefined

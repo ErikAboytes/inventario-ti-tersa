@@ -82,6 +82,7 @@ export type Database = {
           datos_colaborador: Json
           entregado_por: string | null
           es_historica: boolean
+          fecha_conocida: boolean
           fecha_entrega: string
           firma_entrega_nombre: string | null
           firma_entrega_puesto: string | null
@@ -99,6 +100,7 @@ export type Database = {
           datos_colaborador?: Json
           entregado_por?: string | null
           es_historica?: boolean
+          fecha_conocida?: boolean
           fecha_entrega?: string
           firma_entrega_nombre?: string | null
           firma_entrega_puesto?: string | null
@@ -116,6 +118,7 @@ export type Database = {
           datos_colaborador?: Json
           entregado_por?: string | null
           es_historica?: boolean
+          fecha_conocida?: boolean
           fecha_entrega?: string
           firma_entrega_nombre?: string | null
           firma_entrega_puesto?: string | null
@@ -915,6 +918,7 @@ export type Database = {
           equipos_activos: number | null
           equipos_devueltos: number | null
           es_historica: boolean | null
+          fecha_conocida: boolean | null
           fecha_entrega: string | null
           folio: string | null
           id: string | null

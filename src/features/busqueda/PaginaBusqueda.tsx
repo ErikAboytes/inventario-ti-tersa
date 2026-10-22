@@ -39,7 +39,7 @@ export function PaginaBusqueda() {
     <div className="flex flex-col gap-6">
       <EncabezadoPagina
         titulo="Buscar"
-        descripcion="Serie, URL del QR, colaborador (sin importar acentos) o folio: CC-, CD-, SIS o HIST-."
+        descripcion="Busca por número de serie, nombre del colaborador o folio de una carta (p. ej. CC-26-0001). También puedes escanear el QR de la etiqueta."
       />
 
       <form
@@ -176,7 +176,7 @@ export function PaginaBusqueda() {
                 <span>{d.colaborador_nombre}</span>
                 <span className="text-sm text-texto-secundario">
                   {fechaCorta(d.fecha)} · entrega {d.asignacion_folio}
-                  {d.es_cierre_incidencia ? ' · cierre por incidencia' : ''}
+                  {d.es_cierre_incidencia ? ' · pérdida o baja' : ''}
                 </span>
               </Fila>
             ))}

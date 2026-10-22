@@ -307,7 +307,7 @@ function PasoColaborador({
             opciones={unidades}
             value={b.unidadNegocioId}
             onChange={(e) => setB((x) => ({ ...x, unidadNegocioId: e.target.value }))}
-            ayuda="El colaborador no la tiene registrada y aparece en la carta. Se guardará en su ficha."
+            ayuda="El colaborador no la tiene registrada. Se imprime en la carta y se guardará en su ficha."
             className="max-w-md"
           />
         ) : null}
@@ -438,7 +438,7 @@ function PasoEquipos({ b, setB }: { b: Borrador; setB: Cambiar }) {
               if (libres.length === 1) agregar(libres[0])
             }
           }}
-          ayuda="Serie, modelo o número de producto. Se pueden entregar equipos en Stock, Mantenimiento, No localizado, Pendiente o Apartado."
+          ayuda="Escribe la serie, el modelo o el número de producto. Abajo aparecen los equipos disponibles."
         />
         {hayCamara() ? (
           <Button variante="secundario" className="self-start" onClick={() => setEscaneando(true)}>
@@ -688,7 +688,7 @@ function PasoDatos({ b, setB }: { b: Borrador; setB: Cambiar }) {
         value={b.observaciones}
         maxLength={1000}
         onChange={(e) => setB((x) => ({ ...x, observaciones: e.target.value }))}
-        ayuda="Opcional. Aparecen en la carta."
+        ayuda="Opcional. Se imprimen en la carta."
       />
     </div>
   )

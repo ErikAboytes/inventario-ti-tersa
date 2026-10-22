@@ -11,6 +11,7 @@ import { fechaCorta, oGuion } from '@/lib/formato'
 import { useEstadoTabla, type Orden } from '@/lib/paramsTabla'
 import { useTitulo } from '@/lib/useTitulo'
 import { useListaAsignaciones, type FilaAsignacion } from './datos'
+import { resumenEquipos, TEXTO_FECHA_DESCONOCIDA } from './textos'
 
 const ORDEN: Orden = { campo: 'fecha_entrega', asc: false }
 const ESTADOS = [
@@ -19,20 +20,21 @@ const ESTADOS = [
 ]
 const ORIGENES = [
   { valor: 'sistema', texto: 'Registradas en el sistema' },
-  { valor: 'historica', texto: 'Históricas (Excel)' },
+  { valor: 'historica', texto: 'Importadas del Excel' },
 ]
 
 export function EtiquetaAsignacion({ a }: { a: Pick<FilaAsignacion, 'activa' | 'es_historica'> }) {
   return (
     <span className="flex flex-wrap gap-1.5">
       <Etiqueta texto={a.activa ? 'Activa' : 'Cerrada'} tono={a.activa ? 'positivo' : 'apagado'} />
-      {a.es_historica ? <Etiqueta texto="Histórica" /> : null}
+      {a.es_historica ? <Etiqueta texto="Del Excel" /> : null}
     </span>
   )
 }
 
-const equipos = (a: FilaAsignacion) =>
-  `${a.equipos_activos ?? 0} activos${a.equipos_devueltos ? ` · ${a.equipos_devueltos} devueltos` : ''}`
+const equipos = (a: FilaAsignacion) => resumenEquipos(a.equipos_activos, a.equipos_devueltos)
+const fecha = (a: FilaAsignacion) =>
+  a.fecha_conocida === false ? TEXTO_FECHA_DESCONOCIDA : fechaCorta(a.fecha_entrega)
 
 const columnas: Columna<FilaAsignacion>[] = [
   {
@@ -62,7 +64,7 @@ const columnas: Columna<FilaAsignacion>[] = [
     clave: 'fecha',
     encabezado: 'Fecha de asignación',
     ordenarPor: 'fecha_entrega',
-    celda: (a) => fechaCorta(a.fecha_entrega),
+    celda: fecha,
   },
   { clave: 'equipos', encabezado: 'Equipos', celda: equipos },
   { clave: 'estado', encabezado: 'Estado', celda: (a) => <EtiquetaAsignacion a={a} /> },
@@ -85,7 +87,7 @@ export function ListaAsignaciones() {
     <div className="flex flex-col gap-6">
       <EncabezadoPagina
         titulo="Entregas y devoluciones"
-        descripcion="Cada entrega tiene su carta custodia; las devoluciones se registran desde ella."
+        descripcion="Equipos entregados a colaboradores, cada uno con su carta custodia. Para registrar una devolución, abre la entrega."
         acciones={
           esAdmin ? (
             <Button onClick={() => navigate('/asignaciones/nueva')}>
@@ -138,7 +140,7 @@ export function ListaAsignaciones() {
             <span className="font-mono font-semibold text-marca-azul">{a.folio}</span>
             <span>{a.colaborador_nombre}</span>
             <span className="text-sm text-texto-secundario">
-              {fechaCorta(a.fecha_entrega)} · {equipos(a)}
+              {fecha(a)} · {equipos(a)}
             </span>
             <EtiquetaAsignacion a={a} />
           </Link>

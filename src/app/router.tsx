@@ -2,7 +2,6 @@ import { createBrowserRouter, Navigate } from 'react-router'
 import { AsistenteEntrega } from '@/features/asignaciones/AsistenteEntrega'
 import { DetalleAsignacion } from '@/features/asignaciones/DetalleAsignacion'
 import { DetalleDevolucion } from '@/features/asignaciones/DetalleDevolucion'
-import { ImprimirAsignacion } from '@/features/asignaciones/ImprimirAsignacion'
 import { ListaAsignaciones } from '@/features/asignaciones/ListaAsignaciones'
 import { PaginaRegistrarDevolucion } from '@/features/asignaciones/RegistrarDevolucion'
 import { RequiereRol, RequiereSesion } from '@/features/auth/Guardas'
@@ -53,7 +52,6 @@ export const router = createBrowserRouter([
     element: <RequiereSesion />,
     children: [
       // Documentos imprimibles, sin la estructura de la app (P-23, P-24, carta de devolución, P-70).
-      { path: 'asignaciones/:id/imprimir', element: <ImprimirAsignacion /> },
       { path: 'asignaciones/:id/documentos', element: <DocumentosAsignacion /> },
       { path: 'devoluciones/:id/carta', element: <PaginaCartaDevolucion /> },
       { path: 'etiquetas', element: <EtiquetasLote /> },

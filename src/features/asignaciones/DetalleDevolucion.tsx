@@ -37,7 +37,7 @@ export function DetalleDevolucion() {
   }
   if (!d) return <NoEncontrada dentroDeLaApp />
 
-  const tipo = d.es_cierre_incidencia ? 'Cierre por incidencia' : 'Devolución'
+  const tipo = d.es_cierre_incidencia ? 'Pérdida o baja' : 'Devolución'
   const nombre = d.asignacion.datos_colaborador.nombre ?? d.asignacion.colaborador.nombre_completo
 
   return (
