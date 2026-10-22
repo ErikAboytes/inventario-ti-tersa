@@ -57,8 +57,13 @@ describe('TablaDatos', () => {
     await u.click(within(screen.getByRole('table')).getByRole('button', { name: /nombre/i }))
     expect(props.alOrdenar).toHaveBeenCalledWith({ campo: 'nombre', asc: false })
     expect(screen.getByRole('button', { name: 'Página anterior' })).toBeDisabled()
+    const scroll = vi.fn()
+    Element.prototype.scrollIntoView = scroll
     await u.click(screen.getByRole('button', { name: 'Página siguiente' }))
     expect(props.alPaginar).toHaveBeenCalledWith(2)
+    // Los botones están al pie: la vista vuelve al inicio de la tabla.
+    expect(scroll).toHaveBeenCalledWith(expect.objectContaining({ block: 'start' }))
+    expect(document.activeElement).toContainElement(screen.getByRole('table'))
   })
 
   it('muestra el estado vacío y el de error', async () => {

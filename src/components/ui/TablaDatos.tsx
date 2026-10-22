@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, RotateCw } from 'lucide-react'
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, useRef, type ReactNode } from 'react'
+import { llevarA } from '@/lib/enfoque'
 import { TAMANOS_PAGINA, type Orden } from '@/lib/paramsTabla'
 import { Button } from './Button'
 
@@ -50,6 +51,13 @@ const formato = new Intl.NumberFormat('es-MX')
 
 /** DataTable del doc 04 §8: orden, paginación del servidor, tarjetas en móvil y estados vacío/carga/error. */
 export function TablaDatos<F>(p: Props<F>) {
+  const inicio = useRef<HTMLDivElement>(null)
+  // Los botones de página están al pie: sin esto, la página nueva se queda mostrando el final.
+  const paginar = (pagina: number) => {
+    p.alPaginar(pagina)
+    llevarA(inicio.current)
+  }
+
   if (p.error) {
     return (
       <div
@@ -86,7 +94,7 @@ export function TablaDatos<F>(p: Props<F>) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div ref={inicio} className="flex scroll-mt-20 flex-col gap-3 outline-none">
       {/* Escritorio y tableta */}
       <div className="hidden overflow-x-auto rounded-tarjeta border border-borde bg-superficie md:block">
         <table className="w-full text-left text-sm">
@@ -234,7 +242,10 @@ export function TablaDatos<F>(p: Props<F>) {
           Mostrar
           <select
             value={p.porPagina}
-            onChange={(e) => p.alCambiarTamano(Number(e.target.value))}
+            onChange={(e) => {
+              p.alCambiarTamano(Number(e.target.value))
+              llevarA(inicio.current)
+            }}
             className="min-h-9 rounded-control border border-borde-control bg-superficie px-2 text-tinta"
           >
             {TAMANOS_PAGINA.map((t) => (
@@ -252,7 +263,7 @@ export function TablaDatos<F>(p: Props<F>) {
             variante="fantasma"
             aria-label="Página anterior"
             disabled={p.pagina <= 1}
-            onClick={() => p.alPaginar(p.pagina - 1)}
+            onClick={() => paginar(p.pagina - 1)}
             className="px-2"
           >
             <ChevronLeft aria-hidden="true" className="size-5" />
@@ -264,7 +275,7 @@ export function TablaDatos<F>(p: Props<F>) {
             variante="fantasma"
             aria-label="Página siguiente"
             disabled={p.pagina >= totalPaginas}
-            onClick={() => p.alPaginar(p.pagina + 1)}
+            onClick={() => paginar(p.pagina + 1)}
             className="px-2"
           >
             <ChevronRight aria-hidden="true" className="size-5" />

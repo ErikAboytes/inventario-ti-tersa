@@ -71,7 +71,8 @@ function BarraSuperior({ menu }: { menu: ElementoMenu[] }) {
           >
             <Search aria-hidden="true" className="size-5" strokeWidth={1.5} />
           </NavLink>
-          <div className="hidden text-right leading-tight sm:block">
+          {/* Entre md y lg el buscador necesita el espacio: nombre oculto y botones solo con ícono. */}
+          <div className="hidden text-right leading-tight sm:block md:hidden lg:block">
             <p className="text-sm font-medium">{perfil?.nombre || perfil?.email}</p>
             <p className="text-sm text-texto-secundario">
               {perfil?.rol === 'admin' ? 'Administrador' : 'Lector'}
@@ -80,11 +81,13 @@ function BarraSuperior({ menu }: { menu: ElementoMenu[] }) {
           <button
             type="button"
             onClick={cerrarSesion}
+            aria-label="Cerrar sesión"
             className="inline-flex min-h-10 items-center gap-2 rounded-control px-3 text-sm font-medium text-tinta transition-colors duration-150 hover:bg-marca-azul-50"
           >
             <LogOut aria-hidden="true" className="size-5" strokeWidth={1.5} />
-            <span className="hidden sm:inline">Cerrar sesión</span>
-            <span className="sr-only sm:hidden">Cerrar sesión</span>
+            <span aria-hidden="true" className="hidden sm:inline md:hidden lg:inline">
+              Cerrar sesión
+            </span>
           </button>
         </div>
       </div>
@@ -102,11 +105,13 @@ function BotonEscaner() {
       <button
         type="button"
         onClick={() => setAbierto(true)}
+        aria-label="Escanear QR"
         className="inline-flex min-h-10 items-center gap-2 rounded-control px-3 text-sm font-medium text-tinta transition-colors duration-150 hover:bg-marca-azul-50"
       >
         <ScanLine aria-hidden="true" className="size-5" strokeWidth={1.5} />
-        <span className="hidden sm:inline">Escanear QR</span>
-        <span className="sr-only sm:hidden">Escanear QR</span>
+        <span aria-hidden="true" className="hidden sm:inline md:hidden lg:inline">
+          Escanear QR
+        </span>
       </button>
       <DialogoEscaner
         abierto={abierto}

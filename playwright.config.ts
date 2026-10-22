@@ -34,7 +34,7 @@ export default defineConfig({
       name: 'movil',
       use: { ...devices['Pixel 7'] },
       dependencies: ['sesiones'],
-      testMatch: /movil\.spec\.ts|publico\.spec\.ts/,
+      testMatch: /movil\.spec\.ts|publico\.spec\.ts|navegacion\.spec\.ts/,
     },
   ],
   webServer: process.env.E2E_BASE_URL

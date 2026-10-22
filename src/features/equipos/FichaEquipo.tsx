@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
+import { MenuAcciones, type OpcionMenu } from '@/components/ui/MenuAcciones'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Cargando } from '@/components/Cargando'
 import { useEsAdmin } from '@/features/auth/contexto'
@@ -46,6 +47,27 @@ export function FichaEquipo() {
   const equipo = { ...e, id: e.id, estado: e.estado }
   const modelo = [e.marca, e.modelo].filter(Boolean).join(' ')
   const asignable = ESTADOS_ASIGNABLES.includes(e.estado)
+  const accion = (texto: string, alElegir: () => void): OpcionMenu => ({ texto, alElegir })
+  const imprimir = accion('Imprimir etiqueta', () => navigate(`/etiquetas?ids=${e.id}`))
+  const editar = accion('Editar', () => navigate(`/equipos/${e.id}/editar`))
+  const principal: OpcionMenu = !esAdmin
+    ? imprimir
+    : asignable
+      ? accion('Entregar', () => navigate(`/asignaciones/nueva?equipo=${e.id}`))
+      : e.estado === 'asignado' && e.asignacion_id
+        ? accion('Registrar devolución', () =>
+            navigate(`/asignaciones/${e.asignacion_id}/devolucion`),
+          )
+        : editar
+  const otras: OpcionMenu[] = esAdmin
+    ? [
+        imprimir,
+        ...(e.estado !== 'asignado'
+          ? [accion('Cambiar estado', () => setCambiandoEstado(true))]
+          : []),
+        ...(principal === editar ? [] : [editar]),
+      ]
+    : []
 
   return (
     <div className="flex flex-col gap-6">
@@ -62,35 +84,44 @@ export function FichaEquipo() {
         migas={[{ texto: 'Inventario', ruta: '/equipos' }, { texto: e.serie ?? 'Equipo' }]}
         acciones={
           <>
-            {/* Imprimir etiquetas está permitido a ambos roles (doc 01 §5). */}
-            <Button variante="secundario" onClick={() => navigate(`/etiquetas?ids=${e.id}`)}>
-              <QrCode aria-hidden="true" className="size-4" /> Imprimir etiqueta
-            </Button>
-            {esAdmin ? (
-              <>
-                {e.estado !== 'asignado' ? (
-                  <Button variante="secundario" onClick={() => setCambiandoEstado(true)}>
-                    Cambiar estado
+            {/* Teléfono: la acción principal y el resto en «Más acciones», en una sola fila. */}
+            <div className="flex w-full items-center gap-2 sm:hidden">
+              <Button className="flex-1" onClick={principal.alElegir}>
+                {principal.texto}
+              </Button>
+              <MenuAcciones etiqueta="Más acciones" opciones={otras} />
+            </div>
+            <div className="hidden flex-wrap gap-3 sm:flex">
+              {/* Imprimir etiquetas está permitido a ambos roles (doc 01 §5). */}
+              <Button variante="secundario" onClick={() => navigate(`/etiquetas?ids=${e.id}`)}>
+                <QrCode aria-hidden="true" className="size-4" /> Imprimir etiqueta
+              </Button>
+              {esAdmin ? (
+                <>
+                  {e.estado !== 'asignado' ? (
+                    <Button variante="secundario" onClick={() => setCambiandoEstado(true)}>
+                      Cambiar estado
+                    </Button>
+                  ) : null}
+                  <Button
+                    variante={e.estado === 'asignado' || asignable ? 'secundario' : 'primario'}
+                    onClick={() => navigate(`/equipos/${e.id}/editar`)}
+                  >
+                    Editar
                   </Button>
-                ) : null}
-                <Button
-                  variante={e.estado === 'asignado' || asignable ? 'secundario' : 'primario'}
-                  onClick={() => navigate(`/equipos/${e.id}/editar`)}
-                >
-                  Editar
-                </Button>
-                {asignable ? (
-                  <Button onClick={() => navigate(`/asignaciones/nueva?equipo=${e.id}`)}>
-                    Entregar
-                  </Button>
-                ) : null}
-                {e.estado === 'asignado' && e.asignacion_id ? (
-                  <Button onClick={() => navigate(`/asignaciones/${e.asignacion_id}/devolucion`)}>
-                    Registrar devolución
-                  </Button>
-                ) : null}
-              </>
-            ) : null}
+                  {asignable ? (
+                    <Button onClick={() => navigate(`/asignaciones/nueva?equipo=${e.id}`)}>
+                      Entregar
+                    </Button>
+                  ) : null}
+                  {e.estado === 'asignado' && e.asignacion_id ? (
+                    <Button onClick={() => navigate(`/asignaciones/${e.asignacion_id}/devolucion`)}>
+                      Registrar devolución
+                    </Button>
+                  ) : null}
+                </>
+              ) : null}
+            </div>
           </>
         }
       />

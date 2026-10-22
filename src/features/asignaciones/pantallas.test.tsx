@@ -180,7 +180,10 @@ const borradorConColaborador = () => ({
   },
 })
 
+const scroll = vi.fn()
 beforeEach(() => {
+  scroll.mockReset()
+  Element.prototype.scrollIntoView = scroll
   sessionStorage.clear()
   m.crear.mockReset().mockResolvedValue({ id: 'a9', folio: 'CC-26-0009' })
   m.devolver.mockReset().mockResolvedValue({ id: 'd1', folio: 'CD-26-0001' })
@@ -276,6 +279,28 @@ describe('P-21 · Asistente de entrega', () => {
     expect(leerFechaCarta('a9')).toBe(futura)
   })
 
+  it('al cambiar de paso la vista sube a su título y, con faltantes, al aviso', async () => {
+    const u = userEvent.setup()
+    sessionStorage.setItem(
+      CLAVE_BORRADOR,
+      JSON.stringify({ ...borradorConColaborador(), equipos: [] }),
+    )
+    montar('/asignaciones/nueva?paso=2')
+    // En la primera carga no se mueve.
+    expect(scroll).not.toHaveBeenCalled()
+
+    await u.click(screen.getByRole('button', { name: 'Continuar' }))
+    const aviso = screen.getByRole('alert')
+    expect(aviso).toHaveTextContent('Agrega al menos un equipo')
+    expect(aviso).toHaveFocus()
+
+    const disponibles = screen.getByRole('list', { name: 'Disponibles para entregar' })
+    await u.click(within(disponibles).getByRole('button', { name: 'Agregar 5CD1244JFN' }))
+    await u.click(screen.getByRole('button', { name: 'Continuar' }))
+    expect(screen.getByRole('heading', { name: '3. Datos de carta' })).toHaveFocus()
+    expect(scroll).toHaveBeenLastCalledWith(expect.objectContaining({ block: 'start' }))
+  })
+
   it('un ?paso= adelantado regresa al primer paso incompleto', () => {
     montar('/asignaciones/nueva?paso=4')
     expect(screen.getByRole('heading', { name: '1. Colaborador' })).toBeInTheDocument()
@@ -291,6 +316,8 @@ describe('P-25 · Registrar devolución', () => {
     // El destino empieza en «Elegir…»: sin él no se puede registrar.
     await u.click(screen.getByRole('button', { name: 'Registrar devolución' }))
     expect(screen.getByRole('alert')).toHaveTextContent('Falta el destino de: CNC322142B.')
+    // El aviso queda arriba y los botones abajo: la vista va al aviso.
+    expect(screen.getByRole('alert')).toHaveFocus()
     await u.selectOptions(screen.getByLabelText(/^Destino/), 'stock')
     const renglon = screen.getByRole('group', { name: 'Condición al devolver' })
     await u.click(within(renglon).getByRole('radio', { name: 'Dañado' }))

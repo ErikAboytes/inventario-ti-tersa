@@ -1,5 +1,12 @@
 import { Plus, ScanLine, X } from 'lucide-react'
-import { useDeferredValue, useEffect, useState, type Dispatch, type SetStateAction } from 'react'
+import {
+  useDeferredValue,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { CampoArea, CampoCasilla, CampoSelect, CampoTexto } from '@/components/ui/Campos'
@@ -13,6 +20,7 @@ import { FormularioColaborador } from '@/features/colaboradores/FormularioColabo
 import { DialogoEscaner } from '@/features/busqueda/DialogoEscaner'
 import { destinoBusqueda } from '@/features/busqueda/destino'
 import { detalleEstado, ETIQUETA_CATEGORIA, OPCIONES_CATEGORIA } from '@/features/equipos/esquema'
+import { llevarA } from '@/lib/enfoque'
 import { mensajeDeError } from '@/lib/errores'
 import { hayCamara } from '@/lib/escaner'
 import { ESTADOS_ASIGNABLES, ETIQUETA_ESTADO } from '@/lib/estados'
@@ -113,9 +121,27 @@ export function AsistenteEntrega() {
 
   const pendientes = intentado ? faltantes(b, paso) : []
 
+  // Los botones están al pie del paso: al cambiar de paso la vista sube a su título, y con faltantes
+  // (o error al registrar) va al aviso. No se mueve en la primera carga.
+  const titulo = useRef<HTMLHeadingElement>(null)
+  const aviso = useRef<HTMLDivElement>(null)
+  const pasoPrevio = useRef(paso)
+  useEffect(() => {
+    if (pasoPrevio.current === paso) return
+    pasoPrevio.current = paso
+    llevarA(titulo.current)
+  }, [paso])
+  const [intentos, setIntentos] = useState(0)
+  useEffect(() => {
+    if (intentos) llevarA(aviso.current)
+  }, [intentos])
+
   function continuar() {
     setIntentado(true)
-    if (faltantes(b, paso).length) return
+    if (faltantes(b, paso).length) {
+      setIntentos((n) => n + 1)
+      return
+    }
     irA(paso + 1)
   }
 
@@ -129,6 +155,7 @@ export function AsistenteEntrega() {
       navigate(`/asignaciones/${r.id}/documentos?nueva=1`, { replace: true })
     } catch (err) {
       setError(mensajeDeError(err))
+      setIntentos((n) => n + 1)
     }
   }
 
@@ -147,29 +174,29 @@ export function AsistenteEntrega() {
         aria-labelledby="titulo-paso"
         className="flex max-w-4xl flex-col gap-6 rounded-tarjeta border border-borde bg-superficie p-6"
       >
-        <h2 id="titulo-paso" className="text-lg font-semibold">
+        <h2
+          ref={titulo}
+          id="titulo-paso"
+          className="scroll-mt-20 text-lg font-semibold outline-none"
+        >
           {paso}. {PASOS[paso - 1]}
         </h2>
 
-        {pendientes.length ? (
+        {pendientes.length || error ? (
           <div
+            ref={aviso}
             role="alert"
-            className="rounded-control border border-no-localizado bg-no-localizado-fondo px-4 py-3 text-sm text-no-localizado"
+            className="flex scroll-mt-20 flex-col gap-1 rounded-control border border-no-localizado bg-no-localizado-fondo px-4 py-3 text-sm text-no-localizado outline-none"
           >
-            <ul className="list-disc pl-5">
-              {pendientes.map((m) => (
-                <li key={m}>{m}</li>
-              ))}
-            </ul>
+            {error ? <p>{error}</p> : null}
+            {pendientes.length ? (
+              <ul className="list-disc pl-5">
+                {pendientes.map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+            ) : null}
           </div>
-        ) : null}
-        {error ? (
-          <p
-            role="alert"
-            className="rounded-control border border-no-localizado bg-no-localizado-fondo px-4 py-3 text-sm text-no-localizado"
-          >
-            {error}
-          </p>
         ) : null}
 
         {paso === 1 ? <PasoColaborador b={b} setB={setB} unidades={unidades.data ?? []} /> : null}
@@ -182,11 +209,20 @@ export function AsistenteEntrega() {
           />
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-borde pt-5">
+        {/* Teléfono: «Descartar» al final del contenido y la barra Atrás / Continuar fija abajo, para no
+            tener que bajar hasta el final de cada paso. Desde sm, una sola fila al pie como antes. */}
+        <div className="flex justify-center sm:hidden">
           <Button variante="fantasma" onClick={() => setCancelando(true)}>
             Descartar entrega
           </Button>
-          <div className="flex flex-wrap gap-3">
+        </div>
+        <div className="sticky bottom-0 z-10 -mx-6 -mb-6 flex items-center justify-between gap-3 rounded-b-tarjeta border-t border-borde bg-superficie px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:static sm:m-0 sm:flex-wrap sm:rounded-none sm:bg-transparent sm:px-0 sm:pt-5 sm:pb-0">
+          <div className="hidden sm:block">
+            <Button variante="fantasma" onClick={() => setCancelando(true)}>
+              Descartar entrega
+            </Button>
+          </div>
+          <div className="grid flex-1 auto-cols-fr grid-flow-col gap-3 sm:flex sm:flex-none sm:flex-wrap">
             {paso > 1 ? (
               <Button variante="secundario" onClick={() => irA(paso - 1)}>
                 Atrás
@@ -448,10 +484,11 @@ function PasoEquipos({ b, setB }: { b: Borrador; setB: Cambiar }) {
           <ul className="flex flex-col divide-y divide-borde rounded-control border border-borde">
             {b.equipos.map((e) => (
               <li key={e.id} className="flex flex-col gap-3 px-4 py-3">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-3">
                   <FilaEquipo e={e} />
                   <Button
                     variante="fantasma"
+                    className="shrink-0"
                     onClick={() => setB((x) => sinEquipo(x, e.id!))}
                     aria-label={`Quitar ${e.serie}`}
                   >
@@ -580,10 +617,11 @@ function FilaAgregar({
   alAgregar: (e: EquipoEntrega) => void
 }) {
   return (
-    <li className="flex flex-wrap items-center justify-between gap-3 py-2">
+    <li className="flex items-center justify-between gap-3 py-2">
       <FilaEquipo e={e} />
       <Button
         variante="secundario"
+        className="shrink-0"
         disabled={agregado}
         onClick={() => alAgregar(e)}
         aria-label={`Agregar ${e.serie}`}
@@ -594,15 +632,26 @@ function FilaAgregar({
   )
 }
 
+/**
+ * Un equipo en una línea desde sm. En el teléfono, dos líneas compactas: modelo y serie arriba, categoría y
+ * estado abajo, para que el botón quepa a la derecha.
+ */
 function FilaEquipo({ e }: { e: EquipoEntrega }) {
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-      <span className="text-sm text-texto-secundario">
+    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+      <span className="order-3 text-sm text-texto-secundario sm:order-none">
         {e.categoria ? ETIQUETA_CATEGORIA[e.categoria] : ''}
       </span>
-      <span>{[e.marca, e.modelo].filter(Boolean).join(' ')}</span>
-      <span className="font-mono text-sm">{e.serie}</span>
-      {e.estado ? <StatusBadge estado={e.estado} detalle={detalleEstado(e)} /> : null}
+      <span className="order-1 min-w-0 truncate sm:order-none">
+        {[e.marca, e.modelo].filter(Boolean).join(' ')}
+      </span>
+      <span className="order-1 font-mono text-sm sm:order-none">{e.serie}</span>
+      <span aria-hidden="true" className="order-2 basis-full sm:hidden" />
+      {e.estado ? (
+        <span className="order-3 sm:order-none">
+          <StatusBadge estado={e.estado} detalle={detalleEstado(e)} />
+        </span>
+      ) : null}
     </div>
   )
 }
@@ -612,34 +661,36 @@ function FilaEquipo({ e }: { e: EquipoEntrega }) {
 function PasoDatos({ b, setB }: { b: Borrador; setB: Cambiar }) {
   return (
     <div className="flex flex-col gap-5">
-      <CampoTexto
-        etiqueta="Fecha de entrega"
-        type="date"
-        required
-        max={hoyTijuana()}
-        value={b.fecha}
-        onChange={(e) => setB((x) => ({ ...x, fecha: e.target.value }))}
-        ayuda="La que queda en el historial. Puede ser pasada para registrar una entrega que ya se hizo."
-        className="max-w-xs"
-      />
-      <CampoTexto
-        etiqueta="Fecha en la carta"
-        type="date"
-        min={b.fecha}
-        max={maximoFechaCarta()}
-        value={b.fechaCarta || b.fecha}
-        onChange={(e) =>
-          setB((x) => ({
-            ...x,
-            fechaCarta: e.target.value && e.target.value !== x.fecha ? e.target.value : '',
-          }))
-        }
-        ayuda="Puede ser futura (p. ej. el día en que se firmará). Solo cambia la carta que imprimas al terminar; las reimpresiones posteriores usan la fecha de entrega."
-        className="max-w-xs"
-      />
       <CamposFirma
         valores={b.firmas}
         alCambiar={(c) => setB((x) => ({ ...x, firmas: { ...x.firmas, ...c } }))}
+        antes={
+          <>
+            <CampoTexto
+              etiqueta="Fecha de entrega"
+              type="date"
+              required
+              max={hoyTijuana()}
+              value={b.fecha}
+              onChange={(e) => setB((x) => ({ ...x, fecha: e.target.value }))}
+              ayuda="Queda en el historial. Puede ser pasada."
+            />
+            <CampoTexto
+              etiqueta="Fecha en la carta"
+              type="date"
+              min={b.fecha}
+              max={maximoFechaCarta()}
+              value={b.fechaCarta || b.fecha}
+              onChange={(e) =>
+                setB((x) => ({
+                  ...x,
+                  fechaCarta: e.target.value && e.target.value !== x.fecha ? e.target.value : '',
+                }))
+              }
+              ayuda="Puede ser futura. Solo para la carta que imprimas al terminar."
+            />
+          </>
+        }
       />
       <CampoArea
         etiqueta="Observaciones"

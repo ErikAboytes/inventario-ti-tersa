@@ -343,8 +343,21 @@ describe('P-12 · Ficha y D-01', () => {
     cleanup()
     m.equipo = { ...EQUIPO, estado: 'asignado' }
     montar('/equipos/eq1')
-    expect(screen.getByRole('button', { name: 'Editar' })).toBeInTheDocument()
+    // En jsdom se pintan la fila de escritorio y la del teléfono (principal + «Más acciones»).
+    expect(screen.getAllByRole('button', { name: 'Editar' }).length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument()
+  })
+
+  it('en el teléfono deja la acción principal y el resto en «Más acciones»', async () => {
+    const u = userEvent.setup()
+    montar('/equipos/eq1')
+    await u.click(screen.getByRole('button', { name: 'Más acciones' }))
+    const menu = screen.getByRole('menu', { name: 'Más acciones' })
+    expect(
+      within(menu)
+        .getAllByRole('menuitem')
+        .map((b) => b.textContent),
+    ).toEqual(['Imprimir etiqueta', 'Cambiar estado', 'Editar'])
   })
 })
 
