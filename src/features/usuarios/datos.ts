@@ -58,6 +58,26 @@ export function useAdministrarUsuario() {
   })
 }
 
+/** Nombre y puesto de un usuario (el correo y el rol no cambian aquí). */
+export function useEditarDatosUsuario() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (d: { id: string; nombre: string; puesto: string }) => {
+      const { error } = await supabase.rpc('actualizar_datos_usuario', {
+        p_id: d.id,
+        p_nombre: d.nombre.trim(),
+        p_puesto: d.puesto.trim() || undefined,
+      })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] })
+      // Si es el propio usuario, el encabezado y la firma «Entrega» toman el nombre nuevo.
+      queryClient.invalidateQueries({ queryKey: ['perfil'] })
+    },
+  })
+}
+
 export const ETIQUETA_ROL: Record<Rol, string> = { admin: 'Administrador', lector: 'Lector' }
 
 export type Situacion = 'activo' | 'pendiente' | 'inactivo'

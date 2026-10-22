@@ -95,7 +95,9 @@ Acciones del Administrador:
 
 ### Alta de equipo
 **Inventario → Nuevo equipo.** Categoría, serie (o «No tiene serie visible»), marca, modelo, contrato,
-ubicación y estado inicial. En Desktop y Laptop puedes capturar procesador, RAM, almacenamiento y sistema
+ubicación y estado inicial. La **marca** se elige del catálogo (no importan mayúsculas: «hp» queda «HP»); si
+es una marca nueva, usa **Agregar «…» como marca nueva** ahí mismo. El **modelo** es libre y sugiere los ya
+capturados de esa marca. En Desktop y Laptop puedes capturar procesador, RAM, almacenamiento y sistema
 operativo. Con «Con detalles» o «Dañado» hay que describir el estado físico.
 
 ---
@@ -164,9 +166,11 @@ movimiento para ver qué cambió campo por campo. **Exportar CSV** descarga el r
 
 ## 9. Colaboradores y catálogos
 
-- **Colaboradores:** alta y edición, búsqueda sin acentos. La ficha muestra los equipos que tiene ahora y sus
+- **Colaboradores:** alta y edición, búsqueda sin acentos o por teléfono. El **teléfono** es opcional
+  (10 dígitos, con extensión si hace falta) y no aparece en la carta. La ficha muestra los equipos que tiene ahora y sus
   entregas. Un colaborador dado de baja ya no recibe entregas; sus equipos aparecen en «Requiere atención».
-- **Catálogos:** empresas, contratos (operaciones), ubicaciones, unidades de negocio y subcategorías.
+- **Catálogos:** empresas, contratos (operaciones), ubicaciones, unidades de negocio, subcategorías y
+  marcas. Renombrar una marca la cambia en todos sus equipos; una marca en uso no se borra, se desactiva.
 
 ---
 
@@ -179,6 +183,7 @@ movimiento para ver qué cambió campo por campo. **Exportar CSV** descarga el r
 | **Invitar usuario** | Correo, nombre, puesto (opcional) y rol. Le llega el correo de invitación |
 | **Reenviar invitación** | Si la persona no ha creado su contraseña |
 | **Cambiar rol** | Administrador o Lector |
+| **Editar datos** (en «Más acciones») | Nombre y puesto. Las cartas ya emitidas conservan los datos anteriores |
 | **Desactivar** (en «Más acciones») | Pierde el acceso en su siguiente acción. Lo que registró se conserva |
 | **Reactivar** | Vuelve a entrar con su contraseña |
 

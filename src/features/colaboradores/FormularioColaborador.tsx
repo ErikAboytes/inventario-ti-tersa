@@ -42,6 +42,7 @@ export function FormularioColaborador({
       empresa_id: colaborador?.empresa_id ?? '',
       ubicacion_id: colaborador?.ubicacion_id ?? '',
       email: colaborador?.email ?? '',
+      telefono: colaborador?.telefono ?? '',
       tipo: (colaborador?.tipo as Valores['tipo']) ?? 'persona',
     },
   })
@@ -131,6 +132,15 @@ export function FormularioColaborador({
           autoComplete="off"
           error={e.email?.message}
           {...form.register('email')}
+        />
+        <CampoTexto
+          etiqueta="Teléfono"
+          type="tel"
+          inputMode="tel"
+          autoComplete="off"
+          ayuda="Opcional. 10 dígitos; puedes agregar «ext. 123». No aparece en la carta."
+          error={e.telefono?.message}
+          {...form.register('telefono')}
         />
         <CampoSelect
           etiqueta="Tipo"

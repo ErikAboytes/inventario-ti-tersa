@@ -1,3 +1,4 @@
+import { normalizar } from '@/lib/texto'
 import { z } from 'zod'
 import type { Opcion } from '@/components/ui/Campos'
 import { campoCondicion, campoObservaciones, exigirObservaciones } from '@/lib/condicion'
@@ -78,7 +79,6 @@ export const esquemaEquipo = z
     motivo_desactivacion: texto(),
     condicion: campoCondicion,
     observaciones_estado: campoObservaciones,
-    notas: texto(1000),
   })
   .superRefine((v, ctx) => {
     const falta = (campo: string, message: string) =>
@@ -150,7 +150,6 @@ export const VACIO: EntradaEquipo = {
   motivo_desactivacion: '',
   condicion: '',
   observaciones_estado: '',
-  notas: '',
 }
 
 export const valoresDe = (e: FilaEquipo): EntradaEquipo => ({
@@ -176,7 +175,6 @@ export const valoresDe = (e: FilaEquipo): EntradaEquipo => ({
   motivo_desactivacion: e.motivo_desactivacion ?? '',
   condicion: e.condicion ?? '',
   observaciones_estado: e.observaciones_estado ?? '',
-  notas: e.notas ?? '',
 })
 
 /** Valores del formulario → fila de equipos. En edición el estado no viaja: se cambia con D-01. */
@@ -203,7 +201,6 @@ export function aFilaEquipo(v: ValoresEquipo, alta: boolean): DatosEquipo {
     ubicacion_detalle: v.ubicacion_detalle,
     condicion: v.condicion,
     observaciones_estado: v.observaciones_estado,
-    notas: v.notas,
     ...(alta
       ? {
           estado: v.estado,
@@ -212,4 +209,13 @@ export function aFilaEquipo(v: ValoresEquipo, alta: boolean): DatosEquipo {
         }
       : {}),
   }
+}
+
+export const MENSAJE_MARCA_FUERA_DE_CATALOGO =
+  'Elige una marca del catálogo o agrégala como marca nueva.'
+
+/** La marca del catálogo que corresponde a lo escrito, sin importar mayúsculas ni acentos. */
+export function marcaDelCatalogo(texto: string, marcas: string[]): string | undefined {
+  const buscada = normalizar(texto.trim())
+  return buscada ? marcas.find((m) => normalizar(m) === buscada) : undefined
 }

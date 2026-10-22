@@ -7,6 +7,10 @@ const POR_RESTRICCION: Record<string, string> = {
   ubicaciones_nombre_uidx: 'Ya existe una ubicación con ese nombre.',
   unidades_negocio_nombre_uidx: 'Ya existe una unidad de negocio con ese nombre.',
   subcategorias_nombre_uidx: 'Ya existe una subcategoría con ese nombre.',
+  marcas_nombre_uidx: 'Ya existe una marca con ese nombre.',
+  marcas_nombre_key: 'Ya existe una marca con ese nombre.',
+  equipos_marca_fkey: 'Elige una marca del catálogo o agrégala como marca nueva.',
+  colaboradores_telefono_check: 'El teléfono admite hasta 40 caracteres.',
   colaboradores_numero_empleado_key: 'Ya existe un colaborador con ese número de empleado.',
   equipos_serie_uidx: 'Ya existe un equipo con esa serie.',
   equipos_apartado_requiere_etiqueta: 'Indica para quién o para qué está apartado.',
@@ -30,6 +34,7 @@ const POR_RESTRICCION: Record<string, string> = {
 /** Campo del formulario al que apunta cada restricción, para mostrar el error junto a él. */
 const CAMPO_POR_RESTRICCION: Record<string, string> = {
   equipos_serie_uidx: 'serie',
+  equipos_marca_fkey: 'marca',
   equipos_apartado_requiere_etiqueta: 'apartado_para',
   equipos_desactivado_requiere_motivo: 'motivo_desactivacion',
   equipos_subcategoria_solo_otro: 'subcategoria_id',

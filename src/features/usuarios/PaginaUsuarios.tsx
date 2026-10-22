@@ -12,6 +12,7 @@ import { fechaHora } from '@/features/equipos/historial'
 import { mensajeDeError } from '@/lib/errores'
 import { useTitulo } from '@/lib/useTitulo'
 import { ETIQUETA_ROL, situacion, useAdministrarUsuario, useUsuarios, type Usuario } from './datos'
+import { DialogoDatosUsuario } from './DialogoDatosUsuario'
 import { DialogoUsuario } from './DialogoUsuario'
 
 const ESTADO = {
@@ -33,6 +34,7 @@ const COLUMNAS: [string, string?][] = [
 type Dialogo =
   | { tipo: 'invitar' }
   | { tipo: 'rol'; usuario: Usuario }
+  | { tipo: 'datos'; usuario: Usuario }
   | { tipo: 'desactivar' | 'reactivar'; usuario: Usuario }
   | null
 
@@ -87,6 +89,7 @@ export function PaginaUsuarios() {
           : rol
     const otras: OpcionMenu[] = [
       ...(s === 'pendiente' ? [rol] : []),
+      { texto: 'Editar datos', alElegir: () => setDialogo({ tipo: 'datos', usuario: u }) },
       ...(s !== 'inactivo' && !propio
         ? [
             {
@@ -230,6 +233,9 @@ export function PaginaUsuarios() {
       )}
 
       {dialogo?.tipo === 'invitar' ? <DialogoUsuario alCerrar={() => setDialogo(null)} /> : null}
+      {dialogo?.tipo === 'datos' ? (
+        <DialogoDatosUsuario usuario={dialogo.usuario} alCerrar={() => setDialogo(null)} />
+      ) : null}
       {dialogo?.tipo === 'rol' ? (
         <DialogoUsuario usuario={dialogo.usuario} alCerrar={() => setDialogo(null)} />
       ) : null}

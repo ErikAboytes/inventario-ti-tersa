@@ -164,7 +164,6 @@ export function FichaEquipo() {
             {[e.ubicacion, e.ubicacion_detalle].filter(Boolean).join(' · ') || '—'}
           </Dato>
           <Dato titulo="Descripción">{oGuion(e.descripcion)}</Dato>
-          <Dato titulo="Notas">{oGuion(e.notas)}</Dato>
         </dl>
       </Tarjeta>
 

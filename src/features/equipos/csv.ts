@@ -36,7 +36,6 @@ const COLUMNAS: [string, (e: FilaEquipo) => string | null | undefined][] = [
   ['Asignado a', (e) => e.colaborador_nombre],
   ['Folio', (e) => e.asignacion_folio],
   ['Fecha de entrega', (e) => (e.asignacion_fecha ? fechaCorta(e.asignacion_fecha) : null)],
-  ['Notas', (e) => e.notas],
 ]
 
 /** Un valor por celda: comillas cuando hace falta y sin fórmulas (=, +, -, @ al inicio se anteponen con '). */

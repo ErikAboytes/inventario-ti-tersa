@@ -56,6 +56,12 @@ const columnas: Columna<Colaborador>[] = [
     celda: (c) => oGuion(c.numero_empleado),
   },
   {
+    clave: 'telefono',
+    encabezado: 'Teléfono',
+    secundaria: true,
+    celda: (c) => <span className="whitespace-nowrap">{oGuion(c.telefono)}</span>,
+  },
+  {
     clave: 'estado',
     encabezado: 'Estado',
     ordenarPor: 'activo',
@@ -105,7 +111,7 @@ export function ListaColaboradores() {
       <BarraFiltros
         q={estado.q}
         alBuscar={(q) => estado.cambiar({ q })}
-        placeholder="Buscar por nombre, puesto o número de empleado"
+        placeholder="Buscar por nombre, puesto, número de empleado o teléfono"
         filtros={filtros}
         valores={estado.filtros}
         alCambiar={(param, valor) => estado.cambiar({ filtros: { [param]: valor } })}

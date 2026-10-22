@@ -16,6 +16,7 @@ import { PaginaFormularioEquipo } from './FormularioEquipo'
 const m = vi.hoisted(() => ({
   guardar: vi.fn(),
   cambiar: vi.fn(),
+  crearMarca: vi.fn(),
   idPorSerie: vi.fn(),
   equipo: null as unknown,
   historial: [] as unknown[],
@@ -26,10 +27,12 @@ vi.mock('./datos', () => ({
   useHistorialEquipo: () => ({ isPending: false, error: null, data: m.historial }),
   useGuardarEquipo: () => ({ mutateAsync: m.guardar }),
   useCambiarEstado: () => ({ mutateAsync: m.cambiar }),
+  useMarcas: () => ({ data: ['HP', 'Apple'] }),
+  useCrearMarca: () => ({ mutateAsync: m.crearMarca, isPending: false }),
   useMarcasYModelos: () => ({
     data: {
-      marcas: ['HP'],
-      modelos: ['ProBook 440 G8'],
+      modelos: ['ProBook 440 G8', 'iPad 9'],
+      modelosPorMarca: { HP: ['ProBook 440 G8'], Apple: ['iPad 9'] },
       cpus: ['Intel Core i5-1135G7'],
       sistemas: ['Windows 11 Pro'],
     },
@@ -181,6 +184,31 @@ describe('P-11 · Nuevo equipo', () => {
   })
 })
 
+describe('P-11 · Marca del catálogo', () => {
+  it('corrige mayúsculas a la marca del catálogo y agrega una marca nueva ahí mismo', async () => {
+    const u = userEvent.setup()
+    m.crearMarca.mockResolvedValue('Lenovo')
+    montar('/equipos/nuevo')
+    expect(screen.queryByLabelText(/^Notas/)).not.toBeInTheDocument()
+
+    await u.type(screen.getByLabelText(/Número de serie/), 'PRB2')
+    const marca = screen.getByLabelText(/^Marca/)
+    await u.type(marca, 'hp')
+    await u.tab()
+    expect(marca).toHaveValue('HP')
+
+    await u.clear(marca)
+    await u.type(marca, 'Lenovo')
+    await u.type(screen.getByLabelText(/^Modelo/), 'ThinkPad E14')
+    await u.click(screen.getByRole('button', { name: 'Registrar equipo' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('Elige una marca del catálogo')
+    expect(m.guardar).not.toHaveBeenCalled()
+
+    await u.click(screen.getByRole('button', { name: 'Agregar «Lenovo» como marca nueva' }))
+    expect(m.crearMarca).toHaveBeenCalledWith('Lenovo')
+  })
+})
+
 describe('P-11 / P-13 · Especificaciones', () => {
   it('solo aparecen en Desktop y Laptop, validan la RAM y se guardan vacías en Monitor', async () => {
     const u = userEvent.setup()
@@ -228,7 +256,7 @@ describe('P-13 · Editar equipo', () => {
     const u = userEvent.setup()
     const router = montar('/equipos/eq1/editar')
 
-    await u.type(screen.getByLabelText(/^Notas internas/), 'Revisar batería')
+    await u.type(screen.getByLabelText(/^Descripción/), 'Revisar batería')
     await u.click(screen.getByRole('button', { name: 'Cancelar' }))
     const dialogo = await screen.findByRole('dialog', { name: '¿Salir sin guardar?' })
     await u.click(within(dialogo).getByRole('button', { name: 'Salir sin guardar' }))

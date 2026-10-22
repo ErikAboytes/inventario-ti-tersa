@@ -19,15 +19,19 @@ import {
   idPorSerie,
   useEquipo,
   useGuardarEquipo,
+  useMarcas,
   useMarcasYModelos,
   useOpcionesContratos,
   useOpcionesSubcategorias,
   type FilaEquipo,
 } from './datos'
+import { CampoMarca } from './CampoMarca'
 import { CamposEstadoFisico } from './EstadoFisico'
 import {
   aFilaEquipo,
   esquemaEquipo,
+  marcaDelCatalogo,
+  MENSAJE_MARCA_FUERA_DE_CATALOGO,
   OPCIONES_CATEGORIA,
   OPCIONES_ESTADO_MANUAL,
   tieneEspecificaciones,
@@ -66,6 +70,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
   const ubicaciones = useOpcionesUbicaciones()
   const subcategorias = useOpcionesSubcategorias()
   const sugerencias = useMarcasYModelos()
+  const marcas = useMarcas()
   const [errorServidor, setErrorServidor] = useState<ReactNode>(null)
   const [resumen, setResumen] = useState<string[]>([])
   const [guardado, setGuardado] = useState(false)
@@ -79,6 +84,15 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
     control: form.control,
     name: ['categoria', 'sin_serie', 'contrato_id', 'estado', 'condicion'],
   })
+  // Con una marca del catálogo, el modelo sugiere solo los de esa marca.
+  const marcaElegida = marcaDelCatalogo(
+    useWatch({ control: form.control, name: 'marca' }),
+    marcas.data ?? [],
+  )
+  const modelosSugeridos =
+    (marcaElegida && sugerencias.data?.modelosPorMarca[marcaElegida]) ||
+    sugerencias.data?.modelos ||
+    []
 
   // Aviso de «cambios sin guardar» al salir (doc 04 P-11).
   const sucio = form.formState.isDirty && !guardado
@@ -106,6 +120,17 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
   const enviar = form.handleSubmit(async (valores) => {
     setErrorServidor(null)
     setResumen([])
+    // La marca debe existir en el catálogo; «hp» se guarda como «HP».
+    if (marcas.data) {
+      const canonica = marcaDelCatalogo(valores.marca, marcas.data)
+      if (!canonica) {
+        form.setError('marca', { message: MENSAJE_MARCA_FUERA_DE_CATALOGO })
+        setResumen([MENSAJE_MARCA_FUERA_DE_CATALOGO])
+        form.setFocus('marca')
+        return
+      }
+      valores = { ...valores, marca: canonica }
+    }
     try {
       const id = await guardar.mutateAsync({
         id: equipo?.id ?? undefined,
@@ -231,14 +256,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
             error={e.numero_producto?.message}
             {...form.register('numero_producto')}
           />
-          <CampoTexto
-            etiqueta="Marca"
-            required
-            list="sugerencias-marca"
-            autoComplete="off"
-            error={e.marca?.message}
-            {...form.register('marca')}
-          />
+          <CampoMarca form={form} marcas={marcas.data} />
           <CampoTexto
             etiqueta="Modelo"
             required
@@ -247,13 +265,8 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
             error={e.modelo?.message}
             {...form.register('modelo')}
           />
-          <datalist id="sugerencias-marca">
-            {sugerencias.data?.marcas.map((m) => (
-              <option key={m} value={m} />
-            ))}
-          </datalist>
           <datalist id="sugerencias-modelo">
-            {sugerencias.data?.modelos.map((m) => (
+            {modelosSugeridos.map((m) => (
               <option key={m} value={m} />
             ))}
           </datalist>
@@ -396,15 +409,6 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
               condicion: e.condicion?.message,
               observaciones: e.observaciones_estado?.message,
             }}
-          />
-        </Seccion>
-
-        <Seccion titulo="Notas" columnas={1}>
-          <CampoArea
-            etiqueta="Notas internas"
-            error={e.notas?.message}
-            ayuda="Información interna; no aparece en las cartas."
-            {...form.register('notas')}
           />
         </Seccion>
 

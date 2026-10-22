@@ -8,11 +8,12 @@ import { AuthContext, type EstadoAuth } from '@/features/auth/contexto'
 import type { Usuario } from './datos'
 import { PaginaUsuarios } from './PaginaUsuarios'
 
-const m = vi.hoisted(() => ({ administrar: vi.fn() }))
+const m = vi.hoisted(() => ({ administrar: vi.fn(), editar: vi.fn() }))
 vi.mock('./datos', async (original) => ({
   ...(await original<typeof import('./datos')>()),
   useUsuarios: () => ({ isPending: false, error: null, data: USUARIOS }),
   useAdministrarUsuario: () => ({ mutateAsync: m.administrar, isPending: false }),
+  useEditarDatosUsuario: () => ({ mutateAsync: m.editar, isPending: false }),
 }))
 
 const base = { creado_en: '2026-10-19T00:00:00Z', invitado_en: null, puesto: null }
@@ -66,7 +67,10 @@ function montar() {
 const fila = (tabla: HTMLElement, texto: string) =>
   within(tabla).getByText(texto).closest('tr') as HTMLElement
 
-beforeEach(() => m.administrar.mockReset().mockResolvedValue({ ok: true }))
+beforeEach(() => {
+  m.administrar.mockReset().mockResolvedValue({ ok: true })
+  m.editar.mockReset().mockResolvedValue(undefined)
+})
 afterEach(cleanup)
 
 describe('P-60 · Usuarios', () => {
@@ -75,9 +79,9 @@ describe('P-60 · Usuarios', () => {
     const yo = fila(tabla, 'Admin Uno')
     expect(yo).toHaveTextContent('(tú)')
     expect(yo).toHaveTextContent('19/10/2026 19:24')
-    // Nadie se desactiva a sí mismo: su única acción es cambiar el rol, sin menú.
+    // Nadie se desactiva a sí mismo: cambia su rol o sus datos, sin «Desactivar».
     expect(within(yo).getByRole('button', { name: 'Cambiar rol' })).toBeInTheDocument()
-    expect(within(yo).queryByRole('button', { name: /Más acciones/ })).not.toBeInTheDocument()
+    expect(within(yo).getByRole('button', { name: /Más acciones/ })).toBeInTheDocument()
 
     const pendiente = fila(tabla, 'Persona Invitada')
     expect(pendiente).toHaveTextContent('Pendiente')
@@ -90,6 +94,31 @@ describe('P-60 · Usuarios', () => {
     expect(baja).toHaveTextContent('Desactivado')
     expect(within(baja).getByRole('button', { name: 'Reactivar' })).toBeInTheDocument()
     expect(within(baja).queryByRole('button', { name: 'Cambiar rol' })).not.toBeInTheDocument()
+  })
+
+  it('edita el nombre y el puesto de un usuario', async () => {
+    const u = userEvent.setup()
+    const tabla = montar()
+    await u.click(
+      within(fila(tabla, 'Admin Uno')).getByRole('button', { name: /Más acciones para Admin Uno/ }),
+    )
+    await u.click(screen.getByRole('menuitem', { name: 'Editar datos' }))
+    const dialogo = screen.getByRole('dialog', { name: 'Editar datos' })
+    const nombre = within(dialogo).getByLabelText(/^Nombre/)
+    await u.clear(nombre)
+    await u.click(within(dialogo).getByRole('button', { name: 'Guardar' }))
+    expect(nombre).toHaveAccessibleDescription(expect.stringContaining('Escribe el nombre'))
+    expect(m.editar).not.toHaveBeenCalled()
+
+    await u.type(nombre, 'Admin Uno Pérez')
+    await u.type(within(dialogo).getByLabelText(/^Puesto/), 'Jefe de Sistemas')
+    await u.click(within(dialogo).getByRole('button', { name: 'Guardar' }))
+    expect(m.editar).toHaveBeenCalledWith({
+      id: 'yo',
+      nombre: 'Admin Uno Pérez',
+      puesto: 'Jefe de Sistemas',
+    })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('D-08: valida la invitación y la envía con el rol elegido', async () => {
@@ -132,7 +161,7 @@ describe('P-60 · Usuarios', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map((b) => b.textContent),
-    ).toEqual(['Cambiar rol', 'Desactivar'])
+    ).toEqual(['Cambiar rol', 'Editar datos', 'Desactivar'])
     await u.click(within(menu).getByRole('menuitem', { name: 'Desactivar' }))
     const dialogo = screen.getByRole('dialog', { name: '¿Desactivar a Persona Invitada?' })
     await u.click(within(dialogo).getByRole('button', { name: 'Desactivar' }))

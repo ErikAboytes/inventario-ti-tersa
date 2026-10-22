@@ -165,6 +165,7 @@ export type Database = {
           nombre_completo: string
           numero_empleado: string | null
           puesto: string | null
+          telefono: string | null
           tipo: string
           ubicacion_id: string | null
           unidad_negocio_id: string | null
@@ -183,6 +184,7 @@ export type Database = {
           nombre_completo: string
           numero_empleado?: string | null
           puesto?: string | null
+          telefono?: string | null
           tipo?: string
           ubicacion_id?: string | null
           unidad_negocio_id?: string | null
@@ -201,6 +203,7 @@ export type Database = {
           nombre_completo?: string
           numero_empleado?: string | null
           puesto?: string | null
+          telefono?: string | null
           tipo?: string
           ubicacion_id?: string | null
           unidad_negocio_id?: string | null
@@ -552,6 +555,13 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
+            foreignKeyName: 'equipos_marca_fkey'
+            columns: ['marca']
+            isOneToOne: false
+            referencedRelation: 'marcas'
+            referencedColumns: ['nombre']
+          },
+          {
             foreignKeyName: 'equipos_subcategoria_id_fkey'
             columns: ['subcategoria_id']
             isOneToOne: false
@@ -584,6 +594,51 @@ export type Database = {
           ultimo?: number
         }
         Relationships: []
+      }
+      marcas: {
+        Row: {
+          activa: boolean
+          actualizado_en: string
+          actualizado_por: string | null
+          creado_en: string
+          creado_por: string | null
+          id: string
+          nombre: string
+        }
+        Insert: {
+          activa?: boolean
+          actualizado_en?: string
+          actualizado_por?: string | null
+          creado_en?: string
+          creado_por?: string | null
+          id?: string
+          nombre: string
+        }
+        Update: {
+          activa?: boolean
+          actualizado_en?: string
+          actualizado_por?: string | null
+          creado_en?: string
+          creado_por?: string | null
+          id?: string
+          nombre?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'marcas_actualizado_por_fkey'
+            columns: ['actualizado_por']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'marcas_creado_por_fkey'
+            columns: ['creado_por']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+        ]
       }
       movimientos: {
         Row: {
@@ -955,6 +1010,13 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
+            foreignKeyName: 'equipos_marca_fkey'
+            columns: ['marca']
+            isOneToOne: false
+            referencedRelation: 'marcas'
+            referencedColumns: ['nombre']
+          },
+          {
             foreignKeyName: 'equipos_subcategoria_id_fkey'
             columns: ['subcategoria_id']
             isOneToOne: false
@@ -972,6 +1034,10 @@ export type Database = {
       }
     }
     Functions: {
+      actualizar_datos_usuario: {
+        Args: { p_id: string; p_nombre: string; p_puesto?: string }
+        Returns: undefined
+      }
       actualizar_firmas: {
         Args: {
           p_firma_entrega_nombre: string

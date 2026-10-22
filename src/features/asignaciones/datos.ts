@@ -1,4 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { textoBusquedaColaborador } from '@/features/colaboradores/esquema'
 import { ESTADOS_ASIGNABLES } from '@/lib/estados'
 import { rango, type EstadoTabla } from '@/lib/paramsTabla'
 import { supabase } from '@/lib/supabase'
@@ -196,7 +197,7 @@ export function useBuscarColaboradores(texto: string) {
           'id, nombre_completo, puesto, numero_empleado, unidad_negocio_id, unidad:unidades_negocio(nombre), ubicacion:ubicaciones(nombre)',
         )
         .eq('activo', true)
-        .ilike('busqueda', patronBusqueda(normalizar(q)))
+        .ilike('busqueda', patronBusqueda(textoBusquedaColaborador(q)))
         .order('nombre_completo')
         .limit(8)
       if (error) throw error

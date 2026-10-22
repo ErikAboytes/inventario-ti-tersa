@@ -40,7 +40,7 @@ const CAMPOS: Record<string, string> = {
   empresa_id: 'Empresa',
   ubicacion_id: 'Ubicación',
   ubicacion_detalle: 'Detalle de ubicación',
-  notas: 'Notas',
+  // «notas» no se muestra: se dejó de capturar y las de la migración quedan solo en la BD.
 }
 const ORDEN_CAMPOS = Object.keys(CAMPOS)
 

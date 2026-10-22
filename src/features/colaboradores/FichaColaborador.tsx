@@ -107,6 +107,18 @@ export function FichaColaborador() {
             <span className="font-mono">{oGuion(c.numero_empleado)}</span>
           </Dato>
           <Dato titulo="Correo laboral">{oGuion(c.email)}</Dato>
+          <Dato titulo="Teléfono">
+            {c.telefono ? (
+              <a
+                href={`tel:${c.telefono.split(/\s*ext/i)[0].replace(/[^\d+]/g, '')}`}
+                className="text-marca-azul underline underline-offset-4"
+              >
+                {c.telefono}
+              </a>
+            ) : (
+              '—'
+            )}
+          </Dato>
         </dl>
       </section>
 
