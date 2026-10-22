@@ -1,7 +1,7 @@
 import { Download, Plus, QrCode } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { BarraFiltros, FiltroMultiple, FiltroSelect } from '@/components/ui/BarraFiltros'
+import { BarraFiltros, type DefFiltro } from '@/components/ui/BarraFiltros'
 import { Button } from '@/components/ui/Button'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
 import { TablaDatos, type Columna } from '@/components/ui/TablaDatos'
@@ -135,10 +135,28 @@ export function ListaEquipos() {
       ),
     })
 
-  const filtro = (param: string) => ({
-    valor: estado.filtros[param],
-    alCambiar: (v: string | null) => estado.cambiar({ filtros: { [param]: v } }),
-  })
+  const filtros: DefFiltro[] = [
+    { param: 'categoria', etiqueta: 'Categoría', opciones: OPCIONES_CATEGORIA, principal: true },
+    {
+      param: 'estado',
+      etiqueta: 'Estado',
+      tipo: 'multiple',
+      opciones: OPCIONES_ESTADO,
+      principal: true,
+    },
+    {
+      param: 'empresa',
+      etiqueta: 'Empresa',
+      opciones: [...(empresas.data ?? []), { valor: SIN_EMPRESA, texto: 'Sin empresa' }],
+      principal: true,
+    },
+    { param: 'contrato', etiqueta: 'Contrato', opciones: contratos.data ?? [] },
+    { param: 'ubicacion', etiqueta: 'Ubicación', opciones: ubicaciones.data ?? [] },
+    { param: 'subcategoria', etiqueta: 'Subcategoría', opciones: subcategorias.data ?? [] },
+    { param: 'condicion', etiqueta: 'Condición', opciones: OPCIONES_CONDICION },
+    { param: 'historico', etiqueta: 'Estado histórico', opciones: OPCIONES_HISTORICO },
+    { param: 'agrupar', etiqueta: 'Agrupar por empresa', tipo: 'casilla', valorCasilla: 'empresa' },
+  ]
 
   async function exportar() {
     setProgreso('Preparando…')
@@ -223,46 +241,13 @@ export function ListaEquipos() {
         q={estado.q}
         alBuscar={(q) => estado.cambiar({ q })}
         placeholder="Buscar por serie, modelo, número de producto o colaborador"
-        hayFiltros={hayFiltros}
-        alLimpiar={limpiarFiltros}
         busquedaSoloMovil
-      >
-        <FiltroSelect etiqueta="Categoría" opciones={OPCIONES_CATEGORIA} {...filtro('categoria')} />
-        <FiltroMultiple etiqueta="Estado" opciones={OPCIONES_ESTADO} {...filtro('estado')} />
-        <FiltroSelect
-          etiqueta="Empresa"
-          opciones={[...(empresas.data ?? []), { valor: SIN_EMPRESA, texto: 'Sin empresa' }]}
-          {...filtro('empresa')}
-        />
-        <FiltroSelect etiqueta="Contrato" opciones={contratos.data ?? []} {...filtro('contrato')} />
-        <FiltroSelect
-          etiqueta="Ubicación"
-          opciones={ubicaciones.data ?? []}
-          {...filtro('ubicacion')}
-        />
-        <FiltroSelect
-          etiqueta="Subcategoría"
-          opciones={subcategorias.data ?? []}
-          {...filtro('subcategoria')}
-        />
-        <FiltroSelect etiqueta="Condición" opciones={OPCIONES_CONDICION} {...filtro('condicion')} />
-        <FiltroSelect
-          etiqueta="Estado histórico"
-          opciones={OPCIONES_HISTORICO}
-          {...filtro('historico')}
-        />
-        <label className="flex min-h-10 items-center gap-2 self-end text-sm font-medium">
-          <input
-            type="checkbox"
-            checked={agrupar}
-            onChange={(e) =>
-              estado.cambiar({ filtros: { agrupar: e.target.checked ? 'empresa' : null } })
-            }
-            className="size-5 accent-marca-azul"
-          />
-          Agrupar por empresa
-        </label>
-      </BarraFiltros>
+        filtros={filtros}
+        valores={estado.filtros}
+        alCambiar={(param, valor) => estado.cambiar({ filtros: { [param]: valor } })}
+        alLimpiar={limpiarFiltros}
+        total={total}
+      />
 
       <TablaDatos
         etiqueta="Equipos"

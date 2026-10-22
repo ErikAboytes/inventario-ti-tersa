@@ -1,7 +1,7 @@
 import { Download } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { BarraFiltros, FiltroMultiple, FiltroSelect } from '@/components/ui/BarraFiltros'
+import { BarraFiltros, type DefFiltro } from '@/components/ui/BarraFiltros'
 import { Button } from '@/components/ui/Button'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
 import { TablaDatos, type Columna } from '@/components/ui/TablaDatos'
@@ -138,23 +138,24 @@ export function PaginaHistorial() {
   const [progreso, setProgreso] = useState<string | null>(null)
   const total = lista.data?.total
 
-  const filtro = (param: string) => ({
-    valor: estado.filtros[param],
-    alCambiar: (v: string | null) => estado.cambiar({ filtros: { [param]: v } }),
-  })
-  const fecha = (param: 'desde' | 'hasta', etiqueta: string) => (
-    <label className="flex flex-col gap-1 text-sm">
-      <span className="font-medium">{etiqueta}</span>
-      <input
-        type="date"
-        value={estado.filtros[param] ?? ''}
-        max={param === 'desde' ? estado.filtros.hasta : undefined}
-        min={param === 'hasta' ? estado.filtros.desde : undefined}
-        onChange={(e) => estado.cambiar({ filtros: { [param]: e.target.value || null } })}
-        className="min-h-10 rounded-control border border-borde-control bg-superficie px-3"
-      />
-    </label>
-  )
+  const filtros: DefFiltro[] = [
+    {
+      param: 'desde',
+      etiqueta: 'Desde',
+      tipo: 'fecha',
+      max: estado.filtros.hasta,
+      principal: true,
+    },
+    {
+      param: 'hasta',
+      etiqueta: 'Hasta',
+      tipo: 'fecha',
+      min: estado.filtros.desde,
+      principal: true,
+    },
+    { param: 'tipo', etiqueta: 'Tipo', tipo: 'multiple', opciones: OPCIONES_TIPO },
+    { param: 'usuario', etiqueta: 'Usuario', opciones: usuarios.data ?? [] },
+  ]
 
   async function exportar() {
     setProgreso('Preparando…')
@@ -198,14 +199,12 @@ export function PaginaHistorial() {
         q={estado.q}
         alBuscar={(q) => estado.cambiar({ q })}
         placeholder="Serie, colaborador o folio"
-        hayFiltros={estado.hayFiltros}
+        filtros={filtros}
+        valores={estado.filtros}
+        alCambiar={(param, valor) => estado.cambiar({ filtros: { [param]: valor } })}
         alLimpiar={estado.limpiar}
-      >
-        {fecha('desde', 'Desde')}
-        {fecha('hasta', 'Hasta')}
-        <FiltroMultiple etiqueta="Tipo" opciones={OPCIONES_TIPO} {...filtro('tipo')} />
-        <FiltroSelect etiqueta="Usuario" opciones={usuarios.data ?? []} {...filtro('usuario')} />
-      </BarraFiltros>
+        total={total}
+      />
 
       <TablaDatos
         etiqueta="Movimientos"

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BarraFiltros, FiltroSelect } from '@/components/ui/BarraFiltros'
+import { BarraFiltros } from '@/components/ui/BarraFiltros'
 import { Button } from '@/components/ui/Button'
 import { CampoCasilla, CampoSelect, CampoTexto } from '@/components/ui/Campos'
 import { Dialogo } from '@/components/ui/Dialogo'
@@ -56,19 +56,14 @@ export function MuestraEtapa2() {
         q={q}
         alBuscar={setQ}
         placeholder="Buscar por nombre o ciudad"
-        hayFiltros={Boolean(q || tipo)}
+        filtros={[{ param: 'tipo', etiqueta: 'Tipo', opciones: TIPOS_UBICACION, principal: true }]}
+        valores={tipo ? { tipo } : {}}
+        alCambiar={(_, valor) => setTipo(valor)}
         alLimpiar={() => {
           setQ('')
           setTipo(null)
         }}
-      >
-        <FiltroSelect
-          etiqueta="Tipo"
-          valor={tipo ?? undefined}
-          opciones={TIPOS_UBICACION}
-          alCambiar={setTipo}
-        />
-      </BarraFiltros>
+      />
       <TablaDatos
         etiqueta="Ubicaciones de ejemplo"
         columnas={columnas}

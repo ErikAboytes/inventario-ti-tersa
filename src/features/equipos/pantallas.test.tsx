@@ -326,12 +326,17 @@ describe('P-10 · Inventario', () => {
     const router = montar('/equipos')
 
     expect(screen.getByText('2 equipos')).toBeInTheDocument()
-    await u.click(screen.getByText('Todos', { selector: 'summary' }))
+    await u.click(screen.getByLabelText('Estado: Todos'))
     await u.click(screen.getByRole('checkbox', { name: 'Pendiente' }))
     await u.click(screen.getByRole('checkbox', { name: 'Stock' }))
     // El orden de la URL sigue al de las opciones, no al de los clics.
     expect(router.state.location.search).toBe('?estado=stock%2Cpendiente')
+    expect(
+      screen.getByRole('button', { name: 'Quitar filtro Estado: Stock, Pendiente' }),
+    ).toBeInTheDocument()
 
+    // «Agrupar» es secundario: está en «Más filtros».
+    await u.click(screen.getByRole('button', { name: 'Más filtros' }))
     await u.click(screen.getByRole('checkbox', { name: 'Agrupar por empresa' }))
     expect(router.state.location.search).toContain('agrupar=empresa')
     expect(screen.getByRole('columnheader', { name: 'Revor S.A.' })).toBeInTheDocument()

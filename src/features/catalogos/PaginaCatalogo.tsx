@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Navigate, useParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
-import { BarraFiltros, FiltroSelect } from '@/components/ui/BarraFiltros'
+import { BarraFiltros } from '@/components/ui/BarraFiltros'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
 import { EtiquetaActiva } from '@/components/ui/Etiqueta'
 import { TablaDatos, type Columna } from '@/components/ui/TablaDatos'
@@ -89,19 +89,17 @@ function Catalogo({ config }: { config: ConfigCatalogo }) {
         q={estado.q}
         alBuscar={(q) => estado.cambiar({ q })}
         placeholder={config.textoBusqueda}
-        hayFiltros={estado.hayFiltros}
+        filtros={config.filtros.map((f) => ({
+          param: f.param,
+          etiqueta: f.etiqueta,
+          opciones: f.opcionesDe === 'empresas' ? (empresas.data ?? []) : (f.opciones ?? []),
+          principal: true,
+        }))}
+        valores={estado.filtros}
+        alCambiar={(param, valor) => estado.cambiar({ filtros: { [param]: valor } })}
         alLimpiar={estado.limpiar}
-      >
-        {config.filtros.map((f) => (
-          <FiltroSelect
-            key={f.param}
-            etiqueta={f.etiqueta}
-            valor={estado.filtros[f.param]}
-            opciones={f.opcionesDe === 'empresas' ? (empresas.data ?? []) : (f.opciones ?? [])}
-            alCambiar={(v) => estado.cambiar({ filtros: { [f.param]: v } })}
-          />
-        ))}
-      </BarraFiltros>
+        total={lista.data?.total}
+      />
 
       <TablaDatos
         etiqueta={config.titulo}
