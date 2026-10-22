@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { CampoArea, CampoCasilla, CampoSelect, CampoTexto } from '@/components/ui/Campos'
@@ -17,6 +17,7 @@ import {
   requiereObservaciones,
   type CondicionEquipo,
 } from '@/lib/condicion'
+import { llevarA } from '@/lib/enfoque'
 import { mensajeDeError } from '@/lib/errores'
 import { fechaCorta } from '@/lib/formato'
 import { useTitulo } from '@/lib/useTitulo'
@@ -86,6 +87,12 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
   const [intentado, setIntentado] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Cada intento con errores (o error del servidor) lleva la vista al aviso de arriba.
+  const [intentos, setIntentos] = useState(0)
+  const aviso = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (intentos) llevarA(aviso.current)
+  }, [intentos])
   const errores = validarDevolucion(f, a.fecha_entrega)
   const visibles = intentado
     ? errores
@@ -102,6 +109,7 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
     e.preventDefault()
     setIntentado(true)
     if (!hayErrores(errores)) setConfirmando(true)
+    else setIntentos((n) => n + 1)
   }
 
   async function enviar() {
@@ -118,6 +126,7 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
     } catch (err) {
       setConfirmando(false)
       setError(mensajeDeError(err))
+      setIntentos((n) => n + 1)
     }
   }
 
@@ -136,6 +145,17 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
   }
 
   const destinos = f.cierreIncidencia ? DESTINOS_INCIDENCIA : DESTINOS_DEVOLUCION
+  const fecha = (
+    <CampoTexto
+      etiqueta="Fecha"
+      type="date"
+      required
+      min={a.fecha_entrega.slice(0, 10)}
+      max={hoyTijuana()}
+      value={f.fecha}
+      onChange={(e) => setF((x) => ({ ...x, fecha: e.target.value }))}
+    />
+  )
 
   return (
     <div className="flex flex-col gap-6">
@@ -152,8 +172,9 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
       <form onSubmit={revisar} noValidate className="flex max-w-4xl flex-col gap-6">
         {visibles.generales.length || error ? (
           <div
+            ref={aviso}
             role="alert"
-            className="rounded-control border border-no-localizado bg-no-localizado-fondo px-4 py-3 text-sm text-no-localizado"
+            className="scroll-mt-20 rounded-control border border-no-localizado bg-no-localizado-fondo px-4 py-3 text-sm text-no-localizado outline-none"
           >
             {error ? <p>{error}</p> : null}
             {visibles.generales.length ? (
@@ -257,23 +278,17 @@ function RegistrarDevolucion({ asignacion: a }: { asignacion: DetalleAsignacion 
 
         <Tarjeta titulo="Fecha y datos de firma" id="firmas">
           <div className="flex flex-col gap-5">
-            <CampoTexto
-              etiqueta="Fecha"
-              type="date"
-              required
-              min={a.fecha_entrega.slice(0, 10)}
-              max={hoyTijuana()}
-              value={f.fecha}
-              onChange={(e) => setF((x) => ({ ...x, fecha: e.target.value }))}
-              className="max-w-xs"
-            />
-            {!f.cierreIncidencia ? (
+            {f.cierreIncidencia ? (
+              <div className="grid gap-5 sm:grid-cols-2">{fecha}</div>
+            ) : (
               <CamposFirma
                 valores={f.firmas}
                 errores={visibles.firmas}
                 alCambiar={(c) => setF((x) => ({ ...x, firmas: { ...x.firmas, ...c } }))}
+                antes={fecha}
+                lugarJuntoAFecha
               />
-            ) : null}
+            )}
             <CampoArea
               etiqueta="Observaciones generales"
               value={f.observaciones}

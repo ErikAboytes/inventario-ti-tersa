@@ -17,7 +17,27 @@ export function Pasos({
 }) {
   return (
     <nav aria-label={etiqueta}>
-      <ol className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
+      {/* Teléfono: «Paso 2 de 4 · Equipos» y una barra; los pasos con nombre no caben en una fila. */}
+      <div className="flex flex-col gap-2 sm:hidden">
+        <p className="text-sm">
+          <span className="text-texto-secundario">
+            Paso {actual} de {pasos.length} ·{' '}
+          </span>
+          <span className="font-semibold text-tinta">{pasos[actual - 1]}</span>
+        </p>
+        <div aria-hidden="true" className="flex gap-1">
+          {pasos.map((texto, i) => (
+            <span
+              key={texto}
+              className={clsx(
+                'h-1.5 flex-1 rounded-full',
+                i + 1 <= actual ? 'bg-marca-azul' : 'bg-borde',
+              )}
+            />
+          ))}
+        </div>
+      </div>
+      <ol className="hidden items-center gap-x-2 overflow-x-auto text-sm sm:flex">
         {pasos.map((texto, i) => {
           const n = i + 1
           const hecho = n < actual
@@ -47,7 +67,7 @@ export function Pasos({
           return (
             <li
               key={texto}
-              className="flex items-center gap-2"
+              className="flex shrink-0 items-center gap-2"
               aria-current={n === actual ? 'step' : undefined}
             >
               {i > 0 ? <span aria-hidden="true" className="h-px w-6 bg-borde sm:w-10" /> : null}

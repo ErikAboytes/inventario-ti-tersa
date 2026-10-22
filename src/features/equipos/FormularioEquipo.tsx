@@ -280,21 +280,19 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
         </Seccion>
 
         {tieneEspecificaciones(categoria) ? (
-          <Seccion titulo="Especificaciones" descripcion="Opcionales. Puedes llenarlas después.">
+          <Seccion
+            titulo="Especificaciones"
+            descripcion="Opcionales. Puedes llenarlas después."
+            columnas={3}
+          >
             <CampoTexto
               etiqueta="Procesador (CPU)"
               list="sugerencias-cpu"
               autoComplete="off"
               placeholder="p. ej. Intel Core i5-1135G7"
+              className="sm:col-span-2"
               error={e.cpu?.message}
               {...form.register('cpu')}
-            />
-            <CampoTexto
-              etiqueta="Tarjeta gráfica (GPU)"
-              autoComplete="off"
-              ayuda="Déjalo vacío si usa la gráfica integrada."
-              error={e.gpu?.message}
-              {...form.register('gpu')}
             />
             <CampoTexto
               etiqueta="Memoria RAM (GB)"
@@ -317,6 +315,13 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
               autoComplete="off"
               error={e.sistema_operativo?.message}
               {...form.register('sistema_operativo')}
+            />
+            <CampoTexto
+              etiqueta="Tarjeta gráfica (GPU)"
+              autoComplete="off"
+              ayuda="Vacío si usa la gráfica integrada."
+              error={e.gpu?.message}
+              {...form.register('gpu')}
             />
             <datalist id="sugerencias-cpu">
               {sugerencias.data?.cpus.map((c) => (
@@ -370,37 +375,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
           />
         </Seccion>
 
-        {alta ? (
-          <Seccion titulo="Estado">
-            <CampoSelect
-              etiqueta="Estado inicial"
-              required
-              opciones={OPCIONES_ESTADO_MANUAL}
-              ayuda="«Asignado» se pone al registrar una entrega."
-              {...form.register('estado')}
-            />
-            {estado === 'apartado' ? (
-              <CampoTexto
-                etiqueta="Apartado para"
-                required
-                ayuda="Para quién o para qué está apartado."
-                error={e.apartado_para?.message}
-                {...form.register('apartado_para')}
-              />
-            ) : null}
-            {estado === 'desactivado' ? (
-              <CampoTexto
-                etiqueta="Motivo de la desactivación"
-                required
-                ayuda="Venta, venta a CGE, donativo, daño irreparable, fin de contrato…"
-                error={e.motivo_desactivacion?.message}
-                {...form.register('motivo_desactivacion')}
-              />
-            ) : null}
-          </Seccion>
-        ) : null}
-
-        <Seccion titulo="Estado físico" columnas={1}>
+        <Seccion titulo={alta ? 'Estado' : 'Estado físico'} columnas={1}>
           <CamposEstadoFisico
             condicion={condicion}
             registroCondicion={form.register('condicion')}
@@ -409,6 +384,36 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
               condicion: e.condicion?.message,
               observaciones: e.observaciones_estado?.message,
             }}
+            estado={
+              alta ? (
+                <CampoSelect
+                  etiqueta="Estado inicial"
+                  required
+                  opciones={OPCIONES_ESTADO_MANUAL}
+                  ayuda="«Asignado» se pone al registrar una entrega."
+                  {...form.register('estado')}
+                />
+              ) : undefined
+            }
+            detalleEstado={
+              alta && estado === 'apartado' ? (
+                <CampoTexto
+                  etiqueta="Apartado para"
+                  required
+                  ayuda="Para quién o para qué está apartado."
+                  error={e.apartado_para?.message}
+                  {...form.register('apartado_para')}
+                />
+              ) : alta && estado === 'desactivado' ? (
+                <CampoTexto
+                  etiqueta="Motivo de la desactivación"
+                  required
+                  ayuda="Venta, venta a CGE, donativo, daño irreparable, fin de contrato…"
+                  error={e.motivo_desactivacion?.message}
+                  {...form.register('motivo_desactivacion')}
+                />
+              ) : undefined
+            }
           />
         </Seccion>
 
@@ -451,7 +456,7 @@ function Seccion({
 }: {
   titulo: string
   descripcion?: string
-  columnas?: 1 | 2
+  columnas?: 1 | 2 | 3
   children: ReactNode
 }) {
   const id = `seccion-${titulo.toLowerCase().replace(/\s+/g, '-')}`
@@ -464,7 +469,15 @@ function Seccion({
         {titulo}
       </h2>
       {descripcion ? <p className="mb-5 text-sm text-texto-secundario">{descripcion}</p> : null}
-      <div className={columnas === 2 ? 'grid gap-5 sm:grid-cols-2' : 'flex flex-col gap-5'}>
+      <div
+        className={
+          columnas === 3
+            ? 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3'
+            : columnas === 2
+              ? 'grid gap-5 sm:grid-cols-2'
+              : 'flex flex-col gap-5'
+        }
+      >
         {children}
       </div>
     </section>

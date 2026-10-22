@@ -79,6 +79,7 @@ el filtro que viene del panel usa **Quitar este filtro**. El botón **Actualizar
   estado** en la ficha cuando el estado ya es correcto.
 
 ### Ficha del equipo
+En el teléfono se ve la acción principal (por ejemplo **Entregar**) y las demás están en **⋯**.
 Muestra primero a quién está asignado (con el folio de su carta), luego sus datos, especificaciones, estado
 físico e historial completo.
 
@@ -105,7 +106,9 @@ operativo. Con «Con detalles» o «Dañado» hay que describir el estado físic
 ## 5. Entregar equipos (carta custodia)
 
 **Entregas y devoluciones → Nueva entrega**, o **Entregar** desde la ficha de un equipo o **Nueva entrega**
-desde la de un colaborador. Son cuatro pasos; si recargas la página no se pierde lo capturado.
+desde la de un colaborador. Son cuatro pasos; si recargas la página no se pierde lo capturado. En el
+teléfono, **Atrás** y **Continuar** quedan fijos al pie de la pantalla; al continuar, la pantalla sube sola al
+inicio del paso siguiente (y, si falta algo, al aviso que dice qué).
 
 1. **Colaborador:** búscalo por nombre o número de empleado. Si no existe, **Nuevo colaborador**. Si le falta
    la unidad de negocio, se pide aquí.

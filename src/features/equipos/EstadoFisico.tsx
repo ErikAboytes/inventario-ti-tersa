@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { UseFormRegisterReturn } from 'react-hook-form'
 import { CampoArea } from '@/components/ui/Campos'
 import { ControlSegmentado } from '@/components/ui/ControlSegmentado'
@@ -20,6 +21,8 @@ export function CamposEstadoFisico({
   registroObservaciones,
   errores,
   devolucion = false,
+  estado,
+  detalleEstado,
 }: {
   /** Valor actual de la condición (useWatch), para ajustar la obligatoriedad y la ayuda. */
   condicion: string | null | undefined
@@ -28,17 +31,32 @@ export function CamposEstadoFisico({
   errores?: { condicion?: string; observaciones?: string }
   /** En la devolución no se ofrece «Sin revisar»: se declara cómo regresa el equipo. */
   devolucion?: boolean
+  /** Alta de equipo: «Estado inicial» va junto a la condición, y su detalle (apartado/motivo) debajo. */
+  estado?: ReactNode
+  detalleEstado?: ReactNode
 }) {
   const obligatorias = requiereObservaciones(condicion)
 
+  const control = (
+    <ControlSegmentado
+      etiqueta={devolucion ? 'Condición al devolver' : 'Condición'}
+      opciones={opcionesCondicion(!devolucion)}
+      error={errores?.condicion}
+      {...registroCondicion}
+    />
+  )
+
   return (
     <div className="flex flex-col gap-5">
-      <ControlSegmentado
-        etiqueta={devolucion ? 'Condición al devolver' : 'Condición'}
-        opciones={opcionesCondicion(!devolucion)}
-        error={errores?.condicion}
-        {...registroCondicion}
-      />
+      {estado ? (
+        <div className="grid gap-5 lg:grid-cols-2">
+          {estado}
+          {control}
+        </div>
+      ) : (
+        control
+      )}
+      {detalleEstado}
       <CampoArea
         etiqueta={devolucion ? 'Observaciones de la devolución' : 'Observaciones del estado'}
         required={obligatorias}
