@@ -16,19 +16,17 @@ export type ElementoMenu = {
   icono: LucideIcon
   /** Solo visible para este rol; sin valor, lo ven todos. */
   soloRol?: Rol
-  /** Etapa del plan en que se construye la pantalla (para el marcador «Próximamente»). */
-  etapa: number
 }
 
 // Menú principal en el orden del doc 04 §3.
 export const MENU: ElementoMenu[] = [
-  { texto: 'Panel', ruta: '/', icono: LayoutDashboard, etapa: 7 },
-  { texto: 'Inventario', ruta: '/equipos', icono: Monitor, etapa: 3 },
-  { texto: 'Entregas y devoluciones', ruta: '/asignaciones', icono: ClipboardCheck, etapa: 5 },
-  { texto: 'Historial', ruta: '/historial', icono: History, etapa: 7 },
-  { texto: 'Colaboradores', ruta: '/colaboradores', icono: Users, etapa: 2 },
-  { texto: 'Catálogos', ruta: '/catalogos', icono: Library, etapa: 2 },
-  { texto: 'Usuarios', ruta: '/admin/usuarios', icono: ShieldCheck, soloRol: 'admin', etapa: 8 },
+  { texto: 'Panel', ruta: '/', icono: LayoutDashboard },
+  { texto: 'Inventario', ruta: '/equipos', icono: Monitor },
+  { texto: 'Entregas y devoluciones', ruta: '/asignaciones', icono: ClipboardCheck },
+  { texto: 'Historial', ruta: '/historial', icono: History },
+  { texto: 'Colaboradores', ruta: '/colaboradores', icono: Users },
+  { texto: 'Catálogos', ruta: '/catalogos', icono: Library },
+  { texto: 'Usuarios', ruta: '/admin/usuarios', icono: ShieldCheck, soloRol: 'admin' },
 ]
 
 export function menuPara(rol: Rol | undefined): ElementoMenu[] {

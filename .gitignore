@@ -53,3 +53,6 @@ __pycache__/
 e2e/.sesiones/
 e2e/reporte/
 e2e/resultados/
+
+# Reportes locales de las skills de diseño (Impeccable)
+.impeccable/
