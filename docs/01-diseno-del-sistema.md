@@ -420,16 +420,17 @@ adaptable, accesibilidad y rutas) está en **[04 — Diseño UI/UX](04-diseno-ui
 │  ├─ migrations/                SQL versionado (esquema, RLS, funciones)
 │  ├─ functions/admin-usuarios/  Edge Function de invitación y roles
 │  ├─ tests/                     pruebas SQL de reglas de negocio
-│  └─ seed.sql                   datos de ejemplo para desarrollo
+│  └─ templates/                 correo de invitación
 ├─ scripts/migracion/            extracción y normalización del Excel
+├─ e2e/                          pruebas Playwright
 ├─ public/_redirects
 ├─ src/
-│  ├─ app/                       router, proveedores, layout, guardas por rol
+│  ├─ app/                       router, layout, menú
 │  ├─ components/ui/             botones, diálogos, tabla, formularios, badges
 │  ├─ features/
-│  │  ├─ auth/  panel/  equipos/  asignaciones/  devoluciones/
+│  │  ├─ auth/  panel/  equipos/  asignaciones/ (entregas y devoluciones)
 │  │  ├─ historial/  busqueda/  documentos/ (cartas y etiquetas)
-│  │  └─ colaboradores/  catalogos/  usuarios/
+│  │  └─ colaboradores/  catalogos/  usuarios/  errores/
 │  ├─ lib/                       cliente supabase, csv, qr, formatos de fecha
 │  └─ types/database.ts          generado desde el esquema
 ├─ netlify.toml

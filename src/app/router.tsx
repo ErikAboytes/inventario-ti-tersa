@@ -19,35 +19,16 @@ import { FichaEquipo, RedirigirQr } from '@/features/equipos/FichaEquipo'
 import { PaginaFormularioEquipo } from '@/features/equipos/FormularioEquipo'
 import { ListaEquipos } from '@/features/equipos/ListaEquipos'
 import { NoEncontrada } from '@/features/errores/NoEncontrada'
-import { Proximamente } from '@/features/inicio/Proximamente'
 import { PaginaHistorial } from '@/features/historial/PaginaHistorial'
-import { MuestraDiseno } from '@/features/muestra/MuestraDiseno'
 import { Panel } from '@/features/panel/Panel'
 import { PaginaUsuarios } from '@/features/usuarios/PaginaUsuarios'
 import { AppShell } from './AppShell'
-import { MENU } from './navegacion'
 
-const CONSTRUIDAS = new Set([
-  '/',
-  '/equipos',
-  '/asignaciones',
-  '/historial',
-  '/colaboradores',
-  '/catalogos',
-])
-
-// Secciones de etapas futuras: marcador «Próximamente».
-const proximas = MENU.filter((m) => !CONSTRUIDAS.has(m.ruta) && !m.soloRol).map((m) => ({
-  path: `${m.ruta.slice(1)}/*`,
-  element: <Proximamente titulo={m.texto} etapa={m.etapa} />,
-}))
-
-// Rutas del doc 04 §5 construidas hasta la Etapa 8.
+// Rutas del doc 04 §5.
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/recuperar', element: <Recuperar /> },
   { path: '/restablecer', element: <Restablecer /> },
-  { path: '/muestra', element: <MuestraDiseno /> },
   {
     element: <RequiereSesion />,
     children: [
@@ -71,7 +52,6 @@ export const router = createBrowserRouter([
           { path: 'colaboradores/:id', element: <FichaColaborador /> },
           { path: 'catalogos', element: <Navigate to="/catalogos/empresas" replace /> },
           { path: 'catalogos/:catalogo', element: <PaginaCatalogo /> },
-          ...proximas,
           {
             element: <RequiereRol rol="admin" />,
             children: [
