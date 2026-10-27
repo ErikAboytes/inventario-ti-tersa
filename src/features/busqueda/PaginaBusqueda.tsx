@@ -1,5 +1,5 @@
-import { ScanLine, Search } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { Search } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
@@ -8,11 +8,9 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useTextoBusqueda } from '@/components/ui/useTextoBusqueda'
 import { detalleEstado, ETIQUETA_CATEGORIA } from '@/features/equipos/esquema'
 import { mensajeDeError } from '@/lib/errores'
-import { hayCamara } from '@/lib/escaner'
 import { fechaCorta } from '@/lib/formato'
 import { useTitulo } from '@/lib/useTitulo'
 import { useBusquedaGlobal } from './datos'
-import { DialogoEscaner } from './DialogoEscaner'
 import { useIrABusqueda } from './useIrABusqueda'
 
 /**
@@ -28,7 +26,6 @@ export function PaginaBusqueda() {
   const consulta = useBusquedaGlobal(q)
   const r = consulta.data
   const ir = useIrABusqueda()
-  const [escaneando, setEscaneando] = useState(false)
   useTitulo(q ? `Buscar «${q}»` : 'Buscar')
 
   const total = r
@@ -39,7 +36,7 @@ export function PaginaBusqueda() {
     <div className="flex flex-col gap-6">
       <EncabezadoPagina
         titulo="Buscar"
-        descripcion="Busca por número de serie, nombre del colaborador o folio de una carta (p. ej. CC-26-0001). También puedes escanear el QR de la etiqueta."
+        descripcion="Busca por número de serie, nombre del colaborador o folio de una carta (p. ej. CC-26-0001). Para el QR de la etiqueta usa «Escanear QR» en la barra superior."
       />
 
       <form
@@ -68,11 +65,6 @@ export function PaginaBusqueda() {
             />
           </span>
         </label>
-        {hayCamara() ? (
-          <Button variante="secundario" onClick={() => setEscaneando(true)}>
-            <ScanLine aria-hidden="true" className="size-4" /> Escanear QR
-          </Button>
-        ) : null}
       </form>
 
       {q.trim().length < 2 ? (
@@ -183,12 +175,6 @@ export function PaginaBusqueda() {
           </Grupo>
         </div>
       )}
-
-      <DialogoEscaner
-        abierto={escaneando}
-        alCerrar={() => setEscaneando(false)}
-        alLeer={(t) => void ir(t)}
-      />
     </div>
   )
 }
