@@ -1,4 +1,4 @@
-import { Plus, ScanLine, X } from 'lucide-react'
+import { Pencil, Plus, ScanLine, X } from 'lucide-react'
 import {
   useDeferredValue,
   useEffect,
@@ -7,7 +7,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { CampoArea, CampoCasilla, CampoSelect, CampoTexto } from '@/components/ui/Campos'
 import { Confirmacion } from '@/components/ui/Confirmacion'
@@ -37,9 +37,11 @@ import {
   type Borrador,
 } from './borrador'
 import { CamposFirma } from './CamposFirma'
+import { rutaEditarDesdeEntrega } from './edicionEquipo'
 import {
   traerColaboradorEntrega,
   traerEquipoEntrega,
+  traerEquiposEntrega,
   useBuscarColaboradores,
   useBuscarEquiposEntrega,
   useCrearAsignacion,
@@ -121,6 +123,21 @@ export function AsistenteEntrega() {
       vigente = false
     }
   }, [equipoParam, colaboradorParam, setB, setParams])
+
+  // Al volver de editar un equipo (o al recargar) se traen sus datos actuales; la carta sale de la BD.
+  const refrescado = useRef(false)
+  useEffect(() => {
+    if (refrescado.current || !b.equipos.length) return
+    refrescado.current = true
+    traerEquiposEntrega(b.equipos.map((e) => e.id!))
+      .then((frescos) =>
+        setB((prev) => ({
+          ...prev,
+          equipos: prev.equipos.map((e) => frescos.find((f) => f.id === e.id) ?? e),
+        })),
+      )
+      .catch(() => {})
+  }, [b.equipos, setB])
 
   const pendientes = intentado ? faltantes(b, paso) : []
 
@@ -488,14 +505,17 @@ function PasoEquipos({ b, setB }: { b: Borrador; setB: Cambiar }) {
               <li key={e.id} className="flex flex-col gap-3 px-4 py-3">
                 <div className="flex items-center justify-between gap-3">
                   <FilaEquipo e={e} />
-                  <Button
-                    variante="fantasma"
-                    className="shrink-0"
-                    onClick={() => setB((x) => sinEquipo(x, e.id!))}
-                    aria-label={`Quitar ${e.serie}`}
-                  >
-                    <X aria-hidden="true" className="size-4" /> Quitar
-                  </Button>
+                  <div className="flex shrink-0 gap-1">
+                    <EditarEquipo e={e} />
+                    <Button
+                      variante="fantasma"
+                      onClick={() => setB((x) => sinEquipo(x, e.id!))}
+                      aria-label={`Quitar ${e.serie}`}
+                    >
+                      <X aria-hidden="true" className="size-4" />
+                      <span className="hidden sm:inline">Quitar</span>
+                    </Button>
+                  </div>
                 </div>
                 {e.estado === 'apartado' ? (
                   <CampoCasilla
@@ -722,17 +742,37 @@ function PasoConfirmar({ b, unidad }: { b: Borrador; unidad?: string }) {
         <h3 className="font-semibold">Equipos ({b.equipos.length})</h3>
         <ul className="flex flex-col divide-y divide-borde rounded-control border border-borde">
           {b.equipos.map((e) => (
-            <li key={e.id} className="px-4 py-2.5">
+            <li key={e.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
               <FilaEquipo e={e} />
+              <EditarEquipo e={e} />
             </li>
           ))}
         </ul>
       </div>
       <p className="text-sm text-texto-secundario">
+        ¿Un dato del equipo está mal? Usa «Editar» antes de registrar: la carta custodia sale con
+        los datos guardados.
+      </p>
+      <p className="text-sm text-texto-secundario">
         Al registrar se genera el folio de la carta custodia (CC-AA-NNNN), los equipos pasan a
         «Asignado» y se mueven a la ubicación del colaborador.
       </p>
     </div>
+  )
+}
+
+/** Abre la edición del equipo y, al guardar o cancelar, regresa a este mismo paso de la entrega. */
+function EditarEquipo({ e }: { e: EquipoEntrega }) {
+  const { pathname, search } = useLocation()
+  return (
+    <Link
+      to={rutaEditarDesdeEntrega(e.id!, pathname + search)}
+      aria-label={`Editar datos de ${e.serie}`}
+      className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-control px-3 text-sm font-medium text-marca-azul transition-colors duration-150 hover:bg-marca-azul-50"
+    >
+      <Pencil aria-hidden="true" className="size-4" />
+      <span className="hidden sm:inline">Editar</span>
+    </Link>
   )
 }
 

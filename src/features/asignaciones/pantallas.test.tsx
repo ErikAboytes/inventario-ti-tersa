@@ -8,6 +8,7 @@ import { AvisosProvider } from '@/components/ui/Avisos'
 import { AuthContext, type EstadoAuth } from '@/features/auth/contexto'
 import { AsistenteEntrega } from './AsistenteEntrega'
 import { borradorVacio, CLAVE_BORRADOR } from './borrador'
+import { traerEquiposEntrega } from './datos'
 import { maximoFechaAsignacion } from './fechaAsignacion'
 import { fechaCorta } from '@/lib/formato'
 import { PaginaRegistrarDevolucion } from './RegistrarDevolucion'
@@ -80,6 +81,7 @@ vi.mock('./datos', () => ({
   useCrearAsignacion: () => ({ mutateAsync: m.crear, isPending: false }),
   useRegistrarDevolucion: () => ({ mutateAsync: m.devolver, isPending: false }),
   traerEquipoEntrega: vi.fn(),
+  traerEquiposEntrega: vi.fn(async () => []),
   traerColaboradorEntrega: vi.fn(),
   useAsignacion: () => ({
     isPending: false,
@@ -154,6 +156,7 @@ function montar(ruta: string) {
       { path: '/asignaciones/:id', element: <h1>Detalle</h1> },
       { path: '/asignaciones/:id/documentos', element: <h1>Documentos</h1> },
       { path: '/devoluciones/:id', element: <h1>Devolución</h1> },
+      { path: '/equipos/:id/editar', element: <h1>Editar equipo</h1> },
     ],
     { initialEntries: [ruta] },
   )
@@ -237,6 +240,26 @@ describe('P-21 · Asistente de entrega', () => {
     expect(sessionStorage.getItem(CLAVE_BORRADOR)).not.toContain('e1')
     // Al registrar se abren los documentos (P-23) con el aviso de éxito.
     expect(screen.getByRole('heading', { name: 'Documentos' })).toBeInTheDocument()
+  })
+
+  it('antes de registrar se puede editar un equipo y al volver muestra sus datos actuales', async () => {
+    const u = userEvent.setup()
+    vi.mocked(traerEquiposEntrega).mockResolvedValueOnce([
+      { ...EQUIPOS[0], modelo: 'ProBook 450 G9' } as never,
+    ])
+    sessionStorage.setItem(
+      CLAVE_BORRADOR,
+      JSON.stringify({ ...borradorConColaborador(), equipos: [EQUIPOS[0]] }),
+    )
+    const { router } = montar('/asignaciones/nueva?paso=4')
+
+    // Al montar (p. ej. de regreso del formulario) se traen los datos guardados del equipo.
+    expect(await screen.findByText('HP ProBook 450 G9')).toBeInTheDocument()
+    expect(traerEquiposEntrega).toHaveBeenCalledWith(['e1'])
+
+    await u.click(screen.getByRole('link', { name: 'Editar datos de 5CD1244JFN' }))
+    expect(router.state.location.pathname).toBe('/equipos/e1/editar')
+    expect(router.state.location.search).toBe('?volver=%2Fasignaciones%2Fnueva%3Fpaso%3D4')
   })
 
   it('en el paso 2 lista los disponibles sin escribir y explica por qué un equipo no se entrega', async () => {
