@@ -298,6 +298,13 @@ export async function traerEquipoEntrega(id: string): Promise<EquipoEntrega | nu
   return data as EquipoEntrega | null
 }
 
+/** Los datos actuales de varios equipos (al volver de editar uno desde la entrega). */
+export async function traerEquiposEntrega(ids: string[]): Promise<EquipoEntrega[]> {
+  const { data, error } = await supabase.from('v_equipos').select(CAMPOS_EQUIPO).in('id', ids)
+  if (error) throw error
+  return (data ?? []) as EquipoEntrega[]
+}
+
 export async function traerColaboradorEntrega(id: string): Promise<ColaboradorEntrega | null> {
   const { data, error } = await supabase
     .from('colaboradores')

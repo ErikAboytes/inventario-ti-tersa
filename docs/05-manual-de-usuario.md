@@ -53,7 +53,7 @@ el filtro que viene del panel usa **Quitar este filtro**. El botón **Actualizar
   (`CC-26-0001`, `CD-…`, `SIS…`, `HIST-…`) y presiona Enter. Una serie o folio exactos abren su ficha; lo demás
   muestra resultados agrupados. Atajo: tecla **/**.
 - **En el celular:** la lupa abre la búsqueda.
-- **Escanear QR:** el botón **Escanear QR** usa la cámara del celular o la computadora. Apunta al código de la
+- **Escanear QR:** el botón **Escanear QR** de la barra superior (en todas las pantallas) usa la cámara del celular o la computadora. Apunta al código de la
   etiqueta y se abre la ficha del equipo. Si el navegador no permite la cámara, escribe la serie.
 
 ---
@@ -96,7 +96,8 @@ Acciones del Administrador:
 
 ### Alta de equipo
 **Inventario → Nuevo equipo.** Categoría, serie (o «No tiene serie visible»), marca, modelo, contrato,
-ubicación y estado inicial. La **marca** se elige del catálogo (no importan mayúsculas: «hp» queda «HP»); si
+ubicación y estado inicial. En **Ubicación** escribe parte del nombre («tij») para filtrar la lista; lo mismo
+en el alta de colaborador. La **marca** se elige del catálogo (no importan mayúsculas: «hp» queda «HP»); si
 es una marca nueva, usa **Agregar «…» como marca nueva** ahí mismo. El **modelo** es libre y sugiere los ya
 capturados de esa marca. En Desktop y Laptop puedes capturar procesador, RAM, almacenamiento y sistema
 operativo. Con «Con detalles» o «Dañado» hay que describir el estado físico.
@@ -115,12 +116,14 @@ inicio del paso siguiente (y, si falta algo, al aviso que dice qué).
 2. **Equipos:** sin escribir nada aparece la lista **Disponibles para entregar** (Stock por omisión; puedes
    cambiar el estado o la categoría y **Ver más**). También puedes escribir la serie o **Escanear QR**: si la
    serie es de un equipo que no se puede entregar (asignado, desactivado…), aparece con la razón. Un equipo
-   **Apartado** pide confirmar que se entrega a la persona del apartado.
+   **Apartado** pide confirmar que se entrega a la persona del apartado. Si un dato del equipo está mal,
+   **Editar** (el lápiz) abre su formulario; al guardar o cancelar regresas al mismo paso de la entrega.
 3. **Datos de carta:** **Fecha de asignación** (hoy por omisión; puede ser hasta un año antes o después, p.
    ej. el día en que se firmará), lugar y firmas **Entrega (Sistemas)** y **Recibe (colaborador)** (vienen prellenadas y se pueden
    editar). Es la fecha que lleva la carta, también al reimprimirla. El historial guarda aparte cuándo se
    registró; el detalle de la entrega muestra las dos («Registrada el …»).
-4. **Confirmar:** revisa y elige **Registrar entrega**.
+4. **Confirmar:** revisa y elige **Registrar entrega**. Aquí también puedes **Editar** cada equipo: la carta
+   custodia se genera con los datos guardados al registrar.
 
 Al terminar se abren los **Documentos de la entrega**:
 - **Imprimir todo:** carta custodia y hoja de etiquetas.

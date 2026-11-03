@@ -1,15 +1,12 @@
 import clsx from 'clsx'
-import { ArrowRight, Plus, RotateCw, ScanLine } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { ArrowRight, Plus, RotateCw } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/contexto'
-import { DialogoEscaner } from '@/features/busqueda/DialogoEscaner'
-import { useIrABusqueda } from '@/features/busqueda/useIrABusqueda'
 import { SIN_EMPRESA } from '@/features/equipos/datos'
 import { ETIQUETA_MOVIMIENTO, fechaHora } from '@/features/equipos/historial'
 import { mensajeDeError } from '@/lib/errores'
-import { hayCamara } from '@/lib/escaner'
 import { ETIQUETA_ESTADO, type EstadoEquipo } from '@/lib/estados'
 import { fechaCorta } from '@/lib/formato'
 import { useTitulo } from '@/lib/useTitulo'
@@ -143,27 +140,11 @@ export function Panel() {
 
 function AccesosRapidos() {
   const navigate = useNavigate()
-  const ir = useIrABusqueda()
-  const [escaneando, setEscaneando] = useState(false)
+  // «Escanear QR» vive solo en la barra superior, en todos los tamaños.
   return (
-    <>
-      {/* En móvil el escáner ya está en la barra superior: aquí solo ocuparía altura. */}
-      {hayCamara() ? (
-        <div className="hidden sm:block">
-          <Button variante="secundario" onClick={() => setEscaneando(true)}>
-            <ScanLine aria-hidden="true" className="size-4" /> Escanear QR
-          </Button>
-        </div>
-      ) : null}
-      <Button onClick={() => navigate('/asignaciones/nueva')}>
-        <Plus aria-hidden="true" className="size-4" /> Nueva entrega
-      </Button>
-      <DialogoEscaner
-        abierto={escaneando}
-        alCerrar={() => setEscaneando(false)}
-        alLeer={(t) => void ir(t)}
-      />
-    </>
+    <Button onClick={() => navigate('/asignaciones/nueva')}>
+      <Plus aria-hidden="true" className="size-4" /> Nueva entrega
+    </Button>
   )
 }
 

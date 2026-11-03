@@ -1,14 +1,16 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
-import { useForm, useWatch, type FieldErrors } from 'react-hook-form'
-import { Link, useBlocker, useNavigate, useParams } from 'react-router'
+import { Controller, useForm, useWatch, type FieldErrors } from 'react-hook-form'
+import { Link, useBlocker, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
+import { CampoBuscable } from '@/components/ui/CampoBuscable'
 import { CampoArea, CampoCasilla, CampoSelect, CampoTexto } from '@/components/ui/Campos'
 import { Confirmacion } from '@/components/ui/Confirmacion'
 import { ControlSegmentado } from '@/components/ui/ControlSegmentado'
 import { EncabezadoPagina } from '@/components/ui/EncabezadoPagina'
 import { useAvisos } from '@/components/ui/avisosContexto'
 import { Cargando } from '@/components/Cargando'
+import { volverAEntrega } from '@/features/asignaciones/edicionEquipo'
 import { useOpcionesEmpresas } from '@/features/catalogos/datos'
 import { useOpcionesUbicaciones } from '@/features/colaboradores/datos'
 import { NoEncontrada } from '@/features/errores/NoEncontrada'
@@ -64,6 +66,8 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
   const alta = !equipo
   useTitulo(alta ? 'Nuevo equipo' : `Editar ${equipo.serie}`)
   const navigate = useNavigate()
+  // Desde la entrega en curso (?volver=): guardar o cancelar regresa al asistente, no a la ficha.
+  const volver = volverAEntrega(useSearchParams()[0].get('volver'))
   const { avisar } = useAvisos()
   const guardar = useGuardarEquipo()
   const empresas = useOpcionesEmpresas()
@@ -140,7 +144,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
       // flushSync: el bloqueo se suelta en este mismo instante, antes de navegar.
       flushSync(() => setGuardado(true))
       avisar({ tipo: 'exito', texto: alta ? 'Equipo registrado.' : 'Cambios guardados.' })
-      navigate(`/equipos/${id}`, { replace: !alta })
+      navigate(volver ?? `/equipos/${id}`, { replace: !alta })
     } catch (err) {
       const mensaje = mensajeDeError(err)
       const campo = campoDeError(err)
@@ -181,6 +185,13 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
           { texto: alta ? 'Nuevo equipo' : 'Editar' },
         ]}
       />
+
+      {volver ? (
+        <p className="max-w-4xl rounded-control border border-marca-azul bg-marca-azul-50 px-4 py-3 text-sm">
+          Editas un equipo de la <strong>entrega en curso</strong>. Al guardar o cancelar regresas a
+          ella; la carta custodia saldrá con estos datos.
+        </p>
+      ) : null}
 
       <form onSubmit={enviar} noValidate className="flex max-w-4xl flex-col gap-6">
         {resumen.length ? (
@@ -363,10 +374,17 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
         </Seccion>
 
         <Seccion titulo="Ubicación">
-          <CampoSelect
-            etiqueta="Ubicación"
-            opciones={ubicaciones.data ?? []}
-            {...form.register('ubicacion_id')}
+          <Controller
+            control={form.control}
+            name="ubicacion_id"
+            render={({ field }) => (
+              <CampoBuscable
+                etiqueta="Ubicación"
+                opciones={ubicaciones.data ?? []}
+                valor={field.value ?? ''}
+                alCambiar={field.onChange}
+              />
+            )}
           />
           <CampoTexto
             etiqueta="Detalle"
@@ -425,7 +443,7 @@ function FormularioEquipo({ equipo }: { equipo?: FilaEquipo }) {
         <div className="flex flex-wrap justify-end gap-3">
           <Button
             variante="secundario"
-            onClick={() => navigate(equipo ? `/equipos/${equipo.id}` : '/equipos')}
+            onClick={() => navigate(volver ?? (equipo ? `/equipos/${equipo.id}` : '/equipos'))}
           >
             Cancelar
           </Button>

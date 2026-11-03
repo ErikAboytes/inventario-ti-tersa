@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/Button'
+import { CampoBuscable } from '@/components/ui/CampoBuscable'
 import { CampoSelect, CampoTexto } from '@/components/ui/Campos'
 import { Dialogo } from '@/components/ui/Dialogo'
 import { useAvisos } from '@/components/ui/avisosContexto'
@@ -109,10 +110,17 @@ export function FormularioColaborador({
           ayuda="Se imprime en la carta custodia."
           {...form.register('unidad_negocio_id')}
         />
-        <CampoSelect
-          etiqueta="Ubicación"
-          opciones={ubicaciones.data ?? []}
-          {...form.register('ubicacion_id')}
+        <Controller
+          control={form.control}
+          name="ubicacion_id"
+          render={({ field }) => (
+            <CampoBuscable
+              etiqueta="Ubicación"
+              opciones={ubicaciones.data ?? []}
+              valor={field.value}
+              alCambiar={field.onChange}
+            />
+          )}
         />
         <CampoSelect
           etiqueta="Empresa"
