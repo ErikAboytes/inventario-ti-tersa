@@ -1,6 +1,6 @@
 """Etapa 4 · Conciliación de la carga (docs/03 §7, paso 4).
 
-Compara la BD enlazada (`supabase db query --linked`) contra lo que generó extraer.py:
+Compara la BD (la enlazada o la de --db-url) contra lo que generó extraer.py:
 
 1. conteos por estado, categoría y empresa;
 2. reglas de integridad: cada equipo «asignado» tiene exactamente una asignación activa y viceversa;
@@ -8,7 +8,7 @@ Compara la BD enlazada (`supabase db query --linked`) contra lo que generó extr
 4. ningún valor de la columna LogMeIn aparece en la carga (se leen solo para compararlos; no se imprimen).
 
 Uso:
-    python scripts/migracion/conciliar.py [--muestra 20] [--semilla N]
+    python scripts/migracion/conciliar.py [--muestra 20] [--semilla N] [--db-url URL]
 """
 
 from __future__ import annotations
@@ -27,14 +27,25 @@ import openpyxl
 from extraer import CONSOLIDADO, ORIGINAL, SALIDA, clave, hoja_como_dicts, limpio
 
 
-def consulta(sql: str) -> list[dict]:
+def filas_de_salida(salida: str) -> list[dict]:
+    # El CLI entrega {"rows": [...]} o solo la lista, según el entorno, y puede anteponer avisos de texto.
+    inicio = min(i for i in (salida.find("{"), salida.find("[")) if i >= 0)
+    datos, _ = json.JSONDecoder().raw_decode(salida[inicio:])
+    return datos["rows"] if isinstance(datos, dict) else datos
+
+
+def consulta(sql: str, db_url: str | None) -> list[dict]:
     # shutil.which: en Windows el CLI puede ser supabase.exe o supabase.cmd.
     supabase = shutil.which("supabase") or sys.exit("No se encontró el CLI de Supabase en el PATH.")
-    salida = subprocess.run(
-        [supabase, "db", "query", "--linked", sql],
-        capture_output=True, text=True, encoding="utf-8", check=True,
-    ).stdout
-    return json.loads(salida[salida.index("{"):])["rows"]
+    destino = ["--db-url", db_url] if db_url else ["--linked"]
+    resultado = subprocess.run(
+        [supabase, "db", "query", *destino, "-o", "json", sql],
+        capture_output=True, text=True, encoding="utf-8",
+    )
+    # Sin check=True: su excepción imprimiría el comando, y con él la contraseña de la URL.
+    if resultado.returncode != 0:
+        sys.exit(f"Falló la consulta a la BD:\n{resultado.stderr.strip()}")
+    return filas_de_salida(resultado.stdout)
 
 
 def comparar(titulo: str, esperado: collections.Counter, real: dict) -> bool:
@@ -52,6 +63,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--muestra", type=int, default=20)
     p.add_argument("--semilla", type=int, default=None)
+    p.add_argument("--db-url", default=None, help="Conexión a la BD; sin ella se usa el proyecto enlazado.")
     args = p.parse_args()
 
     with (SALIDA / "equipos.csv").open(encoding="utf-8-sig") as f:
@@ -61,7 +73,8 @@ def main():
     # 1. Conteos.
     filas = consulta(
         "select coalesce(e.estado::text,'') estado, e.categoria::text categoria, coalesce(em.clave,'Sin empresa') empresa, "
-        "count(*)::int n from equipos e left join empresas em on em.id = e.empresa_id group by 1,2,3"
+        "count(*)::int n from equipos e left join empresas em on em.id = e.empresa_id group by 1,2,3",
+        args.db_url,
     )
     for campo in ("estado", "categoria"):
         real = collections.Counter()
@@ -85,7 +98,8 @@ def main():
         "  where ae.devolucion_id is null and e.estado <> 'asignado')::int asignaciones_de_no_asignados, "
         "(select count(*) from asignaciones a where a.cerrada_en is null and not exists "
         "  (select 1 from asignacion_equipos ae where ae.asignacion_id = a.id and ae.devolucion_id is null))::int abiertas_sin_equipos, "
-        "(select count(*) from equipos where estado = 'apartado' and nullif(btrim(apartado_para), '') is null)::int apartados_sin_etiqueta"
+        "(select count(*) from equipos where estado = 'apartado' and nullif(btrim(apartado_para), '') is null)::int apartados_sin_etiqueta",
+        args.db_url,
     )[0]
     print("\nIntegridad")
     for k, v in reglas.items():
@@ -103,7 +117,8 @@ def main():
     lista = ",".join("'" + s.replace("'", "''") + "'" for s in series)
     bd = {f["serie"]: f for f in consulta(
         "select v.serie, v.estado::text estado, coalesce(v.ubicacion,'') ubicacion, coalesce(v.colaborador_nombre,'') colaborador, "
-        f"coalesce(v.contrato_operacion,'') operacion from v_equipos v where v.serie in ({lista})"
+        f"coalesce(v.contrato_operacion,'') operacion from v_equipos v where v.serie in ({lista})",
+        args.db_url,
     )}
     por_serie = {e["serie"]: e for e in esperados}
     print(f"\nMuestreo de {len(series)} series (Excel → BD)")
