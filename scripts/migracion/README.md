@@ -28,9 +28,10 @@ supabase db query --linked -f scripts/migracion/salida/carga.sql
 python scripts/migracion/conciliar.py
 ```
 
-En un servidor propio (sin `supabase link`), los pasos 3 y 4 usan la conexión en lugar del proyecto enlazado:
-`supabase db query --db-url <conexión> -f scripts/migracion/salida/carga.sql` y
-`python scripts/migracion/conciliar.py --db-url <conexión>`.
+En un servidor propio (sin `supabase link`), `supabase db query --db-url` no acepta archivos con varias
+instrucciones. Copia `carga.sql` al servidor y ejecútalo con `psql` dentro del contenedor:
+`docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 < carga.sql`. Bórralo del servidor al
+terminar, porque contiene datos personales. La conciliación usa `python scripts/migracion/conciliar.py --db-url <conexión>`.
 
 `conciliar.py` compara contra el Excel: sirve justo después de cargar. En cuanto alguien cambia un equipo
 en el sistema (p. ej. desactivar un no localizado por donativo), los conteos por estado dejan de coincidir; eso
