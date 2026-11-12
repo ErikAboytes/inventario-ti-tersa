@@ -5,7 +5,9 @@ Compara la BD (la enlazada o la de --db-url) contra lo que generó extraer.py:
 1. conteos por estado, categoría y empresa;
 2. reglas de integridad: cada equipo «asignado» tiene exactamente una asignación activa y viceversa;
 3. muestreo de 20 series al azar contra el Excel (estado, ubicación, colaborador);
-4. ningún valor de la columna LogMeIn aparece en la carga (se leen solo para compararlos; no se imprimen).
+4. ningún valor de la columna LogMeIn aparece en la carga (se leen solo para compararlos; no se imprimen);
+5. cuántos equipos quedaron con procesador, RAM, almacenamiento, gráfica y sistema operativo;
+6. carga.sql no contiene credenciales («u:admin p:…», «admin, tersa…») copiadas en otras columnas.
 
 Uso:
     python scripts/migracion/conciliar.py [--muestra 20] [--semilla N] [--db-url URL]
@@ -24,7 +26,7 @@ import sys
 
 import openpyxl
 
-from extraer import CONSOLIDADO, ORIGINAL, SALIDA, clave, hoja_como_dicts, limpio
+from extraer import CONSOLIDADO, CREDENCIAL, ORIGINAL, SALIDA, clave, hoja_como_dicts, limpio
 
 
 def filas_de_salida(salida: str) -> list[dict]:
@@ -161,6 +163,17 @@ def main():
         f"carga.sql porque también están en Comentarios o Puesto; {fugas} fugas"
     )
     ok &= fugas == 0
+
+    # 5. Especificaciones: los conteos de la BD contra equipos.csv.
+    campos = ("cpu", "gpu", "ram_gb", "almacenamiento", "sistema_operativo")
+    real = consulta("select " + ", ".join(f"count({c})::int {c}" for c in campos) + " from equipos", args.db_url)[0]
+    ok &= comparar("Equipos con especificación", collections.Counter(
+        {c: sum(1 for e in esperados if e.get(c)) for c in campos}), real)
+
+    # 6. Credenciales que se hubieran colado desde Usuario, Puesto o Comentarios (no se imprimen).
+    credenciales = len(CREDENCIAL.findall(carga))
+    print(f"\nCredenciales\n  {'✓' if credenciales == 0 else '✗'} {credenciales} en carga.sql")
+    ok &= credenciales == 0
 
     print("\nResultado:", "CONCILIADO" if ok else "CON DIFERENCIAS")
     return 0 if ok else 1

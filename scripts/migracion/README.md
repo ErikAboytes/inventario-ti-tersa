@@ -4,7 +4,11 @@ Proceso descrito en [docs/03](../../docs/03-analisis-y-migracion-de-datos.md). C
 y asignaciones históricas del inventario en Excel a Supabase.
 
 > Los Excel y todo lo que hay en `salida/` contienen datos personales: **no se suben a git** (`.gitignore`).
-> La columna LogMeIn (usuarios y contraseñas en texto plano) nunca se carga.
+> La columna LogMeIn (usuarios y contraseñas en texto plano) nunca se carga, y las credenciales que se colaron
+> en otras columnas se quitan al leer.
+
+La fuente principal es `Inventario_consolidado_HP_TERSA_v4.xlsx` (docs/03 §1.1). Cierra el archivo en Excel antes
+de correr los scripts: si está abierto, Windows lo bloquea y `openpyxl` falla con `PermissionError`.
 
 ## Requisitos
 
@@ -24,7 +28,8 @@ python scripts/migracion/extraer.py
 # 3. Cargar (una sola transacción; aborta si la BD ya tiene equipos o si un conteo no cuadra)
 supabase db query --linked -f scripts/migracion/salida/carga.sql
 
-# 4. Conciliar contra el Excel: conteos, integridad, muestreo de 20 series y ausencia de LogMeIn
+# 4. Conciliar contra el Excel: conteos, integridad, muestreo de 20 series, especificaciones y ausencia de
+#    LogMeIn y de credenciales
 python scripts/migracion/conciliar.py
 ```
 
@@ -61,6 +66,13 @@ sobrescribe los existentes. Una descripción o ubicación nueva que no esté en 
   Los posibles homónimos no se fusionan: se reportan en `incidencias.csv` para decidir a mano.
 - **Puesto:** de la columna PUESTO del archivo original (cruce por serie); si no hay, del comentario cuando parece un puesto.
 - **Estado físico:** los comentarios de daño («Detalle en teclado», «Dañada…») llenan condición y observaciones.
+- **Especificaciones (v4):** procesador, gráfica, RAM, almacenamiento y sistema operativo de sus columnas, solo en
+  desktops y laptops. RAM fuera de 1–4096 GB no se carga; textos de más de 100 caracteres se recortan (con incidencia).
+- **Modelo (v4):** si la fila trae «Modelo exacto (LogMeIn)», ese modelo manda sobre `modelos.csv`; el cambio queda
+  en la nota de importación.
+- **Ciudad y estado (v4):** cada ubicación guarda la ciudad más frecuente de sus equipos. Si sus equipos dicen
+  ciudades distintas, aparece «Ubicación con varias ciudades» en `incidencias.csv`.
+- **Credenciales:** «u:admin p:…» y «admin, tersa…» se quitan de cualquier celda; el resumen dice cuántas.
 - **Asignaciones históricas:** una por carta (SIS…) o, sin carta, una por colaborador (HIST-0001…). Las cartas de
   equipos que ya no están asignados quedan cerradas con una devolución histórica `DEV-<folio>`.
 - **Historial:** cada equipo recibe un movimiento «Importación» cuya nota guarda los datos originales del Excel.

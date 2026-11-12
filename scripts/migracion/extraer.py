@@ -7,8 +7,12 @@ Lee los dos Excel en modo solo lectura, aplica los mapeos de `mapeos/*.csv` y ge
 - resumen.md: conteos para la conciliación;
 - carga.sql: la carga completa en una sola transacción (se ejecuta con `supabase db query`).
 
-La columna LogMeIn (usuarios y contraseñas en texto plano) nunca se lee.
+La columna LogMeIn (usuarios y contraseñas en texto plano) nunca se lee, y las credenciales que se colaron en
+otras columnas («u:admin p:…», «admin, tersa…») se quitan al leer cada celda.
 `salida/` está en .gitignore: contiene datos personales.
+
+Desde la v4 el consolidado trae, además de sus 12 columnas, especificaciones (medidas por LogMeIn o tomadas de la
+Descripción), el modelo exacto según LogMeIn y la ciudad y estado de cada equipo. Si faltan (v2), se omiten.
 
 Uso:
     python scripts/migracion/extraer.py [--consolidado RUTA] [--original RUTA] [--generar-mapeos]
@@ -34,7 +38,7 @@ AQUI = Path(__file__).resolve().parent
 MAPEOS = AQUI / "mapeos"
 SALIDA = AQUI / "salida"
 
-CONSOLIDADO = Path.home() / "OneDrive/Documentos/ITT/Residencia/Recursos/Inventario_consolidado_HP_TERSA_v2.xlsx"
+CONSOLIDADO = Path.home() / "OneDrive/Documentos/ITT/Residencia/Recursos/Inventario_consolidado_HP_TERSA_v4.xlsx"
 ORIGINAL = Path.home() / "OneDrive/Desktop/Docs/INVENTARIO TERSA ACTUALIZADO 20-07-26.xlsx"
 
 HOY = dt.date.today().isoformat()
@@ -77,6 +81,24 @@ def acentos(n: str) -> int:
     return sum(1 for c in n if ord(c) > 127)
 
 
+# Credenciales de LogMeIn copiadas por error en Usuario, Puesto, Comentarios o Ubicación:
+# «… u:admin p:xxxx», «… U:admin P:xxxx», «… admin, tersaNNN», «… admin,TersaNN».
+CREDENCIAL = re.compile(r"\s*,?\s*(?:\b[uU]\s?:\s?\S+(?:\s+[pP]\s?:\s?\S+)?|\b[pP]\s?:\s?\S+|\badmin\s*,\s*\S+)")
+credenciales_quitadas = 0
+
+
+def sin_credenciales(valor):
+    """Quita usuario y contraseña de un texto; deja el resto («RENAULT-Garantías Ensenada»)."""
+    global credenciales_quitadas
+    if not isinstance(valor, str):
+        return valor
+    sin, cuantas = CREDENCIAL.subn("", valor)
+    if not cuantas:
+        return valor  # el resto de las celdas no se toca (las descripciones son llave de mapeos/modelos.csv)
+    credenciales_quitadas += 1
+    return sin.strip(" ,")
+
+
 # ── Lectura de Excel ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -88,7 +110,7 @@ def hoja_como_dicts(ws) -> list[dict]:
     for n, fila in enumerate(filas, start=2):
         if not any(limpio(c) for c in fila):
             continue
-        d = {e: v for e, v in zip(encabezados, fila) if e and e != "LOGMEIN"}
+        d = {e: sin_credenciales(v) for e, v in zip(encabezados, fila) if e and e != "LOGMEIN"}
         d["_fila"] = n
         resultado.append(d)
     return resultado
@@ -178,7 +200,7 @@ def sugerir_ubicacion(original: str) -> dict:
 
 def sugerir_modelo(descripcion: str) -> dict:
     """Marca y modelo legibles a partir de la descripción libre del Excel (docs/03 §2)."""
-    d = clave(descripcion)
+    d = re.sub(r"\s\d+ INCH\b", "", clave(descripcion))  # «ProBook 440 14 inch G9» (nombre del BIOS)
     if re.fullmatch(r"[0-9A-Z]{7}", d) and re.search(r"\d", d) and re.search(r"[A-Z]", d):
         # 2F3X8LT, 476T2LT, 3Y0Q4AA: número de parte HP, no descripción.
         return {"marca": "HP", "modelo": "Por identificar", "numero_producto": d}
@@ -215,6 +237,8 @@ def sugerir_modelo(descripcion: str) -> dict:
         (r"\b(N246V)", lambda m: "N246v"),
         (r"MONITOR LED 23\.8", lambda m: "Monitor LED 23.8"),
         (r"MONITOR LED 24", lambda m: "Monitor LED 24"),
+        (r"COMPAQ (\d{4}) PRO SFF", lambda m: f"Compaq {m.group(1)} Pro SFF"),
+        (r"^HP (\d{3}) (G\d+)\b", lambda m: f"{m.group(1)} {m.group(2)}"),  # «HP 250 G7 Notebook PC»
     ]
     for patron, modelo in reglas:
         m = re.search(patron, d)
@@ -304,6 +328,12 @@ class Equipo:
     motivo_desactivacion: str = ""
     condicion: str = ""
     observaciones_estado: str = ""
+    # Especificaciones (solo desktop y laptop: equipos_especificaciones_solo_computo).
+    cpu: str = ""
+    gpu: str = ""
+    ram_gb: int | None = None
+    almacenamiento: str = ""
+    sistema_operativo: str = ""
     notas: list[str] = field(default_factory=list)
     nota_importacion: str = ""
     colaborador: str = ""  # clave del colaborador (asignación activa o histórica)
@@ -355,6 +385,44 @@ class Migracion:
         if ubicacion:
             c.ubicaciones[ubicacion] += 1
         return k
+
+
+def modelo_logmein(texto: str) -> str:
+    """«HP ProDesk 400 G5 Desktop Mini» → «ProDesk 400 G5». '' si ninguna regla de sugerir_modelo lo reconoce."""
+    if not texto:
+        return ""
+    modelo = sugerir_modelo(texto)["modelo"]
+    return "" if modelo in ("Por identificar", titulo_lugar(texto)[:60]) else modelo
+
+
+LIMITE_TEXTO = 100  # mismo límite que el formulario (src/features/equipos/esquema.ts)
+
+
+def especificaciones_de(m: Migracion, e: Equipo, f: dict):
+    """Columnas de especificaciones de la v4 (vacías en la v2). Solo se cargan en desktops y laptops."""
+    valores = {
+        "cpu": limpio(f.get("PROCESADOR")), "gpu": limpio(f.get("TARJETA GRAFICA")),
+        "almacenamiento": limpio(f.get("ALMACENAMIENTO")), "sistema_operativo": limpio(f.get("SISTEMA OPERATIVO")),
+    }
+    ram = f.get("MEMORIA RAM (GB)")
+    if not any(valores.values()) and ram in (None, ""):
+        return
+    if e.categoria not in ("desktop", "laptop"):
+        m.incidencia("Especificaciones en no cómputo", e.serie, f"Categoría {e.categoria}: no se cargan", e.origen)
+        return
+    for campo, valor in valores.items():
+        if len(valor) > LIMITE_TEXTO:
+            m.incidencia("Especificación muy larga", e.serie, f"{campo} pasa de {LIMITE_TEXTO} caracteres; se recorta", e.origen)
+            valor = valor[:LIMITE_TEXTO]
+        setattr(e, campo, valor)
+    if ram not in (None, ""):
+        try:
+            e.ram_gb = int(float(ram))
+        except (TypeError, ValueError):
+            e.ram_gb = None
+        if e.ram_gb is None or not 1 <= e.ram_gb <= 4096:  # equipos_ram_gb_rango
+            m.incidencia("RAM inválida", e.serie, f"«{ram}» no es un número de GB entre 1 y 4096; no se carga", e.origen)
+            e.ram_gb = None
 
 
 def ubicacion_de(m: Migracion, mapa: dict, original: str, serie: str, origen: str) -> tuple[str, str]:
@@ -431,13 +499,20 @@ def procesar(m: Migracion, consolidado: list[dict], puestos: dict, otros: list[d
         descripcion = limpio(f.get("DESCRIPCION"))
         e.descripcion = descripcion
         mod = modelos.get(clave(descripcion))
+        # El modelo que reporta el BIOS (LogMeIn, desde la v4) manda sobre el que se deduce de la descripción.
+        modelo_bios = modelo_logmein(limpio(f.get("MODELO EXACTO (LOGMEIN)")))
         if mod:
             e.marca, e.modelo, e.numero_producto = mod["marca"], mod["modelo"], mod["numero_producto"]
-            if mod["modelo"] == "Por identificar":
+            if mod["modelo"] == "Por identificar" and not modelo_bios:
                 m.incidencia("Modelo por identificar", serie, f"La descripción «{descripcion}» es un número de parte", origen)
         else:
-            m.incidencia("Descripción sin mapeo", serie, f"«{descripcion}» no está en mapeos/modelos.csv", origen)
+            if not modelo_bios:
+                m.incidencia("Descripción sin mapeo", serie, f"«{descripcion}» no está en mapeos/modelos.csv", origen)
             e.marca, e.modelo = "HP", "Por identificar"
+        modelo_excel = e.modelo
+        if modelo_bios:
+            e.modelo = modelo_bios
+        especificaciones_de(m, e, f)
 
         e.operacion = clave(f.get("OPERACION"))
         if e.operacion and e.operacion not in m.contratos:
@@ -446,6 +521,10 @@ def procesar(m: Migracion, consolidado: list[dict], puestos: dict, otros: list[d
 
         ubic_original = limpio(f.get("UBICACION"))
         e.ubicacion, e.ubicacion_detalle = ubicacion_de(m, ubic, ubic_original, serie, origen)
+        # Ciudad y estado normalizados de la v4 → ubicaciones.ciudad / estado_republica (la más frecuente gana).
+        lugar = (limpio(f.get("CIUDAD (SISTEMA)")), limpio(f.get("ESTADO DE LA REPUBLICA")))
+        if e.ubicacion and any(lugar):
+            m.ubicaciones[e.ubicacion].setdefault("lugares", collections.Counter())[lugar] += 1
 
         estatus = limpio(f.get("ESTATUS"))
         usuario = limpio(f.get("USUARIO"))
@@ -511,6 +590,11 @@ def procesar(m: Migracion, consolidado: list[dict], puestos: dict, otros: list[d
             partes.append(f"comentario «{comentario}»")
         if coincidencia:
             partes.append(f"coincidencia «{coincidencia}»")
+        if modelo_bios and modelo_bios != modelo_excel:
+            partes.append(f"modelo «{modelo_excel}» corregido con LogMeIn")
+        origen_spec = limpio(f.get("ORIGEN DE ESPECIFICACIONES"))
+        if origen_spec and (e.cpu or e.ram_gb or e.almacenamiento):
+            partes.append(f"especificaciones: {origen_spec}")
         e.nota_importacion = "Importado del Excel (" + origen.lower() + "): " + " · ".join(partes) + "."
         m.equipos.append(e)
 
@@ -556,6 +640,17 @@ def procesar(m: Migracion, consolidado: list[dict], puestos: dict, otros: list[d
         m.equipos.append(e)
         if serie:
             por_serie[serie] = e
+
+    # Una ubicación guarda una sola ciudad: si sus equipos dicen otra, se avisa (ver lugar_de()).
+    for nombre, u in sorted(m.ubicaciones.items()):
+        lugares = u.get("lugares") or {}
+        ciudades = {c for c, _ in lugares if c}
+        estados_rep = {s for _, s in lugares if s}
+        if len(ciudades) > 1 or len(estados_rep) > 1:
+            ciudad, estado_rep = lugar_de(u)
+            detalle = " / ".join(f"{c or '—'}, {s or '—'} ({n})" for (c, s), n in lugares.most_common())
+            m.incidencia("Ubicación con varias ciudades", "",
+                         f"«{nombre}»: {detalle}; se guarda {ciudad or '—'}, {estado_rep or '—'}", "")
 
     # Homónimos posibles (docs/03 §8). No se fusionan solos: se reportan para decidir a mano.
     personas = sorted((c for c in m.colaboradores.values() if c.tipo == "persona"), key=lambda c: c.clave)
@@ -625,6 +720,17 @@ def valores(filas: list[list]) -> str:
 DESTINO = {"stock": "stock", "mantenimiento": "mantenimiento", "no_localizado": "no_localizado", "desactivado": "desactivado"}
 
 
+def lugar_de(u: dict) -> tuple[str, str]:
+    """(ciudad, estado) más frecuente entre los equipos de la ubicación; ('', '') si el Excel no lo trae.
+    Un dato con ciudad gana a uno que solo trae el estado («Culiacán, Sinaloa» sobre «—, Sinaloa»)."""
+    lugares = u.get("lugares") or collections.Counter()
+    solo_estado = collections.Counter({s: n for (c, s), n in lugares.items() if not c})
+    # Los equipos que solo dicen el estado respaldan a la ciudad de ese estado («Tersa Culiacán»: 8 × Sinaloa).
+    con_ciudad = collections.Counter({(c, s): n + solo_estado[s] for (c, s), n in lugares.items() if c})
+    elegido = (con_ciudad or lugares).most_common(1)
+    return elegido[0][0] if elegido else ("", "")
+
+
 def generar_sql(m: Migracion, asignaciones: list[dict], conteos: dict) -> str:
     empresas = sorted({c["empresa"] for c in m.contratos.values() if c["empresa"]})
     usadas = {e.operacion for e in m.equipos if e.operacion}
@@ -647,10 +753,11 @@ def generar_sql(m: Migracion, asignaciones: list[dict], conteos: dict) -> str:
         + valores([[c["operacion"], c["numero"], c["empresa"], c["descripcion"], c["vencimiento"], c["estatus"]] for c in contratos])
         + "\n) v(operacion, numero, empresa, descripcion, vencimiento, estatus)\n"
         "join public.empresas em on em.clave = v.empresa\non conflict (operacion) do nothing;",
-        "\n-- Ubicaciones normalizadas (docs/03 §4).",
-        "insert into public.ubicaciones (nombre, tipo)\nselect v.nombre, v.tipo from (values\n  "
-        + valores([[n, u["tipo"]] for n, u in sorted(m.ubicaciones.items())])
-        + "\n) v(nombre, tipo)\nwhere not exists (select 1 from public.ubicaciones u\n"
+        "\n-- Ubicaciones normalizadas (docs/03 §4), con la ciudad y el estado más frecuentes de sus equipos.",
+        "insert into public.ubicaciones (nombre, tipo, ciudad, estado_republica)\n"
+        "select v.nombre, v.tipo, v.ciudad, v.estado from (values\n  "
+        + valores([[n, u["tipo"], *lugar_de(u)] for n, u in sorted(m.ubicaciones.items())])
+        + "\n) v(nombre, tipo, ciudad, estado)\nwhere not exists (select 1 from public.ubicaciones u\n"
         "  where public.normalizar_texto(u.nombre) = public.normalizar_texto(v.nombre));",
         "\ninsert into public.subcategorias (nombre) select 'iPad/Tablet'\n"
         "where not exists (select 1 from public.subcategorias where public.normalizar_texto(nombre) = 'ipad/tablet');",
@@ -669,21 +776,25 @@ def generar_sql(m: Migracion, asignaciones: list[dict], conteos: dict) -> str:
         "create temp table imp_equipos (id uuid default gen_random_uuid(), n int primary key, serie text, categoria text,\n"
         "  subcategoria text, marca text, modelo text, numero_producto text, descripcion text, operacion text,\n"
         "  ubicacion text, ubicacion_detalle text, estado text, apartado_para text, motivo text, condicion text,\n"
-        "  observaciones text, notas text, nota_importacion text) on commit drop;",
+        "  observaciones text, cpu text, gpu text, ram_gb smallint, almacenamiento text, sistema_operativo text,\n"
+        "  notas text, nota_importacion text) on commit drop;",
         "insert into imp_equipos (n, serie, categoria, subcategoria, marca, modelo, numero_producto, descripcion, operacion,\n"
-        "  ubicacion, ubicacion_detalle, estado, apartado_para, motivo, condicion, observaciones, notas, nota_importacion) values\n  "
+        "  ubicacion, ubicacion_detalle, estado, apartado_para, motivo, condicion, observaciones, cpu, gpu, ram_gb,\n"
+        "  almacenamiento, sistema_operativo, notas, nota_importacion) values\n  "
         + valores([[n, e.serie, e.categoria, e.subcategoria, e.marca, e.modelo, e.numero_producto, e.descripcion, e.operacion,
                     e.ubicacion, e.ubicacion_detalle, e.estado, e.apartado_para, e.motivo_desactivacion, e.condicion,
-                    e.observaciones_estado, "\n".join(e.notas), e.nota_importacion] for n, e in enumerate(m.equipos, 1)]) + ";",
+                    e.observaciones_estado, e.cpu, e.gpu, e.ram_gb, e.almacenamiento, e.sistema_operativo,
+                    "\n".join(e.notas), e.nota_importacion] for n, e in enumerate(m.equipos, 1)]) + ";",
         # La marca de cada equipo debe existir en el catálogo de marcas (equipos_marca_fkey).
         "insert into public.marcas (nombre) select distinct btrim(marca) from imp_equipos\n"
         "where btrim(coalesce(marca, '')) <> '' on conflict do nothing;",
         "insert into public.equipos (id, serie, categoria, subcategoria_id, marca, modelo, numero_producto, descripcion,\n"
         "  contrato_id, ubicacion_id, ubicacion_detalle, estado, apartado_para, motivo_desactivacion, condicion,\n"
-        "  observaciones_estado, notas)\n"
+        "  observaciones_estado, cpu, gpu, ram_gb, almacenamiento, sistema_operativo, notas)\n"
         "select i.id, coalesce(i.serie, ''), i.categoria::public.categoria_equipo, sc.id, i.marca, i.modelo, i.numero_producto,\n"
         "  i.descripcion, ct.id, ub.id, i.ubicacion_detalle, i.estado::public.estado_equipo, i.apartado_para, i.motivo,\n"
-        "  i.condicion::public.condicion_equipo, i.observaciones, i.notas\n"
+        "  i.condicion::public.condicion_equipo, i.observaciones, i.cpu, i.gpu, i.ram_gb, i.almacenamiento,\n"
+        "  i.sistema_operativo, i.notas\n"
         "from imp_equipos i\n"
         "left join public.subcategorias sc on public.normalizar_texto(sc.nombre) = public.normalizar_texto(i.subcategoria)\n"
         "left join public.contratos ct on ct.operacion = i.operacion\n"
@@ -806,7 +917,7 @@ def main():
         [{**e.__dict__, "notas": " | ".join(e.notas), "colaborador": m.colaboradores[e.colaborador].nombre if e.colaborador else ""} for e in m.equipos],
         ["serie", "origen", "categoria", "subcategoria", "marca", "modelo", "numero_producto", "descripcion", "operacion",
          "ubicacion", "ubicacion_detalle", "estado", "apartado_para", "motivo_desactivacion", "condicion",
-         "observaciones_estado", "colaborador", "folio", "notas"],
+         "observaciones_estado", "cpu", "gpu", "ram_gb", "almacenamiento", "sistema_operativo", "colaborador", "folio", "notas"],
     )
     escribir_csv(
         SALIDA / "colaboradores.csv",
@@ -835,7 +946,8 @@ def main():
         f"- Equipos: **{len(m.equipos):,}** (consolidado {sum(e.origen.startswith('Consolidado') for e in m.equipos):,} · fuera de contrato {sum(e.origen.startswith('Otros') for e in m.equipos):,})",
         f"- Colaboradores: **{len(m.colaboradores):,}** ({sum(c.tipo == 'persona' for c in m.colaboradores.values()):,} personas · {sum(c.tipo == 'generico' for c in m.colaboradores.values()):,} genéricos)",
         f"- Asignaciones históricas: **{len(asignaciones):,}** ({len(activas):,} activas · {len(asignaciones) - len(activas):,} cerradas)",
-        f"- Ubicaciones: **{len(m.ubicaciones):,}** · Contratos usados: **{len({e.operacion for e in m.equipos if e.operacion}):,}**",
+        f"- Ubicaciones: **{len(m.ubicaciones):,}** ({sum(1 for u in m.ubicaciones.values() if any(lugar_de(u))):,} con ciudad o estado) · Contratos usados: **{len({e.operacion for e in m.equipos if e.operacion}):,}**",
+        f"- Especificaciones: **{sum(1 for e in m.equipos if e.cpu or e.ram_gb or e.almacenamiento):,}** equipos con procesador, RAM o almacenamiento · credenciales quitadas de **{credenciales_quitadas}** celdas",
         f"- Incidencias: **{len(m.incidencias):,}** (ver incidencias.csv)\n",
         tabla("Por estado", collections.Counter(e.estado for e in m.equipos)),
         tabla("Por categoría", collections.Counter(e.categoria for e in m.equipos)),
@@ -844,7 +956,7 @@ def main():
         tabla("Incidencias por tipo", collections.Counter(i["tipo"] for i in m.incidencias)),
     ]
     (SALIDA / "resumen.md").write_text("\n".join(resumen), encoding="utf-8")
-    print("\n".join(resumen[:6]))
+    print("\n".join(resumen[:7]))
     print("Salida en", SALIDA)
 
 
