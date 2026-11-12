@@ -9,10 +9,11 @@ do $$ begin
   end if;
 end $$;
 
+-- El historial va primero: sus movimientos apuntan a asignaciones y devoluciones.
+delete from public.movimientos;
 delete from public.asignacion_equipos;
 delete from public.devoluciones;
 delete from public.asignaciones;
-delete from public.movimientos;
 delete from public.equipos;
 delete from public.colaboradores;
 delete from public.contratos;

@@ -7,9 +7,9 @@
 
 | Archivo | Uso |
 |---|---|
-| `Inventario_consolidado_HP_TERSA_v2.xlsx` → hoja **Consolidado** | **Fuente principal** de equipos (1,449) |
+| `Inventario_consolidado_HP_TERSA_v4.xlsx` → hoja **Consolidado** | **Fuente principal** de equipos (1,463; ver §1.1). La v2 (1,449) sigue funcionando sin las columnas nuevas |
 | `INVENTARIO TERSA ACTUALIZADO 20-07-26.xlsx` → hoja **CONTRATOS** | Empresa, número de contrato, vencimiento y estatus de cada operación |
-| `INVENTARIO TERSA ACTUALIZADO 20-07-26.xlsx` → hojas TERSA, RENAULT, CONTROL, REVOR, ROVAL | Columna **PUESTO** del colaborador (el consolidado la mezcló con Comentarios) |
+| `INVENTARIO TERSA ACTUALIZADO 20-07-26.xlsx` → hojas TERSA, RENAULT, CONTROL | Columna **PUESTO** del colaborador (el consolidado la mezcló con Comentarios). REVOR y ROVAL no tienen esa columna |
 | `INVENTARIO TERSA ACTUALIZADO 20-07-26.xlsx` → hoja **OTROS EQUIPOS SERIES NO ESTAN EN CONTRATO** | Equipos fuera de contrato (D9: se incluyen) |
 
 El consolidado no trae empresa ni número de contrato, pero **todas sus operaciones (110) existen en la hoja
@@ -20,6 +20,26 @@ aparecen en la hoja TERSA del original.
 
 > Los Excel y los CSV derivados contienen datos personales y credenciales: **no se suben al repositorio**
 > (`.gitignore`) y se procesan solo en el equipo local.
+
+### 1.1 Consolidado v4 (2026-11-12)
+
+La v4 conserva las 12 columnas de la v2 sin cambios y agrega a la derecha lo que guarda el sistema. `extraer.py`
+lee de ahí solo lo que no puede deducir por sí mismo:
+
+| Columnas de la v4 | Se cargan en | Origen |
+|---|---|---|
+| Procesador, Tarjeta gráfica, Memoria RAM (GB), Almacenamiento, Sistema operativo | `equipos.cpu`, `gpu`, `ram_gb`, `almacenamiento`, `sistema_operativo` | Reporte de inventario de hardware de **LogMeIn Central** (327 equipos, dato medido); si el equipo no aparece, lo escrito en la Descripción |
+| Modelo exacto (LogMeIn) | `equipos.modelo` (manda sobre `mapeos/modelos.csv`) | Modelo del BIOS normalizado con las reglas de `sugerir_modelo()` («HP ProDesk 400 G5 Desktop Mini» → «ProDesk 400 G5») |
+| Ciudad (sistema), Estado de la República | `ubicaciones.ciudad`, `estado_republica` | Columna Ciudad normalizada; por ubicación gana la ciudad más frecuente |
+
+El resto de las columnas nuevas (estado, ubicación, colaborador, folio…) son la vista previa de lo que calcula
+`extraer.py` y no se vuelven a leer. Además, la v4 agrega al final 14 filas que faltaban: la operación
+**CONTROL027** completa (8 laptops y 1 monitor de la hoja CONTROL del original) y 5 equipos HP que solo aparecen
+en LogMeIn, sin contrato ni estatus (se cargan como Pendiente).
+
+**Credenciales fuera de la columna LogMeIn.** 29 celdas de Usuario, Puesto, Comentarios y Ubicación traen
+«u:admin p:…» o «admin, tersa…». `extraer.py` las quita al leer cada celda y `conciliar.py` verifica que no
+quede ninguna en `carga.sql`.
 
 ## 2. Perfil de la hoja Consolidado
 
