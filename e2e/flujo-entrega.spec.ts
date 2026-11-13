@@ -18,7 +18,12 @@ test('alta, entrega con documentos y devolución de un equipo', async ({ page, i
 
   // Alta
   await page.goto('/equipos/nuevo')
-  await page.getByRole('radio', { name: 'Monitor' }).check()
+  // El radio del control segmentado es sr-only: se elige con un clic en su etiqueta, como lo hace una persona.
+  await page
+    .locator('label')
+    .filter({ hasText: /^Monitor$/ })
+    .click()
+  await expect(page.getByRole('radio', { name: 'Monitor' })).toBeChecked()
   await page.getByLabel('Número de serie').fill(serie)
   await page.getByLabel('Marca').fill('HP')
   await page.getByLabel('Modelo').fill('Prueba E2E')
@@ -28,7 +33,11 @@ test('alta, entrega con documentos y devolución de un equipo', async ({ page, i
   // Entrega desde la ficha
   await page.getByRole('button', { name: 'Entregar' }).click()
   await page.getByLabel('Buscar colaborador').fill(process.env.E2E_COLABORADOR!)
-  await page.getByRole('list', { name: 'Colaboradores encontrados' }).getByRole('button').first().click()
+  await page
+    .getByRole('list', { name: 'Colaboradores encontrados' })
+    .getByRole('button')
+    .first()
+    .click()
   await page.getByRole('button', { name: 'Continuar' }).click()
   // El equipo llega precargado desde la ficha.
   await expect(page.getByText(serie).first()).toBeVisible()
@@ -37,14 +46,20 @@ test('alta, entrega con documentos y devolución de un equipo', async ({ page, i
   await page.getByRole('button', { name: 'Registrar entrega' }).click()
 
   // Documentos
-  await expect(page.getByRole('status')).toContainText(/Entrega CC-\d{2}-\d{4} registrada/)
+  // Puede seguir visible el aviso del alta: se busca el de la entrega.
+  await expect(
+    page.getByRole('status').filter({ hasText: /Entrega CC-\d{2}-\d{4} registrada/ }),
+  ).toBeVisible()
   await expect(page.getByRole('article', { name: /Carta custodia CC-/ })).toContainText(serie)
   await expect(page.getByRole('region', { name: /Hoja de etiquetas/ })).toContainText(serie)
 
   // Devolución
   await page.getByRole('link', { name: 'Volver a la entrega' }).click()
   await page.getByRole('button', { name: 'Registrar devolución' }).click()
-  await page.getByLabel(new RegExp(serie)).check()
+  await page.locator('label').filter({ hasText: serie }).click()
+  await expect(page.getByRole('checkbox', { name: new RegExp(serie) })).toBeChecked()
+  // Cada equipo elegido necesita su destino.
+  await page.getByRole('combobox', { name: /Destino/ }).selectOption({ label: 'Stock' })
   await page.getByRole('button', { name: 'Registrar devolución' }).click()
   await page
     .getByRole('dialog', { name: '¿Registrar la devolución?' })
