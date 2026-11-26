@@ -553,6 +553,8 @@ toda la app.
   - **Panel:** las cifras cuentan hasta su valor (y del valor anterior al nuevo al actualizar), las tarjetas
     aparecen escalonadas y suben 2 px al pasar el mouse, las barras por empresa crecen, la línea de avance se
     descubre y los movimientos nuevos llegan resaltados. Mientras carga, un esqueleto con la forma del panel.
+    Esa entrada completa solo se ve la primera vez por sesión; al volver al panel las cifras están al instante
+    (quien lo consulta varias veces al día no espera a que se arme).
   - **Asistente de entrega:** el paso entra por la derecha al avanzar y por la izquierda al regresar; el aviso
     de faltantes se sacude; el equipo agregado llega resaltado; las palomitas del stepper se asientan.
   - **Entrega registrada y ficha:** el aviso de éxito aparece con su palomita; la insignia de estado se asienta

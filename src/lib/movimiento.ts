@@ -29,12 +29,13 @@ function puedeAnimar(): boolean {
 const DURACION_CONTEO = 700
 
 /**
- * Cifra que cuenta hasta su valor (doc 04 §7.4): la primera vez desde 0 y, si el valor cambia (p. ej. al
- * actualizar el panel), del anterior al nuevo, para que se vea qué cambió. El número animado es decorativo:
+ * Cifra que cuenta hasta su valor (doc 04 §7.4): al montar, desde 0 (o directo al valor si `desdeCero` es
+ * false) y, si el valor cambia (p. ej. al actualizar el panel), del anterior al nuevo, para que se vea qué
+ * cambió. El número animado es decorativo:
  * quien lo pinte debe dar el valor final a lectores de pantalla (`sr-only`) y ocultar este con `aria-hidden`.
  */
-export function useConteo(valor: number): number {
-  const [mostrado, setMostrado] = useState(() => (puedeAnimar() ? 0 : valor))
+export function useConteo(valor: number, desdeCero = true): number {
+  const [mostrado, setMostrado] = useState(() => (puedeAnimar() && desdeCero ? 0 : valor))
   const actual = useRef(mostrado)
 
   useEffect(() => {

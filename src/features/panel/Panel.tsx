@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { ArrowRight, Plus, RotateCw } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/contexto'
@@ -35,6 +35,14 @@ const RELLENO: Record<EstadoEquipo, string> = {
 }
 
 /**
+ * La entrada completa del panel (cifras desde 0, cascadas, barras que crecen, línea que se descubre) solo se ve
+ * la primera vez por sesión: quien vuelve al panel varias veces al día no espera a que se arme. Al actualizar,
+ * las cifras siguen contando del valor anterior al nuevo.
+ */
+let panelYaVisto = false
+const EntradaPanel = createContext(true)
+
+/**
  * P-03: panel operativo (doc 04 §6). Cada bloque responde una pregunta y cada cifra abre el inventario o el
  * historial con el filtro equivalente. El Administrador ve primero lo que tiene que resolver; el Lector, la
  * situación general.
@@ -45,6 +53,10 @@ export function Panel() {
   const esAdmin = perfil?.rol === 'admin'
   const consulta = useMetricasPanel()
   const m = consulta.data
+  const [conEntrada] = useState(() => !panelYaVisto)
+  useEffect(() => {
+    panelYaVisto = true
+  }, [])
 
   return (
     <div className="flex flex-col gap-6">
@@ -94,7 +106,7 @@ export function Panel() {
       ) : !m ? (
         <EsqueletoPanel />
       ) : (
-        <>
+        <EntradaPanel.Provider value={conEntrada}>
           <CifrasClave m={m} />
           {/* En el celular el orden es el del DOM (lo urgente primero); en escritorio se emparejan bloques de
               alto parecido para que ninguno se estire: Distribución con Actividad, Avance con Atención. */}
@@ -131,7 +143,7 @@ export function Panel() {
               </>
             )}
           </div>
-        </>
+        </EntradaPanel.Provider>
       )}
     </div>
   )
@@ -210,7 +222,10 @@ function Cifra({
   tono?: 'bien' | 'mal'
 }) {
   return (
-    <li className="motion-safe:animate-aparecer" style={retraso(orden)}>
+    <li
+      className={clsx(useContext(EntradaPanel) && 'motion-safe:animate-aparecer')}
+      style={retraso(orden)}
+    >
       <Link
         to={ruta}
         className="flex h-full flex-col gap-1 rounded-tarjeta border border-borde bg-superficie p-4 transition-[border-color,translate] duration-150 ease-entrada hover:border-marca-azul motion-safe:hover:-translate-y-0.5 sm:p-5"
@@ -239,7 +254,7 @@ function Cifra({
  * lectores de pantalla (y las pruebas) leen siempre el valor final.
  */
 function Numero({ valor }: { valor: number }) {
-  const mostrado = useConteo(valor)
+  const mostrado = useConteo(valor, useContext(EntradaPanel))
   return (
     <>
       <span aria-hidden="true">{formatoNumero(mostrado)}</span>
@@ -353,6 +368,7 @@ function RequiereAtencion({ m }: { m: MetricasPanel }) {
 // ── 3. Distribución por empresa ─────────────────────────────────────────────────────────────────────
 
 function Distribucion({ m }: { m: MetricasPanel }) {
+  const conEntrada = useContext(EntradaPanel)
   const max = Math.max(1, ...m.por_empresa.map((e) => e.total))
 
   return (
@@ -387,7 +403,10 @@ function Distribucion({ m }: { m: MetricasPanel }) {
                   <div aria-hidden="true" className="hidden h-3 sm:block">
                     {/* Crece desde la izquierda al cargar; al actualizar, el ancho cambia con transición. */}
                     <div
-                      className="flex h-full origin-left overflow-hidden rounded-sm transition-[width] duration-500 ease-entrada motion-safe:animate-crecer-x"
+                      className={clsx(
+                        'flex h-full origin-left overflow-hidden rounded-sm transition-[width] duration-500 ease-entrada',
+                        conEntrada && 'motion-safe:animate-crecer-x',
+                      )}
                       style={{ ...retraso(i, 60), width: `${(e.total / max) * 100}%` }}
                     >
                       {partes.map((s) => (
@@ -438,6 +457,7 @@ const ANCHO = 300
 const ALTO = 80
 
 function AvanceLocalizacion({ m }: { m: MetricasPanel }) {
+  const conEntrada = useContext(EntradaPanel)
   const serie = m.serie_no_localizados
   const puntos = trazoSerie(serie, ANCHO, ALTO)
   const primero = serie[0]
@@ -488,7 +508,10 @@ function AvanceLocalizacion({ m }: { m: MetricasPanel }) {
           <svg
             viewBox={`0 0 ${ANCHO} ${ALTO}`}
             preserveAspectRatio="none"
-            className="h-24 w-full overflow-visible motion-safe:animate-revelar"
+            className={clsx(
+              'h-24 w-full overflow-visible',
+              conEntrada && 'motion-safe:animate-revelar',
+            )}
             role="img"
             aria-label={`No localizados por semana: de ${formatoNumero(primero.valor)} a ${formatoNumero(ultimo.valor)} en ${serie.length} semanas.`}
           >
@@ -515,6 +538,7 @@ function AvanceLocalizacion({ m }: { m: MetricasPanel }) {
 function ActividadReciente({ m }: { m: MetricasPanel }) {
   // Al actualizar, lo que llegó desde la última vista se resalta un momento.
   const nuevos = useRecienLlegados(m.actividad.map((a) => a.id))
+  const conEntrada = useContext(EntradaPanel)
   return (
     <Bloque
       titulo="Actividad reciente"
@@ -533,7 +557,9 @@ function ActividadReciente({ m }: { m: MetricasPanel }) {
               style={retraso(i)}
               className={clsx(
                 'flex flex-col gap-0.5 py-2 text-sm',
-                nuevos.has(a.id) ? 'motion-safe:animate-llegar' : 'motion-safe:animate-aparecer',
+                nuevos.has(a.id)
+                  ? 'motion-safe:animate-llegar'
+                  : conEntrada && 'motion-safe:animate-aparecer',
               )}
             >
               <p className="flex flex-wrap items-baseline gap-x-2">
