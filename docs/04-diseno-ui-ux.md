@@ -544,8 +544,27 @@ toda la app.
 - **Motivo de marca:** las franjas diagonales del logotipo, con moderación: solo en la pantalla de inicio de
   sesión y en los estados vacíos. En el menú, el elemento activo lleva una barra amarilla de 3 px a la
   izquierda sobre fondo `marca-azul-50`.
-- **Movimiento:** transiciones de 150–200 ms solo en hover y al abrir diálogos y menús; se desactivan con
-  «reducir movimiento».
+- **Movimiento:** sutil y funcional: explica lo que pasa (llega un dato, cambia un estado, avanza un paso), no
+  decora. Hover en 150 ms; cambios de estado y pasos en 200–300 ms; solo la entrada del panel llega a ~700 ms.
+  Las entradas desaceleran (`cubic-bezier(0.2, 0, 0, 1)`), sin rebotes; las listas se escalonan 40–60 ms por
+  elemento con un tope de ~300 ms. Las animaciones viven en `src/styles/index.css` (`animate-aparecer`,
+  `crecer-x`, `revelar`, `entrar-derecha`/`izquierda`, `llegar`, `sacudir`, `asentar`, `confirmar`) y los
+  hooks en `src/lib/movimiento.ts`. Dónde se usan:
+  - **Panel:** las cifras cuentan hasta su valor (y del valor anterior al nuevo al actualizar), las tarjetas
+    aparecen escalonadas y suben 2 px al pasar el mouse, las barras por empresa crecen, la línea de avance se
+    descubre y los movimientos nuevos llegan resaltados. Mientras carga, un esqueleto con la forma del panel.
+    Esa entrada completa solo se ve la primera vez por sesión; al volver al panel las cifras están al instante
+    (quien lo consulta varias veces al día no espera a que se arme).
+  - **Asistente de entrega:** el paso entra por la derecha al avanzar y por la izquierda al regresar; el aviso
+    de faltantes se sacude; el equipo agregado llega resaltado; las palomitas del stepper se asientan.
+  - **Entrega registrada y ficha:** el aviso de éxito aparece con su palomita; la insignia de estado se asienta
+    con un anillo azul al guardar un cambio (al abrir la ficha no se anima).
+  - **Inicio de sesión:** el logo aparece, la tarjeta sube y las franjas del logotipo entran una por una; un
+    error de acceso se sacude.
+
+  Los diálogos, menús y avisos flotantes se quedan sin animación (decisión del usuario, 2026-11-26). Todo se
+  aplica con `motion-safe:`: con «reducir movimiento» no hay animación ni espera, y las cifras muestran su valor
+  final al instante. Los números animados se ocultan a lectores de pantalla, que leen el valor final.
 - **Se evita:** degradados, sombras marcadas, fondos amarillos grandes, mayúsculas sostenidas (salvo siglas) y
   más de un botón primario por pantalla.
 - Modo oscuro: fuera de la v1.

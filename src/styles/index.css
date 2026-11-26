@@ -43,6 +43,94 @@
 
   --radius-control: 8px;
   --radius-tarjeta: 12px;
+
+  /* Movimiento (§7.4): explica lo que pasa (llega un dato, cambia un estado, avanza un paso). Las entradas
+     desaceleran; el escalonado se da con `animation-delay` en línea (`retraso()` de src/lib/movimiento.ts),
+     con tope de ~300 ms en total. Se aplican siempre
+     con `motion-safe:`, así que con «reducir movimiento» no hay animación ni espera. */
+  --ease-entrada: cubic-bezier(0.2, 0, 0, 1);
+  --ease-salida: cubic-bezier(0.3, 0, 1, 1);
+
+  --animate-aparecer: aparecer 250ms cubic-bezier(0.2, 0, 0, 1) both;
+  --animate-crecer-x: crecer-x 500ms cubic-bezier(0.2, 0, 0, 1) both;
+  --animate-revelar: revelar 700ms cubic-bezier(0.2, 0, 0, 1) 150ms both;
+  --animate-entrar-derecha: entrar-derecha 250ms cubic-bezier(0.2, 0, 0, 1) both;
+  --animate-entrar-izquierda: entrar-izquierda 250ms cubic-bezier(0.2, 0, 0, 1) both;
+  --animate-resaltar: resaltar 1200ms cubic-bezier(0.3, 0, 1, 1) 200ms both;
+  /* Elemento que acaba de llegar a una lista: aparece y queda resaltado un momento. */
+  --animate-llegar:
+    aparecer 250ms cubic-bezier(0.2, 0, 0, 1) both,
+    resaltar 1200ms cubic-bezier(0.3, 0, 1, 1) 200ms both;
+  --animate-sacudir: sacudir 300ms ease-in-out;
+  --animate-asentar: asentar 200ms cubic-bezier(0.2, 0, 0, 1) both;
+  /* Confirmación de un cambio guardado: se asienta y deja un anillo azul que se desvanece. */
+  --animate-confirmar:
+    asentar 200ms cubic-bezier(0.2, 0, 0, 1) both,
+    anillo 900ms cubic-bezier(0.3, 0, 1, 1) 100ms both;
+
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  /* Barras: crecen desde la izquierda (con `origin-left`). */
+  @keyframes crecer-x {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  /* Línea del panel: se descubre de izquierda a derecha. Los -4px dejan ver el trazo en los bordes. */
+  @keyframes revelar {
+    from {
+      clip-path: inset(-4px 100% -4px -4px);
+    }
+    to {
+      clip-path: inset(-4px -4px -4px -4px);
+    }
+  }
+  @keyframes entrar-derecha {
+    from {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+  }
+  @keyframes entrar-izquierda {
+    from {
+      opacity: 0;
+      transform: translateX(-16px);
+    }
+  }
+  /* Lo nuevo o lo que acaba de cambiar: fondo azul claro que se desvanece. */
+  @keyframes resaltar {
+    from {
+      background-color: var(--color-marca-azul-50);
+    }
+  }
+  @keyframes sacudir {
+    20%,
+    60% {
+      transform: translateX(-4px);
+    }
+    40%,
+    80% {
+      transform: translateX(4px);
+    }
+  }
+  @keyframes asentar {
+    from {
+      opacity: 0;
+      transform: scale(0.85);
+    }
+  }
+  @keyframes anillo {
+    from {
+      box-shadow: 0 0 0 0 rgb(0 85 163 / 0.35);
+    }
+    to {
+      box-shadow: 0 0 0 8px rgb(0 85 163 / 0);
+    }
+  }
 }
 
 @layer base {
@@ -64,6 +152,7 @@
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
   }
 }
 

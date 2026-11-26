@@ -1,4 +1,5 @@
-import { Pencil, Plus, ScanLine, X } from 'lucide-react'
+import clsx from 'clsx'
+import { Check, Pencil, Plus, ScanLine, X } from 'lucide-react'
 import {
   useDeferredValue,
   useEffect,
@@ -25,6 +26,7 @@ import { mensajeDeError } from '@/lib/errores'
 import { hayCamara } from '@/lib/escaner'
 import { ESTADOS_ASIGNABLES, ETIQUETA_ESTADO } from '@/lib/estados'
 import { fechaCorta, oGuion } from '@/lib/formato'
+import { useDireccion, useRecienLlegados } from '@/lib/movimiento'
 import { useTitulo } from '@/lib/useTitulo'
 import {
   aDatosEntrega,
@@ -140,6 +142,8 @@ export function AsistenteEntrega() {
   }, [b.equipos, setB])
 
   const pendientes = intentado ? faltantes(b, paso) : []
+  // El contenido del paso entra por la derecha al avanzar y por la izquierda al regresar (doc 04 §7.4).
+  const direccion = useDireccion(paso)
 
   // Los botones están al pie del paso: al cambiar de paso la vista sube a su título, y con faltantes
   // (o error al registrar) va al aviso. No se mueve en la primera carga.
@@ -203,9 +207,10 @@ export function AsistenteEntrega() {
 
         {pendientes.length || error ? (
           <div
+            key={`aviso-${intentos}`}
             ref={aviso}
             role="alert"
-            className="flex scroll-mt-20 flex-col gap-1 rounded-control border border-no-localizado bg-no-localizado-fondo px-4 py-3 text-sm text-no-localizado outline-none"
+            className="flex scroll-mt-20 flex-col gap-1 rounded-control border border-no-localizado bg-no-localizado-fondo px-4 py-3 text-sm text-no-localizado outline-none motion-safe:animate-sacudir"
           >
             {error ? <p>{error}</p> : null}
             {pendientes.length ? (
@@ -218,15 +223,23 @@ export function AsistenteEntrega() {
           </div>
         ) : null}
 
-        {paso === 1 ? <PasoColaborador b={b} setB={setB} unidades={unidades.data ?? []} /> : null}
-        {paso === 2 ? <PasoEquipos b={b} setB={setB} /> : null}
-        {paso === 3 ? <PasoDatos b={b} setB={setB} /> : null}
-        {paso === 4 ? (
-          <PasoConfirmar
-            b={b}
-            unidad={unidades.data?.find((u) => u.valor === b.unidadNegocioId)?.texto}
-          />
-        ) : null}
+        <div
+          key={`paso-${paso}`}
+          className={clsx(
+            direccion === 'adelante' && 'motion-safe:animate-entrar-derecha',
+            direccion === 'atras' && 'motion-safe:animate-entrar-izquierda',
+          )}
+        >
+          {paso === 1 ? <PasoColaborador b={b} setB={setB} unidades={unidades.data ?? []} /> : null}
+          {paso === 2 ? <PasoEquipos b={b} setB={setB} /> : null}
+          {paso === 3 ? <PasoDatos b={b} setB={setB} /> : null}
+          {paso === 4 ? (
+            <PasoConfirmar
+              b={b}
+              unidad={unidades.data?.find((u) => u.valor === b.unidadNegocioId)?.texto}
+            />
+          ) : null}
+        </div>
 
         {/* Teléfono: «Descartar» al final del contenido y la barra Atrás / Continuar fija abajo, para no
             tener que bajar hasta el final de cada paso. Desde sm, una sola fila al pie como antes. */}
@@ -400,6 +413,8 @@ function motivoNoAsignable(e: EquipoEntrega): string {
 }
 
 function PasoEquipos({ b, setB }: { b: Borrador; setB: Cambiar }) {
+  // Lo que se agrega mientras se está en el paso llega resaltado; lo del borrador no.
+  const recienAgregados = useRecienLlegados(b.equipos.map((e) => e.id))
   const [texto, setTexto] = useState('')
   const buscado = useDeferredValue(texto)
   const resultados = useBuscarEquiposEntrega(buscado)
@@ -502,7 +517,13 @@ function PasoEquipos({ b, setB }: { b: Borrador; setB: Cambiar }) {
         {b.equipos.length ? (
           <ul className="flex flex-col divide-y divide-borde rounded-control border border-borde">
             {b.equipos.map((e) => (
-              <li key={e.id} className="flex flex-col gap-3 px-4 py-3">
+              <li
+                key={e.id}
+                className={clsx(
+                  'flex flex-col gap-3 px-4 py-3',
+                  recienAgregados.has(e.id) && 'motion-safe:animate-llegar',
+                )}
+              >
                 <div className="flex items-center justify-between gap-3">
                   <FilaEquipo e={e} />
                   <div className="flex shrink-0 gap-1">
@@ -648,7 +669,13 @@ function FilaAgregar({
         onClick={() => alAgregar(e)}
         aria-label={`Agregar ${e.serie}`}
       >
-        {agregado ? 'Agregado' : 'Agregar'}
+        {agregado ? (
+          <>
+            <Check aria-hidden="true" className="size-4 motion-safe:animate-asentar" /> Agregado
+          </>
+        ) : (
+          'Agregar'
+        )}
       </Button>
     </li>
   )

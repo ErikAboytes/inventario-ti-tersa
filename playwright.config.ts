@@ -21,6 +21,8 @@ export default defineConfig({
     timezoneId: 'America/Tijuana',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // Sin animaciones (doc 04 §7.4): las pruebas no esperan a que las cifras terminen de contar.
+    contextOptions: { reducedMotion: 'reduce' },
   },
   projects: [
     // Inicia sesión una vez por rol y guarda el estado para las demás pruebas.

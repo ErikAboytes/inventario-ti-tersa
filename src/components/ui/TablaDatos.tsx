@@ -151,7 +151,7 @@ export function TablaDatos<F>(p: Props<F>) {
                         key={c.clave}
                         className={clsx('px-4', c.secundaria && 'hidden xl:table-cell')}
                       >
-                        <span className="block h-3 w-3/4 animate-pulse rounded bg-fondo" />
+                        <span className="block h-3 w-3/4 rounded bg-fondo motion-safe:animate-pulse" />
                       </td>
                     ))}
                   </tr>

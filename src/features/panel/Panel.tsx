@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { ArrowRight, Plus, RotateCw } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/contexto'
@@ -9,6 +9,7 @@ import { ETIQUETA_MOVIMIENTO, fechaHora } from '@/features/equipos/historial'
 import { mensajeDeError } from '@/lib/errores'
 import { ETIQUETA_ESTADO, type EstadoEquipo } from '@/lib/estados'
 import { fechaCorta } from '@/lib/formato'
+import { retraso, useConteo, useRecienLlegados } from '@/lib/movimiento'
 import { useTitulo } from '@/lib/useTitulo'
 import { useMetricasPanel, type MetricasPanel } from './datos'
 import {
@@ -34,6 +35,14 @@ const RELLENO: Record<EstadoEquipo, string> = {
 }
 
 /**
+ * La entrada completa del panel (cifras desde 0, cascadas, barras que crecen, línea que se descubre) solo se ve
+ * la primera vez por sesión: quien vuelve al panel varias veces al día no espera a que se arme. Al actualizar,
+ * las cifras siguen contando del valor anterior al nuevo.
+ */
+let panelYaVisto = false
+const EntradaPanel = createContext(true)
+
+/**
  * P-03: panel operativo (doc 04 §6). Cada bloque responde una pregunta y cada cifra abre el inventario o el
  * historial con el filtro equivalente. El Administrador ve primero lo que tiene que resolver; el Lector, la
  * situación general.
@@ -44,6 +53,10 @@ export function Panel() {
   const esAdmin = perfil?.rol === 'admin'
   const consulta = useMetricasPanel()
   const m = consulta.data
+  const [conEntrada] = useState(() => !panelYaVisto)
+  useEffect(() => {
+    panelYaVisto = true
+  }, [])
 
   return (
     <div className="flex flex-col gap-6">
@@ -91,11 +104,9 @@ export function Panel() {
           </Button>
         </div>
       ) : !m ? (
-        <p role="status" className="text-texto-secundario">
-          Calculando cifras…
-        </p>
+        <EsqueletoPanel />
       ) : (
-        <>
+        <EntradaPanel.Provider value={conEntrada}>
           <CifrasClave m={m} />
           {/* En el celular el orden es el del DOM (lo urgente primero); en escritorio se emparejan bloques de
               alto parecido para que ninguno se estire: Distribución con Actividad, Avance con Atención. */}
@@ -132,7 +143,7 @@ export function Panel() {
               </>
             )}
           </div>
-        </>
+        </EntradaPanel.Provider>
       )}
     </div>
   )
@@ -162,24 +173,28 @@ function CifrasClave({ m }: { m: MetricasPanel }) {
       {/* 2 × 2 desde el celular: «Requiere atención» queda a la vista sin tanto desplazamiento. */}
       <ul className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Cifra
+          orden={0}
           etiqueta="Equipos activos"
           valor={c.activos}
           contexto="sin desactivados"
           ruta={rutaInventario({ estado: ESTADOS_ACTIVOS.join(',') })}
         />
         <Cifra
+          orden={1}
           etiqueta="Asignados"
           valor={c.asignados}
           contexto={`${porcentaje(c.asignados, c.activos)} del activo`}
           ruta={rutaInventario({ estado: 'asignado' })}
         />
         <Cifra
+          orden={2}
           etiqueta="Disponibles para entregar"
           valor={c.stock}
           contexto="en Stock"
           ruta={rutaInventario({ estado: 'stock' })}
         />
         <Cifra
+          orden={3}
           etiqueta="No localizados"
           valor={c.no_localizados}
           contexto={tendencia.texto}
@@ -192,12 +207,14 @@ function CifrasClave({ m }: { m: MetricasPanel }) {
 }
 
 function Cifra({
+  orden,
   etiqueta,
   valor,
   contexto,
   ruta,
   tono,
 }: {
+  orden: number
   etiqueta: string
   valor: number
   contexto: string
@@ -205,14 +222,17 @@ function Cifra({
   tono?: 'bien' | 'mal'
 }) {
   return (
-    <li>
+    <li
+      className={clsx(useContext(EntradaPanel) && 'motion-safe:animate-aparecer')}
+      style={retraso(orden)}
+    >
       <Link
         to={ruta}
-        className="flex h-full flex-col gap-1 rounded-tarjeta border border-borde bg-superficie p-4 transition-colors duration-150 hover:border-marca-azul sm:p-5"
+        className="flex h-full flex-col gap-1 rounded-tarjeta border border-borde bg-superficie p-4 transition-[border-color,translate] duration-150 ease-entrada hover:border-marca-azul motion-safe:hover:-translate-y-0.5 sm:p-5"
       >
         <span className="text-sm text-texto-secundario">{etiqueta}</span>
         <span className="text-2xl font-semibold text-tinta tabular-nums sm:text-3xl">
-          {formatoNumero(valor)}
+          <Numero valor={valor} />
         </span>
         <span
           className={clsx(
@@ -226,6 +246,56 @@ function Cifra({
         </span>
       </Link>
     </li>
+  )
+}
+
+/**
+ * Cifra que cuenta hasta su valor al cargar y al actualizar (doc 04 §7.4). El conteo es decorativo: los
+ * lectores de pantalla (y las pruebas) leen siempre el valor final.
+ */
+function Numero({ valor }: { valor: number }) {
+  const mostrado = useConteo(valor, useContext(EntradaPanel))
+  return (
+    <>
+      <span aria-hidden="true">{formatoNumero(mostrado)}</span>
+      <span className="sr-only">{formatoNumero(valor)}</span>
+    </>
+  )
+}
+
+/** Mientras llegan las cifras: la misma forma del panel, para que nada salte al cargar. */
+function EsqueletoPanel() {
+  const barra = 'block rounded bg-borde/60 motion-safe:animate-pulse'
+  return (
+    <div role="status" className="flex flex-col gap-6">
+      <span className="sr-only">Calculando cifras…</span>
+      <ul aria-hidden="true" className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => (
+          <li
+            key={i}
+            className="flex flex-col gap-2 rounded-tarjeta border border-borde bg-superficie p-4 sm:p-5"
+          >
+            <span className={clsx(barra, 'h-3.5 w-2/3')} />
+            <span className={clsx(barra, 'h-8 w-1/2')} />
+            <span className={clsx(barra, 'h-3.5 w-1/3')} />
+          </li>
+        ))}
+      </ul>
+      <div aria-hidden="true" className="grid gap-6 lg:grid-cols-2">
+        {[0, 1].map((i) => (
+          <div
+            key={i}
+            className="flex h-56 flex-col gap-3 rounded-tarjeta border border-borde bg-superficie p-6"
+          >
+            <span className={clsx(barra, 'h-4 w-1/3')} />
+            <span className={clsx(barra, 'h-3.5 w-1/2')} />
+            <span className={clsx(barra, 'mt-2 h-3 w-full')} />
+            <span className={clsx(barra, 'h-3 w-5/6')} />
+            <span className={clsx(barra, 'h-3 w-2/3')} />
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -277,12 +347,12 @@ function RequiereAtencion({ m }: { m: MetricasPanel }) {
                 className="group flex items-center gap-4 py-2.5 hover:text-marca-azul"
               >
                 <span className="w-14 text-right text-xl font-semibold tabular-nums">
-                  {formatoNumero(e.cantidad)}
+                  <Numero valor={e.cantidad} />
                 </span>
                 <span className="flex-1">{e.texto}</span>
                 <ArrowRight
                   aria-hidden="true"
-                  className="size-4 text-texto-secundario group-hover:text-marca-azul"
+                  className="size-4 text-texto-secundario transition-[color,translate] duration-150 ease-entrada group-hover:text-marca-azul motion-safe:group-hover:translate-x-0.5"
                 />
               </Link>
             </li>
@@ -298,6 +368,7 @@ function RequiereAtencion({ m }: { m: MetricasPanel }) {
 // ── 3. Distribución por empresa ─────────────────────────────────────────────────────────────────────
 
 function Distribucion({ m }: { m: MetricasPanel }) {
+  const conEntrada = useContext(EntradaPanel)
   const max = Math.max(1, ...m.por_empresa.map((e) => e.total))
 
   return (
@@ -315,7 +386,7 @@ function Distribucion({ m }: { m: MetricasPanel }) {
             suficiente (WCAG 2.2 · 2.5.8) y llevan las etiquetas directas sobre los datos.
           */}
           <ul className="flex flex-col divide-y divide-borde">
-            {m.por_empresa.map((e) => {
+            {m.por_empresa.map((e, i) => {
               const nombre = e.clave ?? 'Sin empresa'
               const empresa = e.empresa_id ?? SIN_EMPRESA
               const partes = segmentos(e.estados)
@@ -330,9 +401,13 @@ function Distribucion({ m }: { m: MetricasPanel }) {
                     <span className="tabular-nums">{formatoNumero(e.total)}</span>
                   </Link>
                   <div aria-hidden="true" className="hidden h-3 sm:block">
+                    {/* Crece desde la izquierda al cargar; al actualizar, el ancho cambia con transición. */}
                     <div
-                      className="flex h-full overflow-hidden rounded-sm"
-                      style={{ width: `${(e.total / max) * 100}%` }}
+                      className={clsx(
+                        'flex h-full origin-left overflow-hidden rounded-sm transition-[width] duration-500 ease-entrada',
+                        conEntrada && 'motion-safe:animate-crecer-x',
+                      )}
+                      style={{ ...retraso(i, 60), width: `${(e.total / max) * 100}%` }}
                     >
                       {partes.map((s) => (
                         <Link
@@ -341,7 +416,7 @@ function Distribucion({ m }: { m: MetricasPanel }) {
                           tabIndex={-1}
                           title={`${ETIQUETA_ESTADO[s.estado]}: ${formatoNumero(s.n)}`}
                           className={clsx(
-                            'h-full border-r border-superficie last:border-r-0 hover:opacity-80',
+                            'h-full border-r border-superficie transition-[width,opacity] duration-500 ease-entrada last:border-r-0 hover:opacity-80',
                             RELLENO[s.estado],
                           )}
                           style={{ width: `${(s.n / e.total) * 100}%` }}
@@ -382,6 +457,7 @@ const ANCHO = 300
 const ALTO = 80
 
 function AvanceLocalizacion({ m }: { m: MetricasPanel }) {
+  const conEntrada = useContext(EntradaPanel)
   const serie = m.serie_no_localizados
   const puntos = trazoSerie(serie, ANCHO, ALTO)
   const primero = serie[0]
@@ -403,7 +479,7 @@ function AvanceLocalizacion({ m }: { m: MetricasPanel }) {
       {!puntos || !primero || !ultimo ? (
         <div className="flex flex-col gap-1">
           <p className="text-3xl font-semibold tabular-nums">
-            {formatoNumero(m.cifras.no_localizados)}
+            <Numero valor={m.cifras.no_localizados} />
           </p>
           <p className="text-sm text-texto-secundario">
             Aún no hay historial suficiente para la tendencia
@@ -418,13 +494,13 @@ function AvanceLocalizacion({ m }: { m: MetricasPanel }) {
           <div className="flex items-end justify-between text-sm">
             <span>
               <span className="text-lg font-semibold tabular-nums">
-                {formatoNumero(primero.valor)}
+                <Numero valor={primero.valor} />
               </span>{' '}
               <span className="text-texto-secundario">sem. del {fechaCorta(primero.semana)}</span>
             </span>
             <span className="text-right">
               <span className="text-lg font-semibold tabular-nums">
-                {formatoNumero(ultimo.valor)}
+                <Numero valor={ultimo.valor} />
               </span>{' '}
               <span className="text-texto-secundario">esta semana</span>
             </span>
@@ -432,7 +508,10 @@ function AvanceLocalizacion({ m }: { m: MetricasPanel }) {
           <svg
             viewBox={`0 0 ${ANCHO} ${ALTO}`}
             preserveAspectRatio="none"
-            className="h-24 w-full overflow-visible"
+            className={clsx(
+              'h-24 w-full overflow-visible',
+              conEntrada && 'motion-safe:animate-revelar',
+            )}
             role="img"
             aria-label={`No localizados por semana: de ${formatoNumero(primero.valor)} a ${formatoNumero(ultimo.valor)} en ${serie.length} semanas.`}
           >
@@ -457,6 +536,9 @@ function AvanceLocalizacion({ m }: { m: MetricasPanel }) {
 // ── 5. Actividad reciente ───────────────────────────────────────────────────────────────────────────
 
 function ActividadReciente({ m }: { m: MetricasPanel }) {
+  // Al actualizar, lo que llegó desde la última vista se resalta un momento.
+  const nuevos = useRecienLlegados(m.actividad.map((a) => a.id))
+  const conEntrada = useContext(EntradaPanel)
   return (
     <Bloque
       titulo="Actividad reciente"
@@ -469,8 +551,17 @@ function ActividadReciente({ m }: { m: MetricasPanel }) {
     >
       {m.actividad.length ? (
         <ol className="flex flex-col divide-y divide-borde">
-          {m.actividad.map((a) => (
-            <li key={a.id} className="flex flex-col gap-0.5 py-2 text-sm">
+          {m.actividad.map((a, i) => (
+            <li
+              key={a.id}
+              style={retraso(i)}
+              className={clsx(
+                'flex flex-col gap-0.5 py-2 text-sm',
+                nuevos.has(a.id)
+                  ? 'motion-safe:animate-llegar'
+                  : conEntrada && 'motion-safe:animate-aparecer',
+              )}
+            >
               <p className="flex flex-wrap items-baseline gap-x-2">
                 <span className="font-medium">{ETIQUETA_MOVIMIENTO[a.tipo]}</span>
                 {a.folio ? <span className="font-mono">{a.folio}</span> : null}
