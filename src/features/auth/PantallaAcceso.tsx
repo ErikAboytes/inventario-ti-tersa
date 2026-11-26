@@ -1,15 +1,19 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Logo } from '@/components/Logo'
 
-/** Marco de las pantallas sin sesión (P-01, P-02): el único «momento de marca» de la app (doc 04 §6). */
+/**
+ * Marco de las pantallas sin sesión (P-01, P-02): el único «momento de marca» de la app (doc 04 §6). Al abrir,
+ * el logo aparece, la tarjeta sube y las franjas del logotipo entran una por una (doc 04 §7.4).
+ */
 export function PantallaAcceso({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 py-12">
       <main className="relative z-10 flex w-full max-w-sm flex-col items-center gap-8">
-        <Logo className="h-auto w-48" />
+        <Logo className="h-auto w-48 motion-safe:animate-aparecer" />
         <section
           aria-labelledby="titulo-acceso"
-          className="flex w-full flex-col gap-6 rounded-tarjeta border border-borde bg-superficie p-6 sm:p-8"
+          style={{ animationDelay: '80ms' }}
+          className="flex w-full flex-col gap-6 rounded-tarjeta border border-borde bg-superficie p-6 motion-safe:animate-aparecer sm:p-8"
         >
           <h1 id="titulo-acceso" className="text-xl font-semibold">
             {titulo}
@@ -21,6 +25,9 @@ export function PantallaAcceso({ titulo, children }: { titulo: string; children:
     </div>
   )
 }
+
+// Las franjas entran después de la tarjeta, 60 ms una tras otra.
+const entradaFranja = (i: number): CSSProperties => ({ animationDelay: `${250 + i * 60}ms` })
 
 /** Franjas diagonales del logotipo, como detalle discreto al pie. */
 function FranjaMarca() {
@@ -36,9 +43,16 @@ function FranjaMarca() {
           key={i}
           points={`${i * 46 + 8},24 ${i * 46 + 44},24 ${i * 46 + 52},0 ${i * 46 + 16},0`}
           fill="currentColor"
+          style={entradaFranja(i)}
+          className="motion-safe:animate-entrar-izquierda"
         />
       ))}
-      <polygon points="238,24 480,24 480,0 246,0" fill="currentColor" />
+      <polygon
+        points="238,24 480,24 480,0 246,0"
+        fill="currentColor"
+        style={entradaFranja(5)}
+        className="motion-safe:animate-entrar-izquierda"
+      />
     </svg>
   )
 }

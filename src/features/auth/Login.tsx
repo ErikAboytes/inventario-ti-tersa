@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
@@ -65,12 +66,21 @@ export function Login() {
           required
         />
         {error ? (
-          <p role="alert" className="text-sm font-medium text-no-localizado">
+          <p
+            role="alert"
+            className="text-sm font-medium text-no-localizado motion-safe:animate-sacudir"
+          >
             {error}
           </p>
         ) : null}
         <Button type="submit" disabled={enviando} className="w-full">
-          {enviando ? 'Entrando…' : 'Iniciar sesión'}
+          {enviando ? (
+            <>
+              <Loader2 aria-hidden="true" className="size-4 motion-safe:animate-spin" /> Entrando…
+            </>
+          ) : (
+            'Iniciar sesión'
+          )}
         </Button>
       </form>
       <Link

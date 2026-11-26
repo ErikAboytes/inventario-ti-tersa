@@ -70,10 +70,15 @@ export function DocumentosAsignacion() {
         params.get('nueva') ? (
           <p
             role="status"
-            className="flex items-center gap-2 rounded-control border border-stock bg-stock-fondo px-3 py-2 text-sm font-medium text-stock"
+            className="flex items-center gap-2 rounded-control border border-stock bg-stock-fondo px-3 py-2 text-sm font-medium text-stock motion-safe:animate-aparecer"
           >
-            <CircleCheck aria-hidden="true" className="size-5" /> Entrega {a.folio} registrada.
-            Imprime la carta para firmarla y las etiquetas para pegarlas en los equipos.
+            <CircleCheck
+              aria-hidden="true"
+              className="size-5 shrink-0 motion-safe:animate-asentar"
+              style={{ animationDelay: '150ms' }}
+            />{' '}
+            Entrega {a.folio} registrada. Imprime la carta para firmarla y las etiquetas para
+            pegarlas en los equipos.
           </p>
         ) : null
       }

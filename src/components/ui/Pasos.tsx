@@ -30,7 +30,7 @@ export function Pasos({
             <span
               key={texto}
               className={clsx(
-                'h-1.5 flex-1 rounded-full',
+                'h-1.5 flex-1 rounded-full transition-colors duration-300 ease-entrada',
                 i + 1 <= actual ? 'bg-marca-azul' : 'bg-borde',
               )}
             />
@@ -46,13 +46,17 @@ export function Pasos({
               <span
                 aria-hidden="true"
                 className={clsx(
-                  'inline-flex size-7 shrink-0 items-center justify-center rounded-full border text-sm font-semibold',
+                  'inline-flex size-7 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors duration-300 ease-entrada',
                   n === actual && 'border-marca-azul bg-marca-azul text-white',
                   hecho && 'border-marca-azul bg-marca-azul-50 text-marca-azul',
                   n > actual && 'border-borde-control text-texto-secundario',
                 )}
               >
-                {hecho ? <Check className="size-4" strokeWidth={2.5} /> : n}
+                {hecho ? (
+                  <Check className="size-4 motion-safe:animate-asentar" strokeWidth={2.5} />
+                ) : (
+                  n
+                )}
               </span>
               <span
                 className={clsx(

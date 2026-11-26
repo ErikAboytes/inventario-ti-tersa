@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { QrCode } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
@@ -11,6 +12,7 @@ import { NoEncontrada } from '@/features/errores/NoEncontrada'
 import { mensajeDeError } from '@/lib/errores'
 import { ESTADOS_ASIGNABLES } from '@/lib/estados'
 import { fechaCorta, oGuion } from '@/lib/formato'
+import { useAlCambiar } from '@/lib/movimiento'
 import { useTitulo } from '@/lib/useTitulo'
 import { useEquipo, useHistorialEquipo, type FilaEquipo } from './datos'
 import { DialogoCambioEstado } from './DialogoCambioEstado'
@@ -31,6 +33,7 @@ export function FichaEquipo() {
   const consulta = useEquipo(id)
   const e = consulta.data
   useTitulo(e?.serie ?? 'Equipo')
+  const cambiosEstado = useAlCambiar(e?.estado, id)
   const esAdmin = useEsAdmin()
   const navigate = useNavigate()
   const [cambiandoEstado, setCambiandoEstado] = useState(false)
@@ -127,7 +130,16 @@ export function FichaEquipo() {
       />
 
       <div>
-        <StatusBadge estado={e.estado} detalle={detalleEstado(e)} />
+        {/* Tras guardar un nuevo estado, la insignia se asienta y resalta una vez; al abrir la ficha no. */}
+        <span
+          key={cambiosEstado}
+          className={clsx(
+            'inline-flex rounded-full',
+            cambiosEstado > 0 && 'motion-safe:animate-confirmar',
+          )}
+        >
+          <StatusBadge estado={e.estado} detalle={detalleEstado(e)} />
+        </span>
       </div>
       {e.estado_historico ? <AvisoHistorico equipo={equipo} esAdmin={esAdmin} /> : null}
 
